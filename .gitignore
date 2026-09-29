@@ -1,0 +1,10 @@
+# Segredos e ambiente local
+.env
+.env.*
+!.env.example
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

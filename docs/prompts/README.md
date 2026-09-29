@@ -1,0 +1,65 @@
+# Registro de prompts
+
+Todas as sessões com agentes de programação que criem ou alterem arquivos são registradas aqui (Princípio VII da [constituição](../constitution.md)). O objetivo, conforme a seção 11 da [apostila](../sdd_guidelines/apostila/apostila_sdd_para_projetos.md), é permitir que outra pessoa entenda o que foi pedido, com qual contexto, o que foi aceito e como o grupo verificou o resultado.
+
+## Convenção
+
+- **Um arquivo por sessão**, nomeado `AAAA-MM-DD-tema-curto.md` (ex.: `2026-09-29-estruturacao-projeto.md`).
+- Se o nome já existir, acrescente um sufixo: `-2`, `-3`.
+- O tema é em kebab-case, sem acentos. Quando a sessão tratar de uma funcionalidade, use o nome da pasta da spec (ex.: `2026-10-02-001-envio-materiais-spec.md`).
+- Os prompts são copiados **literalmente**, na ordem, incluindo as respostas a perguntas de esclarecimento do agente.
+- Nunca registre segredos ou dados pessoais de terceiros: substitua por `[REMOVIDO]`.
+
+## Modelo
+
+````markdown
+# [Tema da sessão]
+
+**Data:** AAAA-MM-DD
+**Autor:** [pessoa que conduziu a sessão]
+**Agente e modelo:** [ferramenta e modelo, ex.: Claude Code / claude-opus-5-5]
+**Etapa SDD:** [estruturação | especificar | esclarecer | revisar | pesquisar | planejar | tarefas | implementar | convergir]
+**Funcionalidade:** [NNN-nome-curto ou "projeto"]
+
+## Contexto fornecido
+
+- [arquivos, links ou artefatos entregues ao agente]
+
+## Prompts
+
+### Prompt 1
+
+```text
+[texto literal]
+```
+
+### Resposta a esclarecimento 1
+
+```text
+[pergunta do agente, resumida] -> [resposta literal da pessoa]
+```
+
+## Saída aceita
+
+| Artefato | Ação |
+|---|---|
+| `caminho/arquivo` | criado / alterado / removido |
+
+## Alterações humanas
+
+[O que a equipe mudou na saída do agente, ou "pendente de revisão".]
+
+## Verificação
+
+[Como o resultado foi conferido: leitura, checklist, testes executados e seus resultados.]
+
+## Pendências
+
+- [itens que ficaram para depois]
+````
+
+## Índice
+
+| Data | Sessão | Etapa | Autor |
+|---|---|---|---|
+| 2026-09-29 | [Estruturação do projeto](2026-09-29-estruturacao-projeto.md) | Estruturação | Artur |
