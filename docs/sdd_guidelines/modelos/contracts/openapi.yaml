@@ -1,0 +1,44 @@
+openapi: 3.1.0
+info:
+  title: Contrato da funcionalidade
+  version: 0.1.0
+  description: Substitua este exemplo pelos comportamentos definidos na spec.
+paths:
+  /api/v1/recursos:
+    post:
+      summary: Executa a ação principal da funcionalidade
+      operationId: criarRecurso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecursoEntrada'
+      responses:
+        '201':
+          description: Recurso criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecursoSaida'
+        '400':
+          description: Entrada inválida
+        '422':
+          description: Regra de negócio não atendida
+components:
+  schemas:
+    RecursoEntrada:
+      type: object
+      required: [conteudo]
+      properties:
+        conteudo:
+          type: string
+          minLength: 1
+    RecursoSaida:
+      type: object
+      required: [id, estado]
+      properties:
+        id:
+          type: string
+        estado:
+          type: string
