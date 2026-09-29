@@ -1,0 +1,295 @@
+# Pendências e impactos das decisões
+
+**Data:** 29/09/2026
+**Origem:** [brainstorming aprofundado](../prompts/2026-09-29-brainstorming-aprofundado.md)
+**Responsável geral:** a equipe (Arthur Moura, Artur Lins, Pedro Paulo Lucena e William Johnson). Recorte do MVP e decisões de produto são validados com o professor Aldo Nunes (PO).
+
+Este documento reúne o que **ainda não foi decidido**, o que cada pendência bloqueia e o impacto de cada opção. Ele serve de pauta para as reuniões da equipe e com o professor. As decisões já tomadas estão na [visão](visao.md#decisões-do-brainstorming-aprofundado) e o recorte está no [backlog](backlog.md#recorte-do-mvp).
+
+As recomendações abaixo são do agente e **não são decisões**. Uma pendência só é encerrada quando a equipe registra a resposta: questões técnicas vão para um ADR ou `research.md`, e questões de produto para a visão ou a spec. Ao encerrar uma pendência, mova-a para a seção [Encerradas](#encerradas) com a data e o link da decisão, sem apagar o texto.
+
+## Prazos de referência
+
+- **MVP:** 3 semanas a partir de 29/09/2026 (estimativa: 20/10/2026), podendo rodar localmente.
+- **Plataforma final:** novembro de 2026, com deploy obrigatório (URL com HTTPS).
+- **Caminho crítico:** QA-18 e QA-22 bloqueiam o primeiro `plan.md`. Cada dia sem elas consome o prazo do MVP.
+
+## Resumo
+
+| ID | Pendência | Tipo | Bloqueia | Responsável | Prazo sugerido |
+|---|---|---|---|---|---|
+| [QA-22](#qa-22-stack-de-ia-llm-embeddings-e-busca) | Stack de IA: LLM, embeddings e busca | Técnica | QA-21, QA-11, plano de F-03, F-04 e F-06 | Equipe | 01/10/2026 |
+| [QA-18](#qa-18-framework-do-backend-fastapi-ou-django) | Framework do backend: FastAPI ou Django | Técnica | Primeiro `plan.md`, QA-21, estrutura de pastas | Equipe | 01/10/2026 |
+| [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | No plano de F-01 |
+| [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy final | Equipe | Antes do fim do MVP |
+| [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação automática e limite de novos cartões (provisória) | Produto | Spec de F-04 e F-05 | Equipe e professor | Na spec de F-04 |
+| [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 | Equipe e professor | Na spec de F-06 |
+| [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Na spec de F-09 |
+| [QA-25](#qa-25-sessão-no-navegador-migração-para-bff) | Sessão no navegador: migração para BFF | Técnica e segurança | Deploy final | Equipe | Antes do deploy |
+| [QA-04](#qa-04-qualidade-e-verificação-da-geração) | Qualidade e verificação da geração (restante) | Produto e técnica | Spec de F-03 e F-04 | Equipe | Na spec de F-04 |
+| [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Antes da interface de F-01 |
+| [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Próxima review |
+| [VAL-02](#val-02-aprovação-da-constituição-v02) | Aprovação da constituição v0.2 | Processo | Aprovação da primeira spec | Equipe | Próxima reunião |
+| [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Antes da primeira sprint |
+| [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO (se haverá e quem) | Processo | Aprovações entre as reviews com o professor | Equipe | Próxima reunião |
+
+## Mapa de dependências
+
+```mermaid
+flowchart LR
+    QA22[QA-22 Stack de IA] --> QA21[QA-21 Esquema do banco]
+    QA18[QA-18 Framework] --> QA21
+    QA22 --> QA11[QA-11 VPS]
+    QA21 --> PLAN[Primeiro plan.md]
+    QA18 --> PLAN
+    VAL01[VAL-01 MVP com professor] --> SPEC[Aprovação da primeira spec]
+    VAL02[VAL-02 Constituição v0.2] --> SPEC
+    SPEC --> PLAN
+    QA11 --> DEPLOY[Deploy final]
+    QA25[QA-25 BFF] --> DEPLOY
+```
+
+---
+
+## Técnicas
+
+### QA-22 Stack de IA: LLM, embeddings e busca
+
+Refina QA-04. São três decisões ligadas. A de embeddings é a que mais repercute no resto do sistema.
+
+#### LLM
+
+**Direção atual:** começar com provedores gratuitos (ex.: Groq) e migrar para uma API paga se necessário.
+
+| Opção | Vantagens | Riscos e custos |
+|---|---|---|
+| Groq, plano gratuito | Custo zero e baixa latência; modelos abertos | Limites de requisições por minuto e por dia podem estourar durante a geração em lote ou na demo; modelos podem ser descontinuados; os materiais do usuário saem para um terceiro |
+| API paga (ex.: OpenAI, Anthropic, Google) | Qualidade e estabilidade maiores, saída estruturada confiável | Custo por token, que precisa de orçamento e limite |
+| Modelo local (ex.: Ollama) | Dados não saem do servidor | Exige GPU ou muita RAM; inviável numa VPS barata |
+
+**Impactos, qualquer que seja a opção:**
+
+- **Camada de provedor obrigatória.** O código de negócio não chama o SDK do provedor diretamente. Trocar Groq por uma API paga precisa ser uma mudança de configuração, não de código.
+- **Limites operacionais** exigidos pelas guidelines: timeout, retries limitados com *backoff*, orçamento de chamadas por usuário e por dia, e registro de consumo (tokens, latência, custo) por tarefa.
+- **Evals versionadas por modelo.** O relatório de avaliação registra o provedor, o modelo e a versão. Trocar de modelo exige reexecutar o conjunto de casos (Princípio V).
+- **Saída estruturada.** A geração de flashcards precisa de JSON validado por esquema, com as referências aos trechos. Modelos sem suporte confiável a isso aumentam a taxa de rejeição na validação.
+- **Português.** A qualidade em português deve estar entre os casos avaliados.
+
+#### Embeddings
+
+Até a data desta sessão, pelo levantamento do agente, **o Groq não oferece modelos de embedding**. Isso precisa ser confirmado no `research.md`. Se estiver certo, os embeddings vêm obrigatoriamente de outra fonte, mesmo que o LLM fique no Groq.
+
+| Opção | RAM na VPS | Custo | Privacidade | Qualidade em português | Observações |
+|---|---|---|---|---|---|
+| A) Modelo local grande (ex.: `bge-m3`) | ~2–3 GB | Zero por uso | Materiais não saem do servidor | Alta | Encarece a VPS; a indexação inicial é lenta em CPU |
+| B) Modelo local pequeno (ex.: `multilingual-e5-small`) | ~0,5–1 GB | Zero por uso | Materiais não saem do servidor | Boa | Meio-termo: cabe numa VPS modesta |
+| C) API de embeddings (ex.: OpenAI, Google, Voyage, Cohere, Jina) | Desprezível | Por token, geralmente baixo; conferir preços | Materiais saem para um terceiro | Alta, varia por modelo | Depende de rede e de chave; tem limites de requisição |
+| D) Sem embeddings (só busca textual) | Desprezível | Zero | Materiais não saem do servidor | Depende de coincidência de palavras | Enfraquece o RAG avaliado (aula 04, busca híbrida); serve como **solução de referência**, não como solução final |
+
+Os números de RAM são estimativas e precisam ser medidos no `research.md`.
+
+**Impactos da escolha:**
+
+1. **Esquema do banco (QA-21).** A coluna vetorial tem **dimensão fixa** (ex.: 384, 768, 1024, 1536), que depende do modelo. Trocar de modelo muda a dimensão e exige migração.
+2. **Reindexação.** Trocar de modelo exige recalcular os embeddings de **todos** os trechos de todos os usuários. Por isso, cada embedding deve registrar o modelo e a versão que o gerou, para permitir reindexação rastreável sem misturar vetores de modelos diferentes (Princípio IV, histórico preservado).
+3. **Custo da VPS (QA-11).** As opções A e B somam RAM fixa ao servidor. A opção C troca RAM por custo variável e por dependência externa.
+4. **Privacidade (Princípio II).** As opções C e LLM externo enviam trechos dos materiais a terceiros. Isso deve ser declarado ao usuário e registrado no ADR. A opção B é a única que mantém os trechos no servidor com custo fixo baixo, embora o LLM ainda os receba se for externo.
+5. **Tempo de processamento (F-03).** Modelos locais em CPU tornam a indexação de um PDF grande lenta, da ordem de minutos. Isso reforça a necessidade do worker assíncrono e de estados de processamento visíveis (RN-03 do init).
+6. **Avaliação.** A comparação exigida pelas guidelines ("solução de referência simples") fica natural: busca textual pura (D) contra busca híbrida (textual + vetorial), medindo evidência e correção nos mesmos casos.
+
+**Recomendação do agente:** manter a busca híbrida (requisito da disciplina) e escolher entre **B**, se a VPS tiver RAM sobrando, e **C**, se a VPS for mínima. Em qualquer caso, esconder o provedor atrás de uma interface e registrar modelo e versão por embedding. A decisão sobre "remover os modelos locais" deve considerar B como meio-termo, e não só A contra C.
+
+#### Busca
+
+**Proposta:** Postgres com `pgvector` para a similaridade vetorial e busca textual nativa (`tsvector` com configuração `portuguese`), combinadas por *Reciprocal Rank Fusion* (RRF).
+
+- **Impacto positivo:** um único banco (Postgres, já decidido), sem serviço vetorial extra na VPS, e transações que mantêm trechos e embeddings consistentes.
+- **Alternativa:** banco vetorial dedicado (ex.: Qdrant). Adiciona um contêiner e memória, e só se justifica com volumes muito maiores que os do projeto.
+- **Depende de:** a imagem do Postgres incluir a extensão `pgvector`.
+
+---
+
+### QA-18 Framework do backend: FastAPI ou Django
+
+**Decidido:** Python no backend, React no frontend (front e back separados, e o React é a View do MVC), Postgres, Keycloak.
+
+| Critério | FastAPI | Django |
+|---|---|---|
+| OpenAPI (Princípio V) | Nativo, gerado dos tipos | Via DRF + drf-spectacular ou Django Ninja |
+| Streaming do chat e chamadas assíncronas de LLM | Natural (async nativo, SSE) | Possível, porém menos natural (ASGI, views async) |
+| MVC evidente (restrição da constituição) | Montado à mão: models, controllers (routers) e React | MTV nativo, fácil de apontar na defesa |
+| ORM e migrações | SQLAlchemy 2 + Alembic (duas bibliotecas a aprender) | ORM e migrações integrados |
+| Painel administrativo | Não tem | Admin pronto, útil para depuração (fora do escopo do produto) |
+| Validação JWT do Keycloak | Dependência simples com JWKS | Middleware ou autenticação do DRF com JWKS |
+| Fluência da equipe | A levantar | A levantar |
+
+**Impactos, qualquer que seja a escolha:**
+
+- Define a estrutura de pastas do `backend/`, o `Dockerfile` e o complemento de [`../skills/padroes-implementacao.md`](../skills/padroes-implementacao.md).
+- O processamento de materiais (extração, embeddings, geração) **não cabe numa requisição HTTP**. É preciso escolher um worker e uma fila (ex.: Celery, Dramatiq, Arq ou uma fila no próprio Postgres), o que adiciona pelo menos um contêiner.
+- A fluência real da equipe pesa mais que a diferença técnica num prazo de 3 semanas.
+
+**Recomendação do agente:** FastAPI + SQLAlchemy 2 + Alembic, com um worker separado. Se a equipe tiver fluência forte em Django e nenhuma em FastAPI, Django com Django Ninja. Registrar em ADR.
+
+---
+
+### QA-21 Esquema inicial do banco
+
+**Depende de:** QA-22 (dimensão do vetor) e QA-18 (ORM e migrações). Será detalhado no primeiro `plan.md` (`data-model.md`).
+
+Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
+
+| Entidade | Origem da necessidade |
+|---|---|
+| `usuario` (referência ao `sub` do Keycloak, fuso, preferências) | Autenticação, fuso, configurações da meta e da lição |
+| `materia` | Organização por matérias |
+| `material` e sua versão | Envio, reprocessamento e histórico (RN-03, RN-09 do init) |
+| `trecho` (texto, página quando conhecida, posição) e embedding (com modelo e versão) | Citações e busca híbrida |
+| `execucao_processamento` | Estados visíveis e reprocessamento rastreável |
+| `flashcard` (origem: gerado e verificado, editado, criado; estado: ativo, suspenso; vínculo com trechos) | Princípio I, edição manual, exclusão de material |
+| Estado FSRS por cartão | Agendamento |
+| `revisao` (evento imutável com ID gerado no cliente, nota, duração) | Idempotência, tempo dedicado, histórico |
+| Eventos de XP | XP rastreável e sem duplicação (RN-06 do init) |
+| Dia de estudo (agregado por usuário e dia local) | Meta, sequência e heatmap |
+| `conversa`, `mensagem` e citação | Chat com histórico |
+
+---
+
+### QA-11 VPS e operação do deploy
+
+**Decidido:** VPS única com Docker Compose e Caddy (HTTPS automático) ou, como alternativa, Coolify. Kubernetes (k3s) só se sobrar tempo. O MVP pode rodar localmente.
+
+**Estimativa de memória por componente** (a medir; os valores servem para orientar a escolha):
+
+| Componente | RAM aproximada |
+|---|---|
+| Postgres | 0,5–1 GB |
+| Keycloak (JVM) | 0,5–1 GB |
+| Backend + worker | 0,3–0,8 GB |
+| Frontend (estático servido pelo Caddy) | Desprezível |
+| Embeddings locais | 0 (API) a 3 GB (modelo grande), ver QA-22 |
+| Coolify, se usado | Consome memória própria; conferir os requisitos oficiais |
+| Sistema operacional e folga | ~0,5–1 GB |
+
+**Totais aproximados:** ~2–4 GB sem embeddings locais e ~4–8 GB com um modelo local grande. Essa é a ligação direta entre QA-22 e o custo da VPS.
+
+**Impactos e pontos a decidir:**
+
+- **O custo da VPS depende de QA-22.** Decidir embeddings antes de contratar a VPS.
+- **O Keycloak é o maior custo fixo depois dos embeddings.** A decisão de usá-lo está tomada, e isso deve ser considerado no dimensionamento.
+- **Arquitetura:** imagens de contêiner precisam existir para a arquitetura da VPS (x86 ou ARM, caso de ofertas gratuitas em ARM).
+- **Domínio:** HTTPS exige um nome de domínio (próprio ou um serviço de DNS curinga, ex.: `sslip.io`).
+- **Exigências das guidelines para a entrega final:** health check, logs, backup do Postgres com **restauração testada**, rollback documentado e runbook.
+- **Opções de custo a pesquisar:** VPS paga de baixo custo, camadas gratuitas de nuvem e créditos para estudantes. Registrar a opção escolhida em ADR, com custo mensal.
+
+---
+
+### QA-25 Sessão no navegador: migração para BFF
+
+**Decidido para o MVP:** `keycloak-js` no front (Authorization Code + PKCE), com o access token só em memória e o backend validando o JWT pela JWKS do Keycloak. O realm fica exportado em JSON no repositório.
+
+**Pendente:** migrar para BFF (o backend conduz o fluxo OIDC e o navegador recebe só um cookie httpOnly) antes do deploy final.
+
+- **Se migrar:** nenhum token fica acessível ao JavaScript, o que atende "chaves fora do navegador" das guidelines. Custa um fluxo de login no backend e proteção CSRF.
+- **Se não migrar:** permanece o risco de um XSS usar o token durante a sessão. Isso deve ser registrado como risco aceito no plano, com tokens de vida curta e CSP restritiva como mitigação.
+- **Ligado a QA-19:** as telas de login e recuperação de senha são do Keycloak e precisam de um tema próprio para seguir a identidade visual.
+
+---
+
+## Produto
+
+### QA-23 Publicação automática e limite de novos cartões
+
+**Provisório (a confirmar com a equipe):** cartões gerados que passam na verificação entram direto na matéria como novos. O limite de novos cartões por dia é configurável pelo usuário, com padrão inicial de 10 (a revisar: é pouco para quem estuda muito).
+
+| Se confirmar | Se trocar por caixa de entrada (aprovação manual) |
+|---|---|
+| Fluxo "enviar e estudar" sem obstáculo | O usuário filtra os cartões antes de estudar |
+| A qualidade da geração pesa mais: um cartão ruim chega ao estudo | Cria um passo a mais no início da jornada, que é o ponto de maior abandono |
+| O limite diário controla a avalanche de cartões | O volume é controlado pela aprovação |
+
+**A decidir na spec de F-04 e F-05:** o valor padrão do limite, se existe um teto máximo e se o limite é global ou por matéria.
+
+### QA-16 Escopo do chat
+
+**Provisório (a confirmar com a equipe):** busca numa matéria (padrão) ou em todas; histórico de conversas salvo; resposta em streaming; citações clicáveis que abrem o trecho e a página; resposta explícita de "não encontrei nos seus materiais" quando faltar evidência; apenas um limite técnico de uso por usuário.
+
+- **Histórico salvo:** exige as tabelas de conversa e mensagem, e define o que acontece com citações de material excluído ("fonte removida").
+- **Sessão efêmera, se preferida:** reduz o esquema e o escopo, mas perde a continuidade.
+- **Adiado:** "criar flashcard desta resposta" ([F-15](backlog.md#funcionalidades-candidatas)).
+
+### QA-24 Valores da gamificação
+
+As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-aprofundado)). Os **números** não estão:
+
+- XP por revisão concluída e bônus por cartão dominado.
+- Limiar de estabilidade FSRS que define "cartão dominado".
+- Meta diária padrão (proposta inicial: 20 revisões) e tamanho padrão da lição (proposta: 10 cartões).
+- Teto de tempo por cartão para o "tempo dedicado" (proposta: 60 s).
+
+**Impacto:** mudar esses valores depois do lançamento não pode alterar o XP já concedido (Princípio IV). A regra de concessão deve ser versionada.
+
+### QA-04 Qualidade e verificação da geração
+
+**Decidido:** os cartões gerados passam por validação estrutural e de sustentação antes de serem publicados (Princípio I).
+
+**Pendente, a detalhar na spec de F-04:**
+
+- **Como verificar a sustentação:** uma segunda chamada de IA não prova correção (Princípio V). As opções vão de uma checagem automática com um conjunto de casos revisado por pessoa até regras de sobreposição entre o cartão e o trecho. O método escolhido precisa de métrica.
+- Quantos cartões gerar por trecho ou por material, e como evitar duplicatas.
+- O que acontece com um cartão reprovado: é descartado, registrado para análise ou mostrado com aviso.
+- Reprocessamento de um material: o que acontece com os cartões já estudados.
+- O conjunto de avaliação: pelo menos 15 casos, com casos ambíguos, sem dados e adversariais (instruções embutidas no material).
+
+### QA-19 Identidade visual (restante)
+
+**Decidido:** tema claro por padrão, com tema escuro disponível desde o MVP.
+
+**Pendente:** nome do produto, paleta, tipografia e o tema das telas do Keycloak. Os dois temas precisam manter contraste mínimo de 4,5:1 (Princípio V).
+
+---
+
+## Processo
+
+### VAL-01 Validação do MVP com o professor
+
+As guidelines definem o professor como PO e exigem um "acordo do MVP" com escopo, hipótese de valor mensurável, escopo adiado e critérios de sucesso. O recorte do [backlog](backlog.md#recorte-do-mvp) precisa ser apresentado e aceito na próxima review. Até lá, specs podem ser escritas, mas não aprovadas como definitivas.
+
+### VAL-02 Aprovação da constituição v0.2
+
+A [constituição](../constitution.md) passou para a v0.2 nesta sessão (ajuste do Princípio I para cartões manuais). As mudanças exigem acordo da equipe.
+
+### VAL-03 Escala do rodízio de Scrum Master
+
+**Decidido:** o Scrum Master muda a cada semana, em rodízio entre os quatro integrantes. É requisito obrigatório da disciplina.
+
+**Pendente:** a escala (ordem e semanas de cada pessoa) e onde ela fica registrada. Sugestão: uma tabela na seção "Equipe" do [README](../../README.md). Como os registros das sprints fazem parte da documentação avaliada, cada registro deve identificar o Scrum Master daquela semana.
+
+### VAL-04 Representante interno do PO
+
+O PO é o professor Aldo Nunes. Ainda não foi decidido se a equipe terá um representante interno do PO (*proxy PO*) para responder questões de produto entre as reviews, nem quem seria.
+
+- **Se houver:** as decisões do dia a dia andam sem esperar a review, mas precisam ser levadas ao professor.
+- **Se não houver:** as questões de produto (`Q-xxx` nas specs) aguardam a equipe ou a próxima review com o professor. Isso pode atrasar a aprovação das specs no prazo de 3 semanas do MVP.
+
+As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continuam válidas como proposta até a validação com a equipe e com o professor (VAL-01).
+
+---
+
+## Adiadas (fora do MVP, sem bloqueio)
+
+| Tema | Destino |
+|---|---|
+| Rota visual de progressão (QA-15, QA-06) | F-07 |
+| Conquistas e catálogo (QA-08) | F-11 |
+| Edital → plano de estudos e lacunas | F-13 e F-14 |
+| Congelamento da sequência | Incremento de F-10 |
+| Desfazer revisão | Incremento de F-05 |
+| Formatos DOCX, PPTX, SRT e VTT | Incremento de F-02 |
+| OCR de PDF digitalizado (ex.: Docling) | Incremento de F-03 |
+| Envio em lote | Incremento de F-02 |
+| Kubernetes (k3s) | Aprofundamento opcional da entrega final |
+
+## Encerradas
+
+Nenhuma ainda.

@@ -10,10 +10,14 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
 
 ## Estado atual
 
-- **Fase:** estruturação concluída. O próximo passo é o brainstorming aprofundado (recorte do MVP, stack, esquema do banco).
-- **Stack:** não definida (QA-18). **Não crie código de aplicação, dependências, Dockerfiles nem pastas de backend e frontend** antes de a stack estar registrada em um `research.md` aprovado.
-- **Constituição:** v0.1 em rascunho, aguardando aprovação da equipe.
+- **Fase:** brainstorming aprofundado concluído (29/09/2026). Recorte do MVP em `docs/produto/backlog.md`, pendente de validação com o professor (PO). Decisões de produto em `docs/produto/visao.md`. O próximo passo é resolver as pendências técnicas e escrever a spec de F-01.
+- **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
+- **Stack:** direção parcial (Python, React, PostgreSQL, Keycloak, front e back separados). Framework do backend (QA-18) e stack de IA (QA-22) pendentes. **Não crie código de aplicação, dependências, Dockerfiles nem pastas de backend e frontend** antes de a stack estar registrada em um `research.md` aprovado.
+- **Constituição:** v0.2 em rascunho, aguardando aprovação da equipe.
 - **Specs:** nenhuma criada ainda (ver `docs/specs/README.md`).
+- **Equipe:** Arthur Moura, Artur Lins, Pedro Paulo Lucena e William Johnson.
+- **PO:** professor Aldo Nunes. Ainda não foi decidido se haverá um representante interno do PO na equipe.
+- **Scrum Master:** rodízio semanal entre os integrantes (requisito obrigatório da disciplina).
 
 Atualize esta seção sempre que a fase mudar.
 
@@ -40,7 +44,7 @@ AGENTS.md, CLAUDE.md       # ponteiros para este arquivo
 README.md                  # visão geral para pessoas
 docs/
 ├── constitution.md        # princípios estáveis do projeto
-├── produto/               # visão da plataforma completa e backlog de funcionalidades
+├── produto/               # visão, backlog (com recorte do MVP) e pendências
 ├── specs/NNN-nome-curto/  # uma pasta por funcionalidade (spec, plan, tasks...)
 ├── skills/                # guias de agente por tarefa, independentes de ferramenta
 ├── prompts/               # registro obrigatório de toda sessão com agente

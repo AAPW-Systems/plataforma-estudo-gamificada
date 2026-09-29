@@ -1,9 +1,9 @@
 # Constituição do projeto
 
 **Projeto:** Plataforma de estudos gamificada
-**Versão:** 0.1 (rascunho)
+**Versão:** 0.2 (rascunho)
 **Aprovada em:** pendente
-**Responsáveis pela aprovação:** equipe do projeto (PO e integrantes)
+**Responsáveis pela aprovação:** equipe do projeto (Arthur Moura, Artur Lins, Pedro Paulo Lucena e William Johnson). O professor Aldo Nunes é o PO do produto.
 
 Este documento registra princípios estáveis que valem para todas as funcionalidades. Decisões específicas de uma funcionalidade ficam em sua spec, plano ou `research.md`, e não aqui. Os princípios foram extraídos do brainstorming inicial ([`init/SKILL.md`](init/SKILL.md), [`init/DESIGN.md`](init/DESIGN.md) e [`init/Spec.md`](init/Spec.md)) e das decisões confirmadas na sessão de estruturação ([registro](prompts/2026-09-29-estruturacao-projeto.md)).
 
@@ -13,7 +13,8 @@ Este documento registra princípios estáveis que valem para todas as funcionali
 
 A IA gera conteúdo e responde perguntas **somente** a partir dos materiais enviados pelo próprio usuário. Não há pesquisa na internet, bases externas nem complementação de lacunas com conhecimento geral do modelo.
 
-- Todo flashcard, questão, explicação ou resposta do chat aponta para o material, a versão e o trecho que o sustenta. A página aparece apenas quando for efetivamente conhecida e nunca é inventada.
+- Todo flashcard, questão, explicação ou resposta do chat **gerado pela IA** aponta para o material, a versão e o trecho que o sustenta. A página aparece apenas quando for efetivamente conhecida e nunca é inventada.
+- Conteúdo criado ou editado pelo usuário é permitido, mas sempre exibe sua origem e nunca é apresentado como verificado pela fonte. Esse conteúdo não entra na avaliação de qualidade da IA.
 - Uma referência existente não prova sustentação. O conteúdo gerado passa por validação estrutural e de sustentação antes de ser publicado.
 - Na ausência de evidência suficiente, o sistema declara a limitação e não apresenta o conteúdo como fato.
 - Reformulações e derivações são permitidas quando verificáveis a partir da fonte.
@@ -75,7 +76,7 @@ Origem: apostila SDD, seção 11 ("Preserve autoria e evidência").
 - **IA é parte essencial do produto:** o projeto é avaliado na disciplina de IA do curso de Sistemas de Informação. Geração de flashcards e chat sobre os materiais (RAG) são capacidades centrais.
 - **Arquitetura MVC:** Model, View e Controller são identificáveis no código (DC-02 do init). Se front e backend forem separados, o frontend constitui a View.
 - **Idioma:** interface, mensagens de erro e documentação em português brasileiro. Identificadores do domínio em português, sem acentos, seguindo a convenção de caixa da linguagem (DC-03 do init). Nomes exigidos por bibliotecas e protocolos são preservados.
-- **Stack, banco de dados e separação entre front e backend:** a definir no brainstorming aprofundado e registrar em `research.md` (QA-01, QA-18).
+- **Stack, banco de dados e separação entre front e backend:** direção definida no brainstorming aprofundado (backend em Python, frontend em React, PostgreSQL, front e backend separados). Framework do backend e stack de IA pendentes ([pendências](produto/pendencias.md)). A decisão final é registrada em `research.md` e ADR (QA-01, QA-18, QA-22).
 - **Processo:** as guidelines em [`sdd_guidelines/`](sdd_guidelines/00_COMECE_AQUI.md) devem ser seguidas integralmente.
 
 ## Governança
@@ -89,3 +90,4 @@ Origem: apostila SDD, seção 11 ("Preserve autoria e evidência").
 | Versão | Data | Mudança |
 |---|---|---|
 | 0.1 | 29/09/2026 | Rascunho inicial extraído do brainstorming inicial e da sessão de estruturação |
+| 0.2 | 29/09/2026 | Princípio I restrito ao conteúdo gerado pela IA, com regra para conteúdo do usuário (QA-20); professor Aldo Nunes registrado como PO; equipe nomeada ([registro](prompts/2026-09-29-brainstorming-aprofundado.md)) |

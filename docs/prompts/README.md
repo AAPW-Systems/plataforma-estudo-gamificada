@@ -62,4 +62,5 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 
 | Data | Sessão | Etapa | Autor |
 |---|---|---|---|
-| 2026-09-29 | [Estruturação do projeto](2026-09-29-estruturacao-projeto.md) | Estruturação | Artur |
+| 2026-09-29 | [Estruturação do projeto](2026-09-29-estruturacao-projeto.md) | Estruturação | Artur Lins |
+| 2026-09-29 | [Brainstorming aprofundado](2026-09-29-brainstorming-aprofundado.md) | Esclarecer | Artur Lins |

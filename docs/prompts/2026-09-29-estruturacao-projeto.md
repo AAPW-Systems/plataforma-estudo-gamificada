@@ -1,7 +1,7 @@
 # Estruturação do projeto no padrão SDD
 
 **Data:** 2026-09-29
-**Autor:** Artur
+**Autor:** Artur Lins
 **Agente e modelo:** Claude Code / claude-opus-5-5
 **Etapa SDD:** estruturação (anterior à constituição e às specs)
 **Funcionalidade:** projeto
