@@ -1,6 +1,6 @@
 # Plataforma de estudos gamificada
 
-Plataforma web em que o estudante envia seus materiais de estudo e a IA os transforma em flashcards rastreáveis até o trecho de origem. A revisão segue repetição espaçada (inspiração: Anki), e o ritmo de estudo é ditado por mecânicas de jogo: XP, sequência diária e uma rota de progressão (inspiração: Duolingo). Um chat responde a perguntas **apenas** com base nos materiais enviados, com citações.
+Plataforma web em que o estudante envia seus materiais de estudo e a IA os transforma em flashcards rastreáveis até o trecho de origem. A revisão segue repetição espaçada, e o ritmo de estudo é ditado por mecânicas de jogo: XP, sequência diária e uma rota de progressão. Um chat responde a perguntas **apenas** com base nos materiais enviados, com citações.
 
 Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido com **Spec-Driven Development (SDD)**.
 
@@ -12,6 +12,7 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 |---|---|
 | Arthur Moura | Integrante |
 | Artur Lins | Integrante |
+| Caroline Santana | Integrante |
 | Pedro Paulo Lucena | Integrante |
 | William Johnson | Integrante |
 
@@ -26,6 +27,7 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 | Entender o produto | [`docs/produto/visao.md`](docs/produto/visao.md) |
 | Ver as funcionalidades planejadas e o MVP | [`docs/produto/backlog.md`](docs/produto/backlog.md) |
 | Ver o que está pendente de decisão | [`docs/produto/pendencias.md`](docs/produto/pendencias.md) |
+| Ver as exigências do professor (PO) | [`docs/produto/exigencias_po.md`](docs/produto/exigencias_po.md) |
 | Conhecer as regras do projeto | [`docs/constitution.md`](docs/constitution.md) |
 | Entender o processo SDD | [`docs/sdd_guidelines/00_COMECE_AQUI.md`](docs/sdd_guidelines/00_COMECE_AQUI.md) e [`docs/skills/fluxo-sdd.md`](docs/skills/fluxo-sdd.md) |
 | Trabalhar com um agente de IA | [`.agents/AGENTS.md`](.agents/AGENTS.md) |
@@ -43,8 +45,9 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
     ├── constitution.md      # princípios estáveis do projeto
     ├── produto/
     │   ├── visao.md         # diferencial, escopo, decisões de produto e questões
-    │   ├── backlog.md       # funcionalidades candidatas (F-01 a F-15) e recorte do MVP
-    │   └── pendencias.md    # decisões em aberto, opções e impactos
+    │   ├── backlog.md       # funcionalidades candidatas (F-01 a F-16) e recorte do MVP
+    │   ├── pendencias.md    # decisões em aberto, opções e impactos
+    │   └── exigencias_po.md # exigências do PO (EX-xx) e onde estão no backlog
     ├── specs/               # uma pasta por funcionalidade: NNN-nome-curto/
     ├── skills/              # guias por tarefa, independentes de ferramenta
     ├── prompts/             # registro de todas as sessões com agentes

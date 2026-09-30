@@ -2,7 +2,7 @@
 
 **Data:** 29/09/2026
 **Origem:** [brainstorming aprofundado](../prompts/2026-09-29-brainstorming-aprofundado.md)
-**Responsável geral:** a equipe (Arthur Moura, Artur Lins, Pedro Paulo Lucena e William Johnson). Recorte do MVP e decisões de produto são validados com o professor Aldo Nunes (PO).
+**Responsável geral:** a equipe (Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson). Recorte do MVP e decisões de produto são validados com o professor Aldo Nunes (PO).
 
 Este documento reúne o que **ainda não foi decidido**, o que cada pendência bloqueia e o impacto de cada opção. Ele serve de pauta para as reuniões da equipe e com o professor. As decisões já tomadas estão na [visão](visao.md#decisões-do-brainstorming-aprofundado) e o recorte está no [backlog](backlog.md#recorte-do-mvp).
 
@@ -28,8 +28,10 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-25](#qa-25-sessão-no-navegador-migração-para-bff) | Sessão no navegador: migração para BFF | Técnica e segurança | Deploy final | Equipe | Antes do deploy |
 | [QA-04](#qa-04-qualidade-e-verificação-da-geração) | Qualidade e verificação da geração (restante) | Produto e técnica | Spec de F-03 e F-04 | Equipe | Na spec de F-04 |
 | [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Antes da interface de F-01 |
+| [QA-26](#qa-26-níveis-de-dificuldade) | Significado dos níveis de dificuldade (EX-05) | Produto | Spec de F-04 | Professor | Próxima review |
+| [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 (versão final) | Equipe e professor | Antes da spec do incremento |
 | [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Próxima review |
-| [VAL-02](#val-02-aprovação-da-constituição-v02) | Aprovação da constituição v0.2 | Processo | Aprovação da primeira spec | Equipe | Próxima reunião |
+| [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição v0.3 | Processo | Aprovação da primeira spec | Equipe | Próxima reunião |
 | [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Antes da primeira sprint |
 | [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO (se haverá e quem) | Processo | Aprovações entre as reviews com o professor | Equipe | Próxima reunião |
 
@@ -43,7 +45,7 @@ flowchart LR
     QA21 --> PLAN[Primeiro plan.md]
     QA18 --> PLAN
     VAL01[VAL-01 MVP com professor] --> SPEC[Aprovação da primeira spec]
-    VAL02[VAL-02 Constituição v0.2] --> SPEC
+    VAL02[VAL-02 Constituição v0.3] --> SPEC
     SPEC --> PLAN
     QA11 --> DEPLOY[Deploy final]
     QA25[QA-25 BFF] --> DEPLOY
@@ -247,6 +249,32 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 
 **Pendente:** nome do produto, paleta, tipografia e o tema das telas do Keycloak. Os dois temas precisam manter contraste mínimo de 4,5:1 (Princípio V).
 
+### QA-26 Níveis de dificuldade
+
+**Origem:** EX-05 das [exigências do PO](exigencias_po.md) ("definição de dificuldades: fácil, médio e difícil"). O texto não diz a que a dificuldade se aplica.
+
+| Interpretação | O que muda | Impacto |
+|---|---|---|
+| A) Nível escolhido ao gerar cartões | O estudante pede cartões fáceis, médios ou difíceis de um material; o nível fica registrado no cartão | Afeta o prompt de geração e a avaliação da IA (o nível precisa ser verificável nos casos de teste). Combina com EX-02 (gerar mais cartões) |
+| B) Classificação do cartão usada como filtro | A IA ou o estudante classifica cada cartão; a sessão pode ser filtrada por nível | Exige critério de classificação e altera a composição da rotina diária |
+| C) Nível ligado à gamificação | Cartões difíceis rendem mais XP | Conflita com o [princípio de gamificação](visao.md#princípio-de-gamificação) se o nível for escolhido pelo próprio estudante |
+
+**Cuidado de terminologia:** a revisão já tem os botões de autoavaliação "Difícil" e "Fácil" (F-05). Usar as mesmas palavras para o nível do cartão confunde o estudante. A spec de F-04 precisa de nomes distintos ou de uma explicação na interface.
+
+**Recomendação do agente:** perguntar ao professor na próxima review, apresentando A como proposta, por ser a mais simples de demonstrar e de avaliar.
+
+### QA-27 Regras da consulta externa
+
+**Origem:** EX-01 das [exigências do PO](exigencias_po.md). **Decidido em 29/09/2026:** a consulta externa existe apenas no tira-dúvidas de um flashcard (F-16), é acionada pelo estudante, fica fora do MVP e está presente na versão final. As condições mínimas estão no Princípio I da [constituição](../constitution.md) v0.3.
+
+**Pendente, a decidir antes da spec do incremento de F-16:**
+
+- **Fontes permitidas:** busca geral na web ou apenas fontes selecionadas (ex.: enciclopédias, repositórios acadêmicos). Fontes abertas aumentam o risco de informação errada ou de conteúdo com instruções embutidas.
+- **Apresentação:** como a interface separa a parte da resposta que vem dos materiais da parte externa, e como cita a fonte externa (título, endereço, data de acesso).
+- **Reaproveitamento:** se uma resposta externa pode virar flashcard por ação do estudante (ligado a F-15). Pelo Princípio I, esse cartão nunca teria o selo de verificado.
+- **Privacidade e custo:** o que é enviado ao serviço de busca e o limite de consultas por usuário. O serviço de busca é uma decisão técnica, registrada em `research.md`.
+- **Avaliação:** a consulta externa precisa de casos próprios no conjunto de avaliação da IA (Princípio V).
+
 ---
 
 ## Processo
@@ -255,13 +283,15 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 
 As guidelines definem o professor como PO e exigem um "acordo do MVP" com escopo, hipótese de valor mensurável, escopo adiado e critérios de sucesso. O recorte do [backlog](backlog.md#recorte-do-mvp) precisa ser apresentado e aceito na próxima review. Até lá, specs podem ser escritas, mas não aprovadas como definitivas.
 
-### VAL-02 Aprovação da constituição v0.2
+Em 29/09/2026, o recorte passou a incluir as [exigências do PO](backlog.md#exigências-do-po): EX-02, EX-03 e EX-05 em F-04 e F-05, e F-16 restrito aos materiais (EX-04). A consulta externa (EX-01) ficou fora do MVP. Esse ajuste também deve ser confirmado na review.
 
-A [constituição](../constitution.md) passou para a v0.2 nesta sessão (ajuste do Princípio I para cartões manuais). As mudanças exigem acordo da equipe.
+### VAL-02 Aprovação da constituição v0.3
+
+A [constituição](../constitution.md) passou para a v0.2 no brainstorming aprofundado (ajuste do Princípio I para cartões manuais) e para a v0.3 com as exigências do PO (exceção da consulta externa no Princípio I). As mudanças exigem acordo da equipe.
 
 ### VAL-03 Escala do rodízio de Scrum Master
 
-**Decidido:** o Scrum Master muda a cada semana, em rodízio entre os quatro integrantes. É requisito obrigatório da disciplina.
+**Decidido:** o Scrum Master muda a cada semana, em rodízio entre os cinco integrantes. É requisito obrigatório da disciplina.
 
 **Pendente:** a escala (ordem e semanas de cada pessoa) e onde ela fica registrada. Sugestão: uma tabela na seção "Equipe" do [README](../../README.md). Como os registros das sprints fazem parte da documentação avaliada, cada registro deve identificar o Scrum Master daquela semana.
 
@@ -285,6 +315,7 @@ As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continu
 | Edital → plano de estudos e lacunas | F-13 e F-14 |
 | Congelamento da sequência | Incremento de F-10 |
 | Desfazer revisão | Incremento de F-05 |
+| Consulta externa no tira-dúvidas (EX-01) | Incremento de F-16, regras em QA-27 |
 | Formatos DOCX, PPTX, SRT e VTT | Incremento de F-02 |
 | OCR de PDF digitalizado (ex.: Docling) | Incremento de F-03 |
 | Envio em lote | Incremento de F-02 |

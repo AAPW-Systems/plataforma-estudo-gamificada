@@ -4,7 +4,7 @@ Resumo operacional das guidelines em [`../sdd_guidelines/`](../sdd_guidelines/00
 
 ## Antes de começar
 
-1. Leia a [constituição](../constitution.md), a [visão](../produto/visao.md) e o [backlog](../produto/backlog.md).
+1. Leia a [constituição](../constitution.md), a [visão](../produto/visao.md), o [backlog](../produto/backlog.md) e as [exigências do PO](../produto/exigencias_po.md). Toda exigência do PO que tocar a funcionalidade vira requisito na spec ou questão `Q-xxx`; conflitos com a constituição ou a visão viram questão para o PO.
 2. Confirme com a equipe qual funcionalidade `F-xx` será especificada.
 3. Crie a pasta seguindo [`../specs/README.md`](../specs/README.md).
 
@@ -27,6 +27,7 @@ Cada etapa termina em um **portão humano**. O agente não avança para a etapa 
 ## Regras que o agente deve seguir
 
 - **A spec não escolhe tecnologia.** Framework, banco e bibliotecas pertencem ao plano e ao `research.md`.
+- **Sem produtos concorrentes ou de referência.** Nenhum artefato da spec cita outro produto pelo nome ou pelo "estilo". Descreva o comportamento esperado (regra 13 do [AGENTS.md](../../.agents/AGENTS.md#produtos-de-terceiros)).
 - **Não invente respostas.** Toda dúvida de produto vira `Q-xxx` na spec, com responsável e prazo. Toda dúvida técnica vira uma decisão `DTEC` no `research.md`.
 - **Não enfraqueça requisitos no plano.** Se o plano não conseguir atender, registre a incompatibilidade e volte ao PO.
 - **Tarefas por história, não por camada.** Use o formato `T001 [P] [US1] ação em caminho/exato`. Use `[P]` só quando o trabalho for realmente paralelo.

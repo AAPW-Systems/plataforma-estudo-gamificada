@@ -5,24 +5,24 @@
 **Status:** decisões do brainstorming aprofundado registradas por Artur Lins; recorte do MVP pendente de validação com a equipe e com o professor (PO)
 **Origem:** brainstorming inicial ([`../init/`](../init/README.md)), sessão de estruturação ([registro](../prompts/2026-09-29-estruturacao-projeto.md)) e brainstorming aprofundado ([registro](../prompts/2026-09-29-brainstorming-aprofundado.md))
 
-Este documento descreve a plataforma completa em nível de produto, sem escolher tecnologia. Ele orienta o [backlog](backlog.md) e não substitui as specs: o comportamento verificável de cada funcionalidade é definido em `docs/specs/NNN-nome-curto/spec.md`.
+Este documento descreve a plataforma completa em nível de produto, sem escolher tecnologia. Ele orienta o [backlog](backlog.md), é complementado pelas [exigências do PO](exigencias_po.md) e não substitui as specs: o comportamento verificável de cada funcionalidade é definido em `docs/specs/NNN-nome-curto/spec.md`.
 
 ## Problema
 
-Materiais de estudo extensos e dispersos (editais, apostilas, livros, anotações) dificultam transformar conteúdo em prática ativa e manter a regularidade. Ferramentas de flashcards com repetição espaçada, como o Anki, são eficazes, mas exigem criar os cartões à mão e oferecem pouca motivação para voltar todos os dias. Aplicativos gamificados, como o Duolingo, criam hábito, mas não trabalham sobre o material do próprio estudante.
+Materiais de estudo extensos e dispersos (editais, apostilas, livros, anotações) dificultam transformar conteúdo em prática ativa e manter a regularidade. Ferramentas de flashcards com repetição espaçada são eficazes, mas exigem criar os cartões à mão e oferecem pouca motivação para voltar todos os dias. Aplicativos de aprendizado gamificados criam hábito, mas não trabalham sobre o material do próprio estudante.
 
 ## Proposta
 
-Uma plataforma web em que o estudante envia seus materiais e a IA os transforma em flashcards rastreáveis até o trecho de origem. A revisão segue repetição espaçada, e o ritmo de estudo é ditado por mecânicas de jogo: XP, sequência diária e uma rota visual de progressão. O estudante também conversa com seus materiais por meio de um chat que responde apenas com base nas fontes enviadas, com citações, numa versão simplificada do NotebookLM.
+Uma plataforma web em que o estudante envia seus materiais e a IA os transforma em flashcards rastreáveis até o trecho de origem. A revisão segue repetição espaçada, e o ritmo de estudo é ditado por mecânicas de jogo: XP, sequência diária e uma rota visual de progressão. O estudante também conversa com seus materiais por meio de um chat que responde apenas com base nas fontes enviadas, com citações.
 
 ## Diferencial
 
-O produto não pode ser uma cópia de uma solução existente (requisito da disciplina). O diferencial frente às inspirações é:
+O produto não pode ser uma cópia de uma solução existente (requisito da disciplina). O diferencial frente às categorias de solução disponíveis é:
 
-| Solução existente | O que falta ao estudante | O que a plataforma faz |
+| Categoria de solução | O que falta ao estudante | O que a plataforma faz |
 |---|---|---|
-| Anki | A repetição espaçada funciona bem, mas a experiência é uma fila crua de cartões, sem recompensa nem visão clara de progresso | A revisão acontece dentro de uma estrutura gamificada: lições curtas com fechamento, XP, meta diária, sequência, dias estudados e tempo dedicado |
-| NotebookLM | Gera flashcards e quizzes, mas eles ficam isolados em cada caderno, e o estudante precisa visitar cada um com frequência, o que não escala para muitas matérias | Uma **rotina diária única** reúne os cartões devidos de todas as matérias, com cartões rastreáveis até o trecho de origem |
+| Aplicativos de flashcards com repetição espaçada | A repetição espaçada funciona bem, mas a experiência é uma fila crua de cartões, sem recompensa nem visão clara de progresso | A revisão acontece dentro de uma estrutura gamificada: lições curtas com fechamento, XP, meta diária, sequência, dias estudados e tempo dedicado |
+| Assistentes de IA que estudam sobre documentos | Geram flashcards e quizzes, mas eles ficam isolados em cada coleção de documentos, e o estudante precisa visitar cada uma com frequência, o que não escala para muitas matérias | Uma **rotina diária única** reúne os cartões devidos de todas as matérias, com cartões rastreáveis até o trecho de origem |
 
 **Hipótese de valor do MVP:** com uma rotina diária unificada e recompensas que não punem quem está em dia, o estudante mantém a regularidade de revisão em várias matérias. A forma de medição (ex.: dias estudados por semana, cumprimento da meta) será definida no acordo do MVP com o professor.
 
@@ -44,15 +44,15 @@ Estudante individual (concurseiro, universitário ou autodidata) que possui mate
 
 ## Pilares da plataforma completa
 
-| Pilar | Inspiração | O que entrega ao estudante |
-|---|---|---|
-| Materiais e processamento | — | Enviar, acompanhar e gerenciar os materiais que alimentam todo o resto |
-| Flashcards gerados por IA | Anki | Cartões criados a partir dos materiais, com referência verificável ao trecho de origem |
-| Repetição espaçada | Anki | Revisão no momento certo, conforme o desempenho do estudante em cada cartão |
-| Chat com os materiais (RAG) | NotebookLM | Perguntas respondidas apenas com base nos materiais, com citações |
-| Rota de progressão | Duolingo | Caminho visual por unidades e assuntos que mostra onde o estudante está e o que vem a seguir |
-| Ritmo gamificado | Duolingo | XP, sequência diária, meta diária e conquistas que incentivam a constância |
-| Evolução | — | Painel de desempenho, histórico e progresso por assunto |
+| Pilar | O que entrega ao estudante |
+|---|---|
+| Materiais e processamento | Enviar, acompanhar e gerenciar os materiais que alimentam todo o resto |
+| Flashcards gerados por IA | Cartões criados a partir dos materiais, com referência verificável ao trecho de origem |
+| Repetição espaçada | Revisão no momento certo, conforme o desempenho do estudante em cada cartão |
+| Chat com os materiais (RAG) | Perguntas respondidas apenas com base nos materiais, com citações, inclusive a partir de um flashcard durante a revisão |
+| Rota de progressão | Caminho visual por unidades e assuntos que mostra onde o estudante está e o que vem a seguir |
+| Ritmo gamificado | XP, sequência diária, meta diária e conquistas que incentivam a constância |
+| Evolução | Painel de desempenho, histórico e progresso por assunto |
 
 ## Jornada principal
 
@@ -61,6 +61,8 @@ envia material -> acompanha processamento -> recebe flashcards e rota
       -> estuda a lição do dia (revisões + novos cartões) -> ganha XP e mantém a sequência
       -> tira dúvidas no chat com citações -> acompanha a evolução
 ```
+
+Durante a revisão, o estudante pode abrir o tira-dúvidas de um cartão (F-16). Esse é um caminho opcional e não altera a jornada principal.
 
 ## Escopo da plataforma completa
 
@@ -74,6 +76,7 @@ envia material -> acompanha processamento -> recebe flashcards e rota
 - Criação, edição, suspensão e exclusão manual de flashcards, com a origem de cada cartão sempre visível.
 - Revisão de flashcards com repetição espaçada, numa rotina diária que reúne todas as matérias.
 - Chat sobre os materiais do usuário, com respostas citando os trechos usados e declarando quando não houver evidência.
+- Tira-dúvidas a partir de um flashcard, com referência, e consulta externa acionada pelo estudante, sempre com a fonte externa citada e separada dos materiais.
 - Rota de progressão por unidades e assuntos derivados dos materiais.
 - XP, sequência diária, meta diária e conquistas calculados pelo servidor.
 - Painel de evolução com histórico e desempenho.
@@ -82,7 +85,7 @@ envia material -> acompanha processamento -> recebe flashcards e rota
 
 ### Fora do escopo
 
-- Pesquisa na internet, bases externas ou uso do conhecimento geral do modelo como fonte (Princípio I da [constituição](../constitution.md)).
+- Pesquisa na internet, bases externas ou uso do conhecimento geral do modelo como fonte (Princípio I da [constituição](../constitution.md)). A única exceção é a consulta externa acionada pelo estudante no tira-dúvidas de um flashcard (F-16), prevista para a versão final.
 - Ranking público, ligas, rede social, compartilhamento de materiais e disputas entre usuários.
 - Pagamentos, assinaturas e comércio de conteúdo.
 - Aplicativos móveis nativos e modo offline.
@@ -95,15 +98,16 @@ envia material -> acompanha processamento -> recebe flashcards e rota
 
 | Tema | Brainstorming inicial | Direção atual | Situação |
 |---|---|---|---|
-| Repetição espaçada | Fora do escopo | Pilar central (Anki) | Confirmada pelo PO em 29/09/2026 |
-| Sequência diária | Fora do escopo | Pilar central (Duolingo) | Confirmada pelo PO em 29/09/2026 |
-| Chat com os materiais (RAG) | Não previsto; tutoria conversacional fora do escopo | Pilar (NotebookLM simplificado) | Confirmada pelo PO em 29/09/2026 |
+| Repetição espaçada | Fora do escopo | Pilar central | Confirmada pelo PO em 29/09/2026 |
+| Sequência diária | Fora do escopo | Pilar central | Confirmada pelo PO em 29/09/2026 |
+| Chat com os materiais (RAG) | Não previsto; tutoria conversacional fora do escopo | Pilar, restrito aos materiais e com citações | Confirmada pelo PO em 29/09/2026 |
 | Trilha | Lista ordenada de etapas | Rota visual de progressão | Confirmada como intenção; forma em QA-15 |
 | Questões de escolha única | Atividade principal | Absorvidas pelos flashcards (cada cartão funciona como uma pergunta com resposta) | Decidida em 29/09/2026 (QA-17) |
 | Docker | Não mencionado | Obrigatório | Confirmada pelo PO em 29/09/2026 |
 | Tema visual | Claro, azul `#2563EB` | Claro por padrão, escuro disponível desde o MVP; paleta a definir | Parcial (QA-19) |
 | Edição manual de conteúdo | Não presumida | Permitida, com origem visível | Decidida em 29/09/2026 (QA-20) |
 | Organização | Trilhas por material | Matérias, com rotina diária unificada | Decidida em 29/09/2026 |
+| Pesquisa externa | Fora do escopo | Permitida apenas na consulta externa do tira-dúvidas do flashcard (F-16), acionada pelo estudante, na versão final | Exigência do PO (EX-01), 29/09/2026; constituição v0.3 pendente de aprovação |
 | Product Owner | Não definido | O professor Aldo Nunes é o PO; representante interno a decidir ([VAL-04](pendencias.md#val-04-representante-interno-do-po)) | Decidida em 29/09/2026 |
 
 > Na coluna "Situação", as decisões de 29/09/2026 no brainstorming aprofundado foram tomadas por Artur Lins e dependem da validação do recorte com o professor ([VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor)).
@@ -133,12 +137,13 @@ Decisões tomadas em 29/09/2026 ([registro](../prompts/2026-09-29-brainstorming-
 - Só os cartões gerados entram na avaliação de qualidade da IA.
 - O usuário pode criar, editar, suspender e excluir cartões. Cartões manuais permitem construir e testar a revisão antes do pipeline de IA.
 - **Provisório:** cartões gerados que passam na verificação são publicados automaticamente como novos, sem caixa de entrada.
+- **Exigências do PO:** o estudante pode pedir novos cartões de um material ou matéria já processados, sem repetir os existentes (EX-02); cada cartão gerado traz uma explicação curta, com citação, exibida quando o estudante erra (EX-03); os cartões têm nível de dificuldade, com significado em aberto ([QA-26](pendencias.md#qa-26-níveis-de-dificuldade), EX-05).
 
 ### Revisão e rotina diária (F-05)
 
 - Autoavaliação com quatro botões: Errei, Difícil, Bom, Fácil. Agendamento pelo algoritmo **FSRS**.
 - **Rotina unificada:** a sessão do dia mistura os cartões devidos de todas as matérias. Também é possível estudar uma matéria isolada.
-- **Formato padrão:** lições curtas (proposta: 10 cartões) com tela de fechamento (XP ganho, sequência, cartões dominados) e opção de continuar. O tamanho é configurável. O usuário pode optar pela fila contínua, estilo Anki.
+- **Formato padrão:** lições curtas (proposta: 10 cartões) com tela de fechamento (XP ganho, sequência, cartões dominados) e opção de continuar. O tamanho é configurável. O usuário pode optar por uma fila contínua, sem divisão em lições.
 - **Novos cartões por dia:** limite configurável pelo usuário (ponto de partida: 10, reconhecidamente baixo para quem estuda muito).
 - Cada revisão enviada leva um identificador gerado no cliente. O reenvio não duplica efeitos. O mesmo identificador com conteúdo diferente gera conflito (Princípio IV).
 - Não há desfazer revisão no MVP.
@@ -167,6 +172,13 @@ Decisões tomadas em 29/09/2026 ([registro](../prompts/2026-09-29-brainstorming-
 - Quando não há evidência, a resposta diz explicitamente que não encontrou a informação nos materiais.
 - Apenas um limite técnico de uso por usuário.
 - "Criar flashcard a partir da resposta" fica para depois do MVP (F-15).
+
+### Tira-dúvidas do flashcard (F-16)
+
+- Exigências do PO EX-04 e EX-01. Durante a revisão, o estudante abre um chat com o cartão como contexto e pede explicações adicionais, com referência.
+- **MVP:** apenas com os materiais, reaproveitando a busca e as citações de F-06.
+- **Versão final:** consulta externa acionada pelo estudante, nas condições do Princípio I da [constituição](../constitution.md). Regras em aberto em [QA-27](pendencias.md#qa-27-regras-da-consulta-externa).
+- É um caminho opcional: o fluxo principal da revisão continua sendo avaliar o cartão e seguir para o próximo.
 
 ### Deploy
 
@@ -212,3 +224,5 @@ As questões QA-01 a QA-11 do [init](../init/Spec.md#12-questões-em-aberto) con
 | QA-23 | Cartões gerados são publicados automaticamente ou passam por aprovação? Qual o limite padrão de novos cartões por dia? | Produto | F-04, F-05 | Provisória: publicação automática, limite configurável |
 | QA-24 | Quais os valores de XP, o limiar de "cartão dominado" e os padrões de meta, lição e teto de tempo? | Produto | F-05, F-09, F-10 | Aberta, definir na spec de F-09 |
 | QA-25 | A sessão no navegador migra para o padrão BFF (cookie httpOnly) antes do deploy final? | Técnica | Deploy final | Aberta |
+| QA-26 | O que significam os níveis de dificuldade fácil, médio e difícil (EX-05)? | Produto | F-04 | Aberta, perguntar ao professor |
+| QA-27 | Quais as regras da consulta externa: fontes, apresentação, reaproveitamento, privacidade e custo (EX-01)? | Produto e técnica | Incremento de F-16 | Aberta |

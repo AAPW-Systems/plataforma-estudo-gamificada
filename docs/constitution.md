@@ -1,9 +1,9 @@
 # Constituição do projeto
 
 **Projeto:** Plataforma de estudos gamificada
-**Versão:** 0.2 (rascunho)
+**Versão:** 0.3 (rascunho)
 **Aprovada em:** pendente
-**Responsáveis pela aprovação:** equipe do projeto (Arthur Moura, Artur Lins, Pedro Paulo Lucena e William Johnson). O professor Aldo Nunes é o PO do produto.
+**Responsáveis pela aprovação:** equipe do projeto (Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson). O professor Aldo Nunes é o PO do produto.
 
 Este documento registra princípios estáveis que valem para todas as funcionalidades. Decisões específicas de uma funcionalidade ficam em sua spec, plano ou `research.md`, e não aqui. Os princípios foram extraídos do brainstorming inicial ([`init/SKILL.md`](init/SKILL.md), [`init/DESIGN.md`](init/DESIGN.md) e [`init/Spec.md`](init/Spec.md)) e das decisões confirmadas na sessão de estruturação ([registro](prompts/2026-09-29-estruturacao-projeto.md)).
 
@@ -11,7 +11,7 @@ Este documento registra princípios estáveis que valem para todas as funcionali
 
 ### I Fontes exclusivas e evidência antes de afirmação
 
-A IA gera conteúdo e responde perguntas **somente** a partir dos materiais enviados pelo próprio usuário. Não há pesquisa na internet, bases externas nem complementação de lacunas com conhecimento geral do modelo.
+A IA gera conteúdo e responde perguntas **somente** a partir dos materiais enviados pelo próprio usuário. Não há pesquisa na internet, bases externas nem complementação de lacunas com conhecimento geral do modelo, com uma única exceção, descrita abaixo.
 
 - Todo flashcard, questão, explicação ou resposta do chat **gerado pela IA** aponta para o material, a versão e o trecho que o sustenta. A página aparece apenas quando for efetivamente conhecida e nunca é inventada.
 - Conteúdo criado ou editado pelo usuário é permitido, mas sempre exibe sua origem e nunca é apresentado como verificado pela fonte. Esse conteúdo não entra na avaliação de qualidade da IA.
@@ -19,14 +19,22 @@ A IA gera conteúdo e responde perguntas **somente** a partir dos materiais envi
 - Na ausência de evidência suficiente, o sistema declara a limitação e não apresenta o conteúdo como fato.
 - Reformulações e derivações são permitidas quando verificáveis a partir da fonte.
 
-Origem: DC-09, RN-11, RN-12 e RN-13 do init.
+**Exceção: consulta externa no tira-dúvidas de um flashcard** (EX-01 das [exigências do PO](produto/exigencias_po.md), F-16 do [backlog](produto/backlog.md); fora do MVP). Ela só é válida se cumprir todas as condições:
+
+- É acionada explicitamente pelo usuário, a cada pergunta. Nunca é o comportamento padrão.
+- A resposta separa de forma visível o que vem dos materiais do usuário e o que vem de fontes externas.
+- Toda afirmação externa cita a fonte externa consultada. Conhecimento geral do modelo sem fonte continua proibido.
+- Conteúdo externo nunca recebe o selo de verificado, não entra no índice dos materiais e não alimenta a geração automática de flashcards.
+
+Origem: DC-09, RN-11, RN-12 e RN-13 do init; exceção a partir de EX-01.
 
 ### II Proteção e isolamento de dados
 
 - Todo recurso (material, trecho, flashcard, revisão, tentativa, pontos, sequência, conversa) pertence a um único usuário. Conhecer um identificador não concede acesso.
 - Segredos nunca aparecem no código, nos logs, nos exemplos de contrato ou nos registros de prompt. Configuração sensível vem de variáveis de ambiente, com arquivo `.env.example` sem valores reais.
 - Logs não registram o conteúdo bruto dos materiais, perguntas do chat ou dados pessoais além do necessário ao diagnóstico.
-- O conteúdo dos materiais é tratado como dado e nunca como instrução ao sistema. Instruções embutidas em um arquivo não alteram as regras do processamento (defesa contra *prompt injection*).
+- O conteúdo dos materiais é tratado como dado e nunca como instrução ao sistema. Instruções embutidas em um arquivo não alteram as regras do processamento (defesa contra *prompt injection*). O mesmo vale para o conteúdo trazido por uma consulta externa.
+- Uma consulta externa envia a um serviço de terceiros apenas o necessário para a busca, e o usuário é informado disso antes de acioná-la.
 - Testes, exemplos e demonstrações não usam dados pessoais reais.
 
 Origem: RN-01, RQ-01, CB-14 e SKILL.md (Textos, Validações) do init.
@@ -91,3 +99,4 @@ Origem: apostila SDD, seção 11 ("Preserve autoria e evidência").
 |---|---|---|
 | 0.1 | 29/09/2026 | Rascunho inicial extraído do brainstorming inicial e da sessão de estruturação |
 | 0.2 | 29/09/2026 | Princípio I restrito ao conteúdo gerado pela IA, com regra para conteúdo do usuário (QA-20); professor Aldo Nunes registrado como PO; equipe nomeada ([registro](prompts/2026-09-29-brainstorming-aprofundado.md)) |
+| 0.3 | 29/09/2026 | Princípio I ganha a exceção da consulta externa no tira-dúvidas do flashcard (EX-01, F-16, fora do MVP); Princípio II cobre o conteúdo e o envio de dados na consulta externa ([registro](prompts/2026-09-29-diretrizes-terceiros-exigencias-po.md)) |
