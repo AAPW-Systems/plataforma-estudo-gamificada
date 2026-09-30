@@ -75,6 +75,7 @@
 
 ## Testes
 
+- Os testes do backend usam pytest ([DTEC 001](../research.md#decisão-dtec-001-ferramenta-de-testes-do-backend)), classificados pelos marcadores `unit`, `integration`, `functional`, `security` e `adversarial`, conforme a regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md).
 - Teste regras e invariantes de negócio, não a implementação.
 - São obrigatórios os testes negativos de isolamento entre usuários, de reenvio idempotente, de fronteira de datas e de falha do provedor de IA.
 - O comportamento da IA é avaliado com um conjunto de casos revisado por pessoa responsável (Princípio V).

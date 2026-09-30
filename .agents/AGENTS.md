@@ -13,7 +13,7 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
 - **Fase:** brainstorming aprofundado concluído (29/09/2026). Recorte do MVP em `docs/produto/backlog.md`, pendente de validação com o professor (PO). Decisões de produto em `docs/produto/visao.md`. O próximo passo é resolver as pendências técnicas e escrever a spec de F-01.
 - **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
 - **Exigências do PO:** `docs/produto/exigencias_po.md`. As exigências de 29/09/2026 (EX-01 a EX-05) já foram movidas para o backlog.
-- **Stack:** direção parcial (Python, React, PostgreSQL, Keycloak, front e back separados). Framework do backend (QA-18) e stack de IA (QA-22) pendentes. **Não crie código de aplicação, dependências, Dockerfiles nem pastas de backend e frontend** antes de a stack estar registrada em um `research.md` aprovado.
+- **Stack:** direção parcial (Python, React, PostgreSQL, Keycloak, front e back separados). Framework do backend (QA-18) e stack de IA (QA-22) pendentes. Decisões técnicas transversais em `docs/research.md` (pytest para os testes do backend, DTEC 001). **Não crie código de aplicação, dependências, Dockerfiles nem pastas de backend e frontend** antes de a stack estar registrada em um `research.md` aprovado.
 - **Constituição:** v0.3 em rascunho, aguardando aprovação da equipe.
 - **Specs:** nenhuma criada ainda (ver `docs/specs/README.md`).
 - **Equipe:** Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson.
@@ -46,6 +46,7 @@ AGENTS.md, CLAUDE.md       # ponteiros para este arquivo
 README.md                  # visão geral para pessoas
 docs/
 ├── constitution.md        # princípios estáveis do projeto
+├── research.md            # decisões técnicas transversais (DTEC), válidas para todas as specs
 ├── produto/               # visão, backlog (com recorte do MVP), pendências e exigências do PO
 ├── specs/NNN-nome-curto/  # uma pasta por funcionalidade (spec, plan, tasks...)
 ├── skills/                # guias de agente por tarefa, independentes de ferramenta
@@ -88,11 +89,28 @@ A estrutura de código (ex.: `backend/`, `frontend/`, `compose.yaml`) será defi
     - A regra não se aplica a tecnologias adotadas ou avaliadas no projeto (bibliotecas, frameworks, algoritmos, serviços), que continuam sendo nomeadas no `plan.md` e no `research.md`.
     - Exceções: `docs/prompts/`, que registra os prompts literalmente, e as pastas somente leitura (`docs/init/`, `docs/sdd_guidelines/`).
 
+### Git e testes (fase de desenvolvimento)
+
+14. **Fluxo de branches simplificado:** o repositório usa apenas duas branches permanentes.
+    - `main`: versão estável. **É proibido implementar funcionalidades diretamente na `main`.** Ela só recebe código por pull request (ou merge) vindo da `develop`.
+    - `develop`: onde ocorrem o desenvolvimento e os testes de toda spec. Se ela ainda não existir ao iniciar a primeira implementação, crie-a a partir da `main`.
+    - Nunca reescreva o histórico da `main` nem da `develop` (sem `push --force` e sem `rebase` de commits já publicados).
+15. **Conventional Commits** em todo commit, com descrição em português (ver "Convenções").
+16. **Commits atômicos:** cada commit contém uma única mudança lógica e coerente (ex.: uma tarefa `T-xxx` ou parte dela), deixa o projeto funcionando e os testes passando, e pode ser revertido com `git revert` sem arrastar mudanças não relacionadas. Não misture refatoração, correção e funcionalidade no mesmo commit.
+17. **Testes obrigatórios por spec, com pytest** ([DTEC 001](../docs/research.md#decisão-dtec-001-ferramenta-de-testes-do-backend)): toda spec implementada vem acompanhada de testes automatizados escritos com pytest, cobrindo principalmente:
+    - **Unitários:** regras e invariantes de negócio isoladas.
+    - **De integração:** interação entre camadas e serviços reais (banco, fila, autenticação, provedor de IA simulado).
+    - **Funcionais:** os critérios de aceitação das histórias da spec, de ponta a ponta pela API.
+    - **De segurança:** autenticação, autorização, isolamento entre usuários, validação de entrada e ausência de vazamento de dados.
+    - **Adversariais:** entradas maliciosas ou inesperadas (arquivos malformados, injeção de prompt nos materiais, payloads extremos, reenvios e concorrência).
+
+    Os testes ficam ligados aos requisitos da spec pelo `traceability.md`. **Nenhum merge na `main` acontece sem que todos os testes passem**, executados na `develop` imediatamente antes do merge; testes falhando, pulados sem justificativa registrada ou desativados bloqueiam o merge.
+
 ## Convenções
 
 - **Idioma:** documentação, interface e mensagens em português brasileiro. Identificadores do domínio em português, sem acentos (constituição, "Restrições do projeto").
 - **Pastas de spec:** `docs/specs/NNN-nome-curto/`, com número de 3 dígitos e kebab-case sem acentos.
-- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/pt-br/) com descrição em português (ex.: `docs: adiciona constituição v0.1`, `feat(materiais): implementa envio [T012]`). Referencie IDs de tarefa quando houver.
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/pt-br/) com descrição em português (ex.: `docs: adiciona constituição v0.1`, `feat(materiais): implementa envio [T012]`). Referencie IDs de tarefa quando houver. Commits atômicos e fluxo de branches conforme as regras 14 a 16.
 - **Datas em documentos:** `DD/MM/AAAA` no texto e `AAAA-MM-DD` em nomes de arquivo.
 
 ## Como encerrar uma sessão

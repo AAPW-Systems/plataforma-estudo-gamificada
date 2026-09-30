@@ -30,10 +30,14 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Antes da interface de F-01 |
 | [QA-26](#qa-26-níveis-de-dificuldade) | Significado dos níveis de dificuldade (EX-05) | Produto | Spec de F-04 | Professor | Próxima review |
 | [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 (versão final) | Equipe e professor | Antes da spec do incremento |
+| [QA-28](#qa-28-complementos-do-pytest) | Complementos do pytest (cliente HTTP, plugins, cobertura) | Técnica | Primeiro `plan.md` | Equipe | No plano de F-01 |
+| [QA-29](#qa-29-ferramenta-de-testes-do-frontend) | Ferramenta de testes do frontend | Técnica | Primeira interface | Equipe | No plano de F-01 |
+| [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Antes da primeira implementação |
 | [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Próxima review |
 | [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição v0.3 | Processo | Aprovação da primeira spec | Equipe | Próxima reunião |
 | [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Antes da primeira sprint |
 | [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO (se haverá e quem) | Processo | Aprovações entre as reviews com o professor | Equipe | Próxima reunião |
+| [VAL-05](#val-05-aprovação-das-regras-de-git-e-testes) | Aprovação das regras de git e testes e da DTEC 001 | Processo | Primeira implementação | Equipe | Próxima reunião |
 
 ## Mapa de dependências
 
@@ -49,6 +53,12 @@ flowchart LR
     SPEC --> PLAN
     QA11 --> DEPLOY[Deploy final]
     QA25[QA-25 BFF] --> DEPLOY
+    QA18 --> QA28[QA-28 Complementos do pytest]
+    QA28 --> PLAN
+    QA29[QA-29 Testes do frontend] --> PLAN
+    PLAN --> IMPL[Primeira implementação]
+    QA30[QA-30 develop e verificação automática] --> IMPL
+    VAL05[VAL-05 Regras de git e testes] --> IMPL
 ```
 
 ---
@@ -198,6 +208,47 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 
 ---
 
+### QA-28 Complementos do pytest
+
+**Origem:** [sessão de diretrizes de git e testes](../prompts/2026-09-29-diretrizes-git-testes.md). **Decidido em 29/09/2026:** pytest como ferramenta de testes do backend ([DTEC 001](../research.md#decisão-dtec-001-ferramenta-de-testes-do-backend)), com os marcadores `unit`, `integration`, `functional`, `security` e `adversarial` (regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md)).
+
+**Depende de:** QA-18. **Pendente, a decidir no primeiro `plan.md`:**
+
+- **Cliente HTTP de teste e integração com o framework:** o cliente de teste do próprio framework ou um cliente HTTP genérico, e o plugin de integração correspondente ao resultado de QA-18.
+- **Testes assíncronos:** necessários se o backend usar chamadas assíncronas (streaming do chat, chamadas ao provedor de IA).
+- **Cobertura:** ferramenta de medição e se haverá um mínimo exigido para o merge. Um mínimo alto sem critério incentiva testes de implementação, contra a regra "teste regras e invariantes, não a implementação" de [`padroes-implementacao.md`](../skills/padroes-implementacao.md).
+- **Testes adversariais:** se haverá geração automática de entradas por propriedades, além dos casos escritos à mão (materiais com instruções embutidas, arquivos malformados, payloads extremos).
+- **Execução paralela:** só se o tempo da suíte ameaçar a regra de rodá-la completa antes de cada merge.
+
+---
+
+### QA-29 Ferramenta de testes do frontend
+
+**Origem:** [sessão de diretrizes de git e testes](../prompts/2026-09-29-diretrizes-git-testes.md). O pytest cobre apenas o código Python. A regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md) exige testes para toda spec implementada, e as specs com interface precisam de uma ferramenta para o React.
+
+**Pendente, a decidir no plano da primeira spec com interface e registrar em `research.md`:**
+
+- **Testes de componentes:** executor e biblioteca de testes de componentes compatíveis com a ferramenta de build do frontend.
+- **Testes de ponta a ponta no navegador:** se entram no MVP e com qual ferramenta. Eles verificam fluxos que os testes de API não alcançam (login pelo Keycloak, sessão de revisão, tema escuro).
+- **Acessibilidade:** se haverá verificação automática de contraste e de semântica, ligada ao mínimo de 4,5:1 de QA-19 (Princípio V).
+- **Portão de merge:** se os testes do frontend também bloqueiam o merge na `main`, como os do backend.
+
+---
+
+### QA-30 Branch `develop` e verificação automática antes do merge
+
+**Origem:** [sessão de diretrizes de git e testes](../prompts/2026-09-29-diretrizes-git-testes.md). **Decidido em 29/09/2026:** apenas as branches `main` e `develop`, sem implementação direta na `main`, e nenhum merge na `main` sem todos os testes passando (regras 14 e 17 do [`AGENTS.md`](../../.agents/AGENTS.md)).
+
+**Pendente:**
+
+- **Criar a branch `develop`** a partir da `main` e publicá-la no GitHub, antes da primeira implementação.
+- **Integração contínua:** executar a suíte completa em todo pull request para a `main`, dentro dos mesmos contêineres do ambiente local (regra 11). Sem isso, a regra de testes passando depende apenas da disciplina de cada integrante.
+- **Proteção da `main` no GitHub:** exigir pull request e a verificação da integração contínua aprovada antes do merge, e bloquear `push --force`. Definir se o pull request exige revisão de outro integrante.
+- **Merge direto:** a regra 14 aceita "pull request ou merge". Com a proteção ativa, o merge direto na `main` fica bloqueado. A equipe precisa decidir se aceita só pull request, que deixa a verificação registrada e visível na avaliação.
+- **Documentação:** com a `main` protegida, decidir se as alterações de documentação (specs, planos, registros de prompts) também passam pela `develop` ou continuam indo direto para a `main`. As regras 14 a 17 tratam apenas da fase de desenvolvimento.
+
+---
+
 ## Produto
 
 ### QA-23 Publicação automática e limite de novos cartões
@@ -303,6 +354,10 @@ O PO é o professor Aldo Nunes. Ainda não foi decidido se a equipe terá um rep
 - **Se não houver:** as questões de produto (`Q-xxx` nas specs) aguardam a equipe ou a próxima review com o professor. Isso pode atrasar a aprovação das specs no prazo de 3 semanas do MVP.
 
 As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continuam válidas como proposta até a validação com a equipe e com o professor (VAL-01).
+
+### VAL-05 Aprovação das regras de git e testes
+
+Em 29/09/2026, Artur Lins incluiu no [`AGENTS.md`](../../.agents/AGENTS.md) as regras 14 a 17 (branches `main` e `develop`, Conventional Commits, commits atômicos e testes com pytest obrigatórios antes do merge) e registrou o pytest na [DTEC 001](../research.md#decisão-dtec-001-ferramenta-de-testes-do-backend) ([registro da sessão](../prompts/2026-09-29-diretrizes-git-testes.md)). As regras mudam a forma de trabalho de todos os integrantes e precisam do acordo da equipe antes da primeira implementação.
 
 ---
 
