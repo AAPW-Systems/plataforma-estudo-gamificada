@@ -1,154 +1,573 @@
-# Plano de implementação da plataforma de estudos gamificada
+# Plano Técnico — Plataforma de Estudos Gamificada
 
-Versão 0.1, 25/09/2026. 
+## 1. Objetivo
 
-Plano técnico condicionado às questões QA de [Spec.md](Spec.md). 
-Referências: [SKILL.md](SKILL.md), [DESIGN.md](DESIGN.md) e [Tasks.md](Tasks.md).
+Definir a arquitetura e as decisões técnicas necessárias para implementar os requisitos do `SPEC.md`.
 
-## 1. Resumo técnico
+Este `PLAN.md` é a fonte de verdade para arquitetura, tecnologias e decisões técnicas do projeto.
 
-Implementar aplicação web com View em React JSX, API com Controllers e Model contendo regras e persistência. Separar processamento demorado do atendimento HTTP. Organizar módulos de identidade, materiais, processamento, trilhas, estudos e evolução. Manter correção e efeitos de gamificação autoritativos no servidor.
+Requisitos e regras de negócio devem ser referenciados a partir do `SPEC.md`, sem duplicação.
 
-Proposta de partida, ainda dependente de QA-01/11: uma aplicação modular com API e executor de tarefas compartilhando regras de domínio. Usar IA restrita aos materiais enviados, com modelo e provedor ainda a selecionar. Não pressupor microserviços ou broker externo. Escolher mecanismos após confirmar infraestrutura e capacidade.
+---
 
-Executar por incrementos verificáveis: fundação → materiais → processamento e trilhas → estudo → evolução → operação. Não substituir decisões de negócio por escolhas incidentais de implementação.
+## 2. Stack
 
-## 2. Contexto técnico
+### 2.1 Backend
 
-| Aspecto | Contexto atual | Decisão necessária |
+| Item | Definição |
+| --- | --- |
+| Linguagem | Python |
+| Framework | FastAPI |
+| Banco relacional | PostgreSQL |
+| ORM | Pendente (`TD-01`) |
+| Migrações | Pendente (`TD-02`) |
+| Banco vetorial | Pendente (`TD-04`) |
+| Documentação da API | OpenAPI + Swagger UI |
+| Autenticação | JWT |
+| Processamento assíncrono | Pendente (`TD-03`) |
+
+### 2.2 Frontend
+
+| Item | Definição |
+| --- | --- |
+| Linguagem | JavaScript |
+| Framework | React JS |
+| Build | Vite |
+| Componentes | Material UI |
+| Sintaxe | JSX |
+
+As versões utilizadas devem ser fixadas nos manifests do projeto.
+
+---
+
+# 3. Arquitetura
+
+O backend utiliza arquitetura em camadas, com responsabilidades separadas por domínio.
+
+Fluxo principal:
+
+```text
+React
+  ↓
+Controller
+  ↓
+Service / Caso de uso
+  ↓
+Domínio
+  ↓
+Repository
+  ↓
+Persistência
+```
+
+### Frontend
+
+Responsável pela interface, interação, estados visuais e consumo da API.
+
+### Controller
+
+Responsável pela camada HTTP:
+
+- receber e validar requisições;
+- obter o contexto autenticado;
+- acionar casos de uso;
+- converter resultados para respostas HTTP.
+
+### Service / Caso de uso
+
+Coordena a execução dos casos de uso, incluindo domínio, transações, repositórios e integrações necessárias.
+
+### Domínio
+
+Representa entidades, regras e invariantes do negócio conforme o `SPEC.md`, sem depender de detalhes de transporte ou persistência.
+
+### Repository
+
+Isola o acesso à persistência e expõe as operações necessárias aos casos de uso.
+
+Detalhes de banco, armazenamento e integrações externas devem permanecer nas camadas responsáveis por essas tecnologias.
+
+---
+
+# 4. Organização por domínio
+
+O backend deve ser organizado por domínio:
+
+```text
+identidade
+materiais
+processamento
+rag
+trilhas
+estudos
+gamificacao
+evolucao
+```
+
+Responsabilidades:
+
+- `identidade`: autenticação e dados do estudante;
+- `materiais`: gerenciamento dos materiais;
+- `processamento`: execução e estado do processamento;
+- `rag`: extração, chunks, embeddings, retrieval e evidências;
+- `trilhas`: trilhas, etapas e cobertura;
+- `estudos`: questões, tentativas, feedback e flashcards;
+- `gamificacao`: pontos, progresso e conquistas;
+- `evolucao`: consolidação dos dados de acompanhamento do estudante.
+
+Cada domínio aplica, quando necessárias, as camadas definidas na §3.
+
+Perfil não constitui domínio próprio no MVP e deve compor dados dos domínios responsáveis.
+
+---
+
+# 5. Persistência
+
+## 5.1 PostgreSQL
+
+PostgreSQL é o banco relacional principal.
+
+A persistência deve suportar as entidades e invariantes definidas no `SPEC.md`, utilizando constraints, relacionamentos, índices e transações quando necessários.
+
+O esquema físico será definido durante a implementação.
+
+## 5.2 ORM e migrações
+
+ORM e mecanismo de migrações permanecem pendentes, conforme `TD-01` e `TD-02`.
+
+Toda alteração de esquema deve ocorrer por migrations após a definição dessas tecnologias.
+
+---
+
+# 6. Banco vetorial
+
+O armazenamento vetorial é obrigatório para o pipeline RAG.
+
+Deve suportar:
+
+- embeddings vinculados aos trechos de origem;
+- filtros por usuário e contexto;
+- recuperação por similaridade;
+- isolamento entre usuários.
+
+A tecnologia permanece pendente conforme `TD-04`.
+
+---
+
+# 7. Armazenamento de arquivos
+
+Arquivos devem ser armazenados fora das tabelas relacionais, mantendo no banco os metadados e referências necessários para propriedade, localização, estado e rastreabilidade.
+
+Em desenvolvimento, pode ser utilizado armazenamento local controlado. A solução de produção permanece pendente conforme `TD-08`.
+
+A identidade física do arquivo não deve depender apenas do nome original enviado pelo usuário.
+
+Todo acesso deve respeitar `RN-01`.
+
+---
+
+# 8. Autenticação e segurança
+
+A autenticação utiliza:
+
+- **Access Token JWT** de curta duração, mantido apenas em memória no frontend e enviado por `Authorization: Bearer`;
+- **Refresh Token** armazenado em cookie `HttpOnly`, com `Secure` e `SameSite` configurados conforme o ambiente.
+
+O frontend deve renovar o Access Token quando necessário e pode utilizar o Refresh Token para recuperar a sessão após recarregar a aplicação, sem persistir o Access Token.
+
+Renovações concorrentes devem ser coordenadas para evitar múltiplas solicitações de refresh para a mesma expiração.
+
+Access Tokens não podem ser armazenados em `localStorage` ou `sessionStorage`.
+
+Senhas devem ser armazenadas somente como hash utilizando algoritmo adequado.
+
+Autorização e isolamento devem ser aplicados no backend a todas as camadas de acesso a dados, incluindo persistência, arquivos e RAG, conforme `RN-01`.
+
+Segredos devem ser fornecidos por configuração externa e não podem ser registrados em logs.
+
+Duração dos tokens, rotação, revogação, renovação e comportamento de logout permanecem pendentes conforme `TD-11`.
+
+---
+
+# 9. Pipeline RAG
+
+O pipeline RAG obrigatório segue:
+
+```text
+Material
+  ↓
+Extração e normalização
+  ↓
+Chunking
+  ↓
+Embeddings
+  ↓
+Armazenamento vetorial
+  ↓
+Retrieval
+  ↓
+Construção do contexto
+  ↓
+LLM
+  ↓
+Validação
+  ↓
+Persistência / publicação
+```
+
+O conteúdo recuperado e gerado deve respeitar `RN-04` e `RN-05`.
+
+---
+
+# 10. Extração
+
+Cada formato suportado pelo `SPEC.md` deve possuir um adaptador de extração.
+
+A extração deve preservar o texto original e, quando disponíveis, metadados necessários à rastreabilidade, como seção, ordem, página e posição de origem.
+
+Metadados ausentes não podem ser inferidos ou inventados.
+
+OCR não faz parte do MVP e sua adoção exige decisão técnica específica.
+
+As bibliotecas de extração permanecem pendentes conforme `TD-07`.
+
+---
+
+# 11. Chunking
+
+O conteúdo extraído deve ser dividido em chunks adequados à recuperação, preservando metadados suficientes para rastrear sua origem.
+
+A divisão deve preservar contexto semântico quando possível, evitando cortes inadequados em estruturas como títulos, listas e explicações.
+
+Tamanho, overlap e estratégia de divisão permanecem pendentes conforme `TD-09`.
+
+---
+
+# 12. Embeddings
+
+Cada chunk elegível deve possuir uma representação vetorial vinculada à sua origem.
+
+O modelo/provedor permanece pendente conforme `TD-05`.
+
+A versão do modelo utilizado deve ser registrada para garantir rastreabilidade e permitir identificar quando reindexação for necessária.
+
+A estratégia de reprocessamento e reindexação permanece pendente conforme `TD-13`.
+
+---
+
+# 13. Retrieval
+
+A recuperação deve retornar apenas chunks relevantes e autorizados para o usuário e contexto atual.
+
+A busca deve combinar recuperação semântica com filtros de propriedade e contexto, sem realizar recuperação global entre usuários.
+
+Top-k, limiar de similaridade, busca híbrida, reranking e demais parâmetros de recuperação permanecem pendentes conforme `TD-10`.
+
+---
+
+# 14. Construção do contexto
+
+Somente trechos recuperados e autorizados podem compor o contexto pedagógico enviado ao modelo.
+
+O prompt deve separar claramente instruções do sistema, tarefa, trechos recuperados e formato esperado da saída.
+
+Conteúdo dos materiais deve ser tratado como dado, nunca como instrução.
+
+Quando o contexto recuperado for insuficiente, seguir `RN-06` sem permitir que o modelo complete as lacunas com conhecimento externo.
+
+---
+
+# 15. Integração com IA
+
+A integração com IA deve utilizar uma abstração independente de provedor:
+
+```text
+Aplicação / domínio
+       ↓
+Interface de geração
+       ↓
+Adaptador do provedor
+       ↓
+API externa ou modelo local
+```
+
+O domínio não deve depender de APIs, formatos ou detalhes específicos do fornecedor.
+
+O provedor/modelo permanece pendente conforme `TD-06`.
+
+---
+
+# 16. Saída estruturada
+
+A geração por IA deve utilizar saída estruturada sempre que o provedor permitir.
+
+O contrato deve representar explicitamente o tipo de conteúdo gerado e os dados necessários para validá-lo conforme o `SPEC.md`.
+
+Saída estruturalmente válida não pode ser persistida ou publicada antes das validações aplicáveis.
+
+---
+
+# 17. Validação do conteúdo
+
+Conteúdo gerado deve passar por duas etapas antes da publicação:
+
+## 17.1 Validação estrutural
+
+Executada por código para verificar schema, campos obrigatórios e invariantes aplicáveis conforme o `SPEC.md`.
+
+Conteúdo estruturalmente inválido não pode ser publicado.
+
+## 17.2 Validação de sustentação
+
+Deve verificar se as evidências recuperadas sustentam o conteúdo pedagógico gerado, incluindo resposta e explicação quando aplicáveis.
+
+Uma chamada adicional à IA pode auxiliar nessa análise, mas não constitui isoladamente prova de sustentação.
+
+Conteúdo sem sustentação suficiente não pode ser publicado.
+
+---
+
+# 18. Geração de trilhas
+
+A geração de trilhas deve combinar a estrutura de assuntos identificada nos materiais com a cobertura efetivamente sustentada pelo RAG.
+
+A disponibilidade das etapas deve ser determinada pela cobertura encontrada nos materiais autorizados, conforme `RN-06`.
+
+A geração não pode utilizar conhecimento externo para completar lacunas de cobertura.
+
+---
+
+# 19. Questões, feedback e flashcards
+
+Questões e flashcards devem ser gerados a partir das evidências recuperadas, validados e persistidos antes de serem disponibilizados.
+
+Flashcards devem ser gerados a partir das evidências dos materiais, não utilizando apenas uma questão gerada como fonte.
+
+Responder uma questão não deve realizar nova chamada à IA. Correção, feedback, evidências e flashcards devem utilizar o conteúdo validado e persistido, conforme as regras aplicáveis do `SPEC.md`.
+
+---
+
+# 20. Processamento assíncrono
+
+O processamento de materiais deve ocorrer fora da requisição HTTP principal.
+
+Fluxo conceitual:
+
+```text
+Upload
+  ↓
+Persistência do material e da execução
+  ↓
+Resposta HTTP
+  ↓
+Processamento assíncrono
+```
+
+O mecanismo de execução permanece pendente conforme `TD-03`.
+
+A execução deve permitir recuperação controlada após falhas e respeitar os estados definidos em `RN-03`.
+
+---
+
+# 21. Idempotência
+
+Operações sujeitas a repetição técnica devem garantir idempotência conforme o `SPEC.md`.
+
+A proteção deve ser persistente e utilizar, conforme o caso, identificadores estáveis, constraints de unicidade, transações e controle de estado.
+
+Não depender exclusivamente de verificações em memória.
+
+---
+
+# 22. Histórico e versionamento
+
+A persistência deve preservar os dados necessários para reproduzir resultados históricos conforme o `SPEC.md`.
+
+Conteúdo ou configuração cuja alteração possa afetar resultados já registrados deve possuir versão ou referência suficiente para identificar o estado utilizado.
+
+Alterações posteriores não podem modificar retroativamente o resultado de tentativas registradas.
+
+---
+
+# 23. Arquivamento e exclusão
+
+Arquivamento e exclusão devem seguir `RN-14`.
+
+A validação de dependências para exclusão definitiva deve ocorrer no backend.
+
+Quando permitida, a exclusão deve remover de forma consistente os dados associados que não precisem ser preservados, incluindo arquivos, chunks, embeddings e registros relacionados.
+
+A operação deve evitar referências ou dados órfãos entre PostgreSQL, armazenamento de arquivos e armazenamento vetorial.
+
+---
+
+# 24. API
+
+A API FastAPI deve organizar seus contratos por domínio.
+
+Grupos conceituais:
+
+```text
+/auth
+/perfil
+/materiais
+/processamentos
+/trilhas
+/questoes
+/tentativas
+/flashcards
+/evolucao
+/conquistas
+```
+
+Os caminhos finais serão definidos pelos contratos da API.
+
+Questões devem possuir contratos distintos para apresentação antes da resposta e resultado da correção, evitando exposição antecipada do gabarito conforme o `SPEC.md`.
+
+Demais contratos devem respeitar as regras aplicáveis do `SPEC.md`.
+
+---
+
+# 25. Erros
+
+A API deve utilizar formato uniforme de erro:
+
+```text
+{
+  codigo,
+  mensagem,
+  campos?,
+  idRequisicao
+}
+```
+
+Os códigos HTTP devem representar adequadamente o tipo de falha.
+
+Respostas de erro não devem expor informações internas ou sensíveis.
+
+---
+
+# 26. OpenAPI e Swagger
+
+A documentação OpenAPI deve ser derivada dos contratos reais da API e permanecer coerente com a implementação.
+
+Autenticação, validações, erros e demais comportamentos relevantes dos contratos devem estar representados na documentação.
+
+Swagger UI deve estar disponível nos ambientes apropriados.
+
+Não manter documentação manual divergente dos contratos implementados.
+
+---
+
+# 27. Frontend
+
+A organização do frontend deve seguir o `SKILL.md`, e seu comportamento visual deve seguir o `DESIGN.md`.
+
+O sistema de tema do Material UI deve centralizar as configurações visuais da aplicação.
+
+Enquanto `UI-02` e `UI-03` estiverem abertas, paleta e tipografia devem permanecer como presets independentes e intercambiáveis.
+
+Componentes devem consumir o tema sem definir ou selecionar diretamente paletas e tipografias.
+
+Após a resolução de `UI-02` e `UI-03`, os presets temporários poderão ser removidos.
+
+---
+
+# 28. Testes
+
+A estratégia de testes deve priorizar regras de negócio, integração real e riscos do sistema.
+
+## Unidade
+
+Testar regras e invariantes de domínio de forma isolada e determinística.
+
+## Integração
+
+Testar API, persistência, transações, idempotência, autorização e consistência entre os mecanismos de armazenamento utilizando infraestrutura real de teste quando aplicável.
+
+Mocks não substituem testes de integração dos componentes cuja interação real precisa ser validada.
+
+## RAG
+
+Manter corpus controlado com respostas e evidências conhecidas para avaliar recuperação, isolamento, cobertura, sustentação das evidências e tratamento de conteúdo adversarial ou insuficiente.
+
+A qualidade não deve ser avaliada apenas pela resposta final da IA. Uma resposta correta sustentada por evidência incorreta deve ser considerada falha.
+
+## IA
+
+Separar testes determinísticos da integração com IA da avaliação de qualidade utilizando o modelo real.
+
+A suíte principal não deve depender de chamadas externas, disponibilidade do provedor ou créditos.
+
+## API
+
+Validar contratos, autenticação, autorização, erros e regras que afetem a exposição de dados.
+
+## Frontend / E2E
+
+Cobrir a jornada principal e os cenários críticos definidos no `SPEC.md`.
+
+---
+
+# 29. Observabilidade
+
+A aplicação deve utilizar logs estruturados para eventos relevantes, falhas e operações críticas.
+
+Requisições e processamentos devem possuir identificadores de correlação que permitam rastrear sua execução entre os componentes envolvidos.
+
+Logs devem respeitar as restrições de segurança e privacidade definidas para o projeto.
+
+Métricas, alertas e observabilidade avançada serão definidos conforme a infraestrutura de produção.
+
+---
+
+# 30. Ambientes
+
+O projeto deve prever ambientes de desenvolvimento, teste e produção.
+
+Configurações específicas de ambiente devem ser externas ao código, utilizando variáveis de ambiente ou mecanismo equivalente.
+
+O projeto deve fornecer configuração de exemplo sem credenciais ou segredos reais.
+
+Hospedagem e operação de produção permanecem pendentes conforme `TD-12`.
+
+---
+
+# 31. Decisões técnicas abertas
+
+Somente decisões ainda não aprovadas permanecem nesta seção.
+
+| ID | Decisão | Estado |
 | --- | --- | --- |
-| Linguagem/backend | Não definida | QA-01: linguagem, runtime e versões suportadas |
-| Frontend | JavaScript e JSX; React como preferência | QA-01: confirmar stack, versões e build |
-| Dependências | Sem pacotes ou versões selecionados | Escolher validação, acesso a dados, autenticação, testes, OpenAPI e biblioteca visual segundo QA-01/02 |
-| Persistência | Entidades e invariantes de Spec.md; tecnologia aberta | QA-01: banco, migrações, transações, unicidade e estratégia de concorrência |
-| Arquivos | Referência interna, propriedade e acesso controlado | QA-03/05/11: armazenamento, limites, retenção e limpeza |
-| Processamento | Assíncrono; IA com fontes restritas aos materiais enviados | QA-04/11: extrator, gerador, executor, timeout e eventual fila |
-| Testes | Regras unitárias, integração real de persistência, contrato, E2E e operação | QA-01: ferramentas e execução em integração contínua |
-| Plataforma | Web responsiva; navegador em desktop e celular | QA-11: hospedagem, ambientes e matriz de navegadores |
-| Desempenho | Nenhum SLA ou tempo quantitativo aprovado | QA-11: p95 de operações interativas e duração de processamento por faixa de arquivo |
-| Escala | Nenhum volume confirmado | QA-11: concorrência, arquivos/dia, bytes, crescimento e retenção |
-| Datas | UTC para instantes; fuso de negócio pendente | QA-09: fuso e períodos |
+| TD-01 | ORM | Aberta |
+| TD-02 | Ferramenta de migrations | Aberta |
+| TD-03 | Executor de processamento assíncrono | Aberta |
+| TD-04 | Tecnologia de armazenamento vetorial | Aberta |
+| TD-05 | Provedor/modelo de embeddings | Aberta |
+| TD-06 | Provedor/modelo de IA | Aberta |
+| TD-07 | Biblioteca de extração por formato | Aberta |
+| TD-08 | Armazenamento de arquivos em produção | Aberta |
+| TD-09 | Estratégia e parâmetros de chunking | Experimental |
+| TD-10 | Estratégia e parâmetros de retrieval | Experimental |
+| TD-11 | Política de tokens JWT | Aberta |
+| TD-12 | Hospedagem e operação de produção | Aberta |
+| TD-13 | Estratégia de reprocessamento e reindexação | Aberta |
 
-Não preencher lacunas com versões “mais recentes” ou comandos presumidos. Ao selecionar tecnologias, verificar compatibilidade nas fontes oficiais e registrar versões fixadas, diretórios e comandos efetivamente disponíveis.
+### Alternativas em avaliação
 
-## 3. Verificação da constituição
+- `TD-04`: PostgreSQL + pgvector é a principal alternativa inicial para armazenamento vetorial, sem decisão aprovada.
+- `TD-06`: Gemini e Groq foram experimentados, mas nenhum provedor/modelo está aprovado.
 
-“Constituição” refere-se aos princípios já presentes em SKILL.md e DESIGN.md; a tabela não cria outro documento nem altera os originais. A evidência abaixo é prevista, ainda não produzida.
+Decisões experimentais devem ser avaliadas com dados representativos antes de serem fechadas.
 
-| principio | como o plano atende | a evidencia prevista |
-| --- | --- | --- |
-| MVC obrigatório | View, Controller e Model com limites explícitos e módulos de domínio | Mapa de camadas e revisão de dependências em T-010/T-013 |
-| Código limpo e português | Identificadores próprios claros, convenção da linguagem e comentários apenas de motivo | Configuração de estilo e revisão em T-010 e T-092 |
-| Normalização de textos | Utilitários por finalidade sem destruir conteúdo original | Testes Unicode e espaços em T-013 |
-| Datas consistentes | UTC, formato ISO e agregação no fuso aprovado | Testes de fronteira em T-013/T-042 |
-| Validação nas duas pontas | Contratos de limite compartilhados ou derivados e validação autoritativa | Testes de fronteira de API e UI em T-021/T-023 |
-| Exceções uniformes | Conversão central para erros documentados com correlação | Testes de contrato e logs em T-014/T-090 |
-| Histórico e idempotência | Versão de questão, identidade de tentativa e efeitos consistentes | Testes concorrentes e de recuperação em T-040/T-041 |
-| Conteúdo completo e rastreável | Validar estrutura e sustentação nos trechos enviados; bloquear atividades sem apoio e não pesquisar fontes externas | Corpus de referência e falhas de geração em T-030/T-031 |
-| Swagger/OpenAPI | Contratos atualizados por incremento e verificação automatizada | Especificação e Swagger UI em T-014/T-092 |
-| Interface limpa e consistente | Tema e componentes reutilizados conforme DESIGN.md | Revisão visual de T-012/T-091 |
-| Acessibilidade e estados | Teclado, foco, contraste e estados vazios/erro/carregamento | Cenários E2E e revisão manual em T-091 |
-| Isolamento de usuário | Autorização também em arquivo e tarefas assíncronas | Testes negativos em T-011/T-024/T-090 |
-| Comandos verificáveis | Registrar e executar build, test e run da stack escolhida | Execução reproduzível em T-010/T-092; atualização dos originais somente se autorizada |
+---
 
-## 4. Arquitetura e fluxo
+# 32. Regra de documentação
 
-### Responsabilidades
+Este `PLAN.md` é a fonte principal para arquitetura e decisões técnicas.
 
-- **View:** páginas, componentes, estado de interação, validação de entrada e apresentação de estados. Recebe métricas calculadas, não as redefine.
-- **Controller:** autenticação/contexto, leitura e validação de requisição, chamada do caso de uso e resposta HTTP. Sem extração de livros ou concessão de pontos embutidas.
-- **Model:** entidades, regras, correção, elegibilidade, conclusão e invariantes; persistência isolada conforme convenção da stack.
-- **Serviços de aplicação, quando úteis:** coordenam casos de uso e transações. Adaptadores de arquivo, extração e geração isolam dependências externas. Executor reutiliza regras do Model.
+Requisitos e regras de negócio devem ser referenciados no `SPEC.md`, sem duplicação desnecessária.
 
-### Módulos e contratos
+Quando uma decisão `TD-*` for aprovada, ela deve ser incorporada à seção técnica correspondente, removida das decisões abertas e refletida nos demais documentos somente quando necessário.
 
-| Módulo | Entrada/saída principal | Requisitos |
-| --- | --- | --- |
-| Identidade | Contexto autenticado e autorização de proprietário | RF-01 |
-| Materiais | Metadados e arquivo → material admitido; consultas e gerenciamento | RF-02/03 |
-| Processamento | Identidade da execução → estado e conteúdo validado | RF-04 |
-| Trilhas | Material/versão → trilha, etapas e referências | RF-05 |
-| Estudos | Questão sem gabarito; tentativa → correção; flashcard → frente/verso autorizado | RF-06/07/08 |
-| Evolução | Tentativas e eventos elegíveis → pontos, progresso e concessões | RF-09/10/11/12 |
-| Documentação | Contratos reais → OpenAPI/Swagger UI | RF-13 |
-
-Detalhar caminhos HTTP após QA-01. Usar contratos diferentes para apresentação da questão e correção; não serializar a entidade de persistência diretamente. Definir paginação, enumerações e erros uniformes. Estado assíncrono retorna identidade consultável; transporte por polling ou outro mecanismo fica condicionado ao ambiente.
-
-### Fluxo de material e publicação
-
-1. Validar identidade, campos e limites antes de admitir processamento; finalizar arquivo de forma verificável.
-2. Persistir material e intenção de processamento. Garantir que falha entre persistência e agendamento seja recuperável por mecanismo durável escolhido na stack.
-3. Executor obtém execução e valida propriedade/referências. Extrai texto por seções preservando material, versão, trechos e localização. OCR/análise visual dependem do formato aprovado. Identifica tópicos do edital e cobertura pelos materiais; distingue lacuna pedagógica de falha técnica. Seleciona somente trechos dos materiais autorizados para a trilha, sem pesquisa externa. Gera questão e flashcard a partir desses trechos em saída estruturada, com limites de tempo e tamanho definidos.
-4. Validar estrutura pelo código e sustentação semântica da resposta/explicação nos trechos; identificar ambiguidade e contradição. Verificar referências, não apenas aceitar citações emitidas pelo modelo. Separar conteúdo em preparação de conteúdo publicável. Se insuficiente, registrar assunto aguardando apoio; não forçar quantidade nem usar conhecimento externo. A revisão por IA é auxiliar; medir qualidade com corpus revisado por pessoa responsável.
-5. Publicar a versão aprovada de forma consistente e concluir execução. Falha mantém conteúdo inválido fora do estudo e registra diagnóstico sanitizado.
-6. Guardar modelo, versão das instruções e vínculos de evidência. Persistir atividades aprovadas para reutilização e corrigir tentativas pelo gabarito salvo, sem chamar IA a cada resposta. Reexecução técnica usa identidade estável; nova geração segue política QA-04. Se houver fila, assumir possibilidade de entrega repetida, sem prometer execução exatamente uma vez.
-
-### Fluxo de resposta e gamificação
-
-1. Cliente obtém questão/versão sem gabarito e cria identidade de tentativa antes do primeiro envio.
-2. Controller valida formato; Model verifica dono, versão, alternativa e disponibilidade conforme QA-07.
-3. Consultar identidade: mesma entrada retorna resultado original; entrada divergente gera conflito.
-4. Registrar tentativa e efeitos elegíveis de pontos, progresso e conquistas de forma atômica quando suportado. Se houver efeitos assíncronos, usar registro durável e consumidores idempotentes; comunicar eventual pendência na UI.
-5. Retornar correção e métricas confirmadas. Timeout permite reenviar a identidade original; uma nova tentativa intencional usa outra identidade.
-
-Preferir consistência transacional simples no primeiro incremento quando a persistência escolhida permitir. Registrar versão da regra de pontuação e de conteúdo para preservar histórico. Índices de unicidade devem proteger identidades de tentativa, origens pontuadas e concessões, além das verificações no código.
-
-### Persistência e ciclo de vida
-
-Traduzir entidades de Spec.md em esquema com vínculos e índices por proprietário, trilha e período de consulta. Escolher entre projeção calculada e materializada de progresso após fórmulas e carga conhecidas. Se materializar, prever reconstrução a partir dos dados de origem e verificar divergências.
-
-Excluir/arquivar arquivos e derivados apenas segundo QA-05. Coordenar exclusão com execuções ativas e respostas em andamento. Migrações devem preservar versões históricas; não reescrever tentativas ao editar gabarito.
-
-### Interface
-
-Implementar Início, Materiais, Trilhas/Etapas, Questões, Flashcards e Evolução conforme DESIGN.md. Estados da API orientam mensagens e disponibilidade. Distinguir estado da execução de cobertura por assunto; exibir “aguardando material de apoio” e ação de enviar complemento. Mostrar evidências após correção e no verso do flashcard, respeitando a política de acesso para evitar gabarito prematuro. Desenvolver componentes de campo, botão, seleção, aviso, diálogo e progresso antes dos fluxos. Não criar telas de autenticação específicas até QA-02; não introduzir rankings ou edição de conteúdo fora do escopo.
-
-## 5. Estratégias de teste
-
-| Nível | Foco | Referências e evidência |
-| --- | --- | --- |
-| Unidade | Normalização, datas, validadores de questão, fórmulas e elegibilidade | RN-02/04/07/08/10; valores de fronteira e exemplos aprovados |
-| Integração | Banco real de teste, transações, unicidade, propriedade e histórico | HU-01/06/09/10; CB-04/07/08/12 |
-| Arquivos e processamento | Fixtures válidas, vazias, corrompidas, interrompidas e geração inválida | HU-02/03/04; CB-01 a CB-06/14 |
-| Contrato | OpenAPI, erros, autenticação e ausência de gabarito pré-resposta | HU-12, CS-03/06; CB-11 |
-| Interface/E2E | Fluxo principal, recuperação de erro, revisão e continuação | HU-02 a HU-11; estados visuais e navegação |
-| Acessibilidade | Teclado, foco, rótulos, contraste e leitura responsiva | RQ-03, CS-05; automação mais revisão humana |
-| Conteúdo | Fontes exclusivas, fidelidade, explicações, origem, edital sem apoio e evidências falsas | RQ-07, HU-13/14, CB-15/16; corpus com resposta esperada e revisão humana, além da validação de formato |
-| Carga e operação | Concorrência, saturação, retomada de executor e restauração | RQ-04/08, QA-11; carga, ambiente e metas registrados |
-
-Usar fixtures determinísticas e dados sintéticos sem informações pessoais. Substituir provedor externo por adaptador controlado em testes de falha; executar avaliação representativa separada do gerador real quando houver. Não exigir que um teste estrutural prove a verdade de uma questão gerada.
-
-Cada tarefa de funcionalidade inclui testes de seus critérios; T-090 a T-094 verificam o sistema integrado. Não usar percentual de cobertura isolado como prova de qualidade. Documentar HU/CB executados, resultado e limitações; cenário bloqueado não equivale a aprovado.
-
-## 6. Observabilidade e operação
-
-- **Logs:** eventos estruturados de upload, transição de execução, publicação, tentativa, pontuação e erro. Correlacionar requisição e processamento com identificadores; não registrar texto integral de livros, senhas, tokens ou gabaritos em logs de rotina.
-- **Métricas:** latência e falhas por operação, execuções pendentes/ativas/falhas, tempo de processamento por faixa de arquivo, armazenamento, conflitos idempotentes e falhas de consistência. Se houver serviço pago, medir uso/custo conforme orçamento aprovado.
-- **Alertas:** definir limiares e responsável em QA-11 para tarefas paradas, aumento de erro, capacidade e falha de backup. Não fixar limiares sem linha de base.
-- **Recuperação:** registrar timeouts, tentativas automáticas limitadas, atraso entre tentativas e tratamento de execução irrecuperável. Só repetir falhas transitórias; entrada inválida requer correção.
-- **Ambientes:** separar desenvolvimento, teste e produção; segredos por configuração externa. Fornecer exemplo de variáveis sem valores secretos e comandos reproduzíveis da stack.
-- **Dados:** planejar backup de banco e arquivos, retenção, restauração e consistência entre ambos. Confirmar RPO e RTO antes do teste operacional.
-- **Entrega:** aplicar migrações controladas, verificar saúde da API e executor e definir reversão compatível com dados existentes. Não pressupor que reverter código desfaz migração destrutiva.
-- **Rotina de operação:** documentar como localizar falhas, reprocessar sem duplicar, restaurar backup, limpar arquivos órfãos e verificar divergência de progresso. Definir responsáveis e acesso à documentação em QA-11.
-
-## 7. Riscos técnicos
-
-| ID | Risco | Impacto | Mitigação/verificação prevista | Dependência |
-| --- | --- | --- | --- | --- |
-| RT-01 | Stack e infraestrutura indefinidas | Retrabalho e comandos inválidos | Resolver decisões antes de inicializar aplicação | QA-01/11; T-001/006 |
-| RT-02 | Extração ruim ou geração incorreta | Conteúdo pedagógico inadequado | Corpus representativo, avaliação semântica e política de publicação | QA-03/04; T-003/030 |
-| RT-03 | Reentrega/concorrência | Pontos, trilhas ou conquistas duplicadas | Identidades, unicidade e testes de interrupção | T-031/040/041 |
-| RT-04 | Edição/exclusão altera histórico | Resultados inconsistentes | Versionamento, política de ciclo de vida e testes concorrentes | QA-05/07; T-022/040 |
-| RT-05 | Falha entre banco, arquivo e executor | Tarefas perdidas e arquivos órfãos | Intenção durável, reconciliação e limpeza controlada | T-020/031/093 |
-| RT-06 | Gabarito ou dados de outro usuário expostos | Perda de confiança e isolamento | Contratos separados e autorização em todos os caminhos | QA-10; T-011/040/090 |
-| RT-07 | Progresso/recompensas ambíguos | Métricas incoerentes e abuso de repetição | Exemplos numéricos aprovados antes do código | QA-06/07/08/09; T-004 |
-| RT-08 | Processamento excede capacidade/orçamento | Fila crescente e indisponibilidade | Limites, métricas e carga com metas aprovadas | QA-11; T-006/093 |
-| RT-09 | UI parece pronta sem tratar falhas | Fluxo incompleto para o estudante | Estados de erro, limites e E2E com falhas | T-023/033/044/091 |
-| RT-11 | IA usa conhecimento externo ou cita trecho que não sustenta a resposta | Atividades sem fundamento | Desabilitar busca externa, filtrar materiais por usuário/trilha e validar sustentação; testar lacunas e citações enganosas | RN-11/13; T-030/035/090 |
-| RT-10 | Documentos divergem do código | Desenvolvimento perde rastreabilidade | Atualizar Spec/Plan/Tasks e contratos por decisão; pedir autorização para originais | T-007/094 |
-
-## 8. Condições para execução e aceite
-
-Decisões independentes podem avançar em paralelo, conforme Tasks.md. Tarefas bloqueadas por QA não devem ser encerradas com valores inventados. Uma prova técnica pode usar hipótese identificada e descartável, sem promovê-la a decisão definitiva.
-
-O aceite requer CS-01 a CS-07 de Spec.md, evidências reais e resolução das pendências incidentes no escopo entregue. Nesta revisão, a solicitação do usuário autoriza adequar SKILL.md e DESIGN.md à política de IA e fontes exclusivas. Outras mudanças continuam sujeitas à autorização pertinente. Caso uma escolha futura conflite com eles, interromper apenas a mudança dependente e solicitar autorização explícita para a edição.
+Não manter como arquitetura vigente decisões, protótipos ou implementações descartadas.

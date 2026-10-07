@@ -1,226 +1,376 @@
-# Especificação da plataforma de estudos gamificada
+# Especificação — Plataforma de Estudos Gamificada
 
-Versão documental: 0.1
-Estado: base para refinamento, decisões pendentes impedem considerar a especificação integralmente pronta para implementação 
-Data: 25/09/2026
+## 1. Objetivo
 
-Referências: [SKILL.md](SKILL.md), [DESIGN.md](DESIGN.md), [Plan.md](Plan.md) e [Tasks.md](Tasks.md).
+Construir uma plataforma web de estudos gamificada que transforme materiais enviados pelo estudante em trilhas de aprendizagem, questões e flashcards, permitindo acompanhar estudo, desempenho, progresso, pontos e conquistas.
 
-Este documento define o que construir e como aceitar o resultado, o arquivo Plan.md define a abordagem técnica, o Tasks.md decompõe a execução do sistema em fases, os arquivos SKILL.md e DESIGN.md são a base de princípios existente, denominada “constituição” no plano.
-Não é necessário criar um sexto arquivo. A solicitação desta revisão autoriza atualizar SKILL.md e DESIGN.md para a política de IA com fontes exclusivas. Essa autorização não se estende a mudanças não relacionadas. Se uma decisão exigir alterá-los, deve ser apresentada a mudança e solicitada a autorização antes.
+A geração de conteúdo deve utilizar **RAG (Retrieval-Augmented Generation)** exclusivamente sobre materiais autorizados do próprio estudante.
 
-Requisitos derivados abaixo operacionalizam o resumo e os arquivos existentes, não representam aprovação de escolhas ainda abertas. 
-IDs RF, RN, HU, CB, RQ, CS e QA permitem rastrear requisitos, regras, histórias, bordas, qualidade, sucesso e questões abertas. Mudanças futuras devem atualizar os três documentos mantendo seus IDs estáveis.
+Este documento é a fonte de verdade para requisitos e regras de negócio. Interface, arquitetura, ordem de implementação e instruções para agentes pertencem, respectivamente, a `DESIGN.md`, `PLAN.md`, `TASKS.md` e `SKILL.md`.
 
-## 1. Problema e resultado esperado
-
-Materiais de estudo extensos e dispersos dificultam organizar uma sequência de aprendizagem e acompanhar o que foi aprendido. O estudante precisa transformar seus materiais em atividades praticáveis e visualizar sua evolução.
-
-Resultado esperado: um estudante envia um material, acompanha seu processamento, acessa uma trilha estruturada, responde questões com explicações, revisa flashcards associados e consulta desempenho, pontos, progresso e conquistas. A evolução deve ser confiável mesmo com falhas de rede e reenvios.
+---
 
 ## 2. Escopo
 
-### Incluído
+### 2.1 Incluído no MVP
 
-- Materiais classificados como edital, apostila ou livro, com envio, listagem, consulta e gerenciamento dentro da política a definir.
-- Processamento acompanhado por estados, geração de trilhas ordenadas, questões de escolha única e flashcards relacionados.
-- Referências obrigatórias ao material, versão e trecho de origem; página quando disponível.
-- Registro de tentativas, correção, explicação e histórico preservado.
-- Pontos, progresso e conquistas calculados pelo servidor, conforme regras a confirmar.
-- Interface web responsiva em português, validações locais e de servidor, isolamento entre usuários e API documentada.
+- Cadastro, autenticação e isolamento por estudante.
+- Materiais PDF, TXT e DOCX: envio, gerenciamento, processamento e ciclo de vida.
+- Pipeline RAG com conteúdo rastreável, embeddings, recuperação vetorial e evidências.
+- Identificação de assuntos e geração de trilhas de aprendizagem.
+- Questões de múltipla escolha com resposta única e verdadeiro ou falso, com tentativas, correção e explicação.
+- Flashcards vinculados ao conteúdo estudado.
+- Pontuação, progresso, conquistas, histórico e evolução.
+- Interface web responsiva em português e API documentada.
 
-### Fora do Escopo
+### 2.2 Fora do MVP
 
-- Ranking público, rede social, compartilhamento de materiais, equipes e disputas entre usuários.
-- Pagamentos, assinaturas, comércio de conteúdo, aplicativos móveis nativos e modo offline.
-- Questões discursivas ou de múltiplas respostas corretas, tutoria conversacional e provas oficiais certificadas.
-- Repetição espaçada, sequências diárias e notificações: dependem de futura inclusão expressa.
-- Painel administrativo, edição manual de conteúdo gerado e revisão humana obrigatória: não presumidos; avaliar QA-04 e QA-05.
+- Ranking, rede social, equipes, competição e compartilhamento público.
+- Pagamentos e assinaturas.
+- Aplicativos nativos e funcionamento offline.
+- Questões discursivas ou com múltiplas respostas corretas.
+- Repetição espaçada e sequências diárias.
+- Notificações persistentes, push, e-mail ou central de notificações.
+- Tutoria conversacional e edição manual do conteúdo gerado.
+- Pesquisa externa para complementar materiais.
+- Painel administrativo.
 
-A IA será usada para interpretar e gerar conteúdo exclusivamente com base nos materiais enviados. Modelo, provedor, OCR e forma de execução permanecem em aberto. Pesquisa na internet, bases externas e complementação de lacunas com conhecimento geral do modelo estão fora do escopo. Edital/apostila/livro são categorias de conteúdo, não formatos de arquivo permitidos.
+---
 
-## 3. Histórias de usuário e cenários de teste
+## 3. Regras de negócio
 
-Os cenários são critérios de aceitação, não resultados de testes já executados. Os cenários dependentes de regras em aberto usam os valores que forem aprovados, nunca números inventados.
+### RN-01 — Propriedade e isolamento
 
-| ID | História | Cenário de aceitação (Dado / Quando / Então) | Vínculo |
-| --- | --- | --- | --- |
-| HU-01 | Como estudante, quero acessar apenas meus dados | Dado dois usuários com materiais, quando um consulta ou altera recurso do outro, então o acesso é negado sem divulgar conteúdo | RF-01, RF-03; RN-01 |
-| HU-02 | Quero enviar material para iniciar meus estudos | Dado arquivo permitido e campos válidos, quando envio, então recebo identificação e estado; dado arquivo acima do limite, então obtenho erro e não há processamento ativo | RF-02; RN-02 |
-| HU-03 | Quero saber se o material está pronto | Dado material aceito, quando o processamento termina com conteúdo válido, então vejo concluído e acesso a trilha; se o extrator falha, vejo falhou e ação de recuperação permitida | RF-04; RN-03 |
-| HU-04 | Quero estudar em uma sequência organizada | Dada trilha concluída, quando a abro, então vejo etapas ordenadas e referências; conteúdo inválido não aparece como disponível | RF-05; RN-04 |
-| HU-05 | Quero responder e entender meus erros | Dada questão disponível, quando abro, não recebo gabarito; quando confirmo alternativa incorreta, então recebo resultado, correta e explicação e uma tentativa é registrada | RF-06, RF-07; RN-05 |
-| HU-06 | Quero que uma falha de rede não distorça meus pontos | Dada tentativa já aceita, quando reenviada com mesma identidade e conteúdo, então retorno é consistente e total de pontos não aumenta novamente; conteúdo divergente gera conflito | RF-07, RF-09; RN-06 |
-| HU-07 | Quero revisar o conteúdo com flashcards | Dado flashcard da etapa, quando aciono revelar pelo teclado, então acesso verso e explicação disponível; revisão isolada não concede pontos sem regra aprovada | RF-08; QA-10 |
-| HU-08 | Quero compreender minha evolução | Dados resultados conhecidos, quando consulto Evolução, então tentativas e acertos conferem com o histórico e progresso segue a fórmula aprovada; sem atividade vejo estado vazio | RF-10, RF-12; RN-07 |
-| HU-09 | Quero receber conquistas quando cumprir objetivos | Dado critério aprovado, quando evento elegível o completa, então uma concessão é registrada; repetição ou concorrência não concede novamente | RF-11; RN-08 |
-| HU-10 | Quero gerenciar materiais sem perder clareza sobre meu histórico | Dado material com trilha e tentativas, quando solicito exclusão, então o impacto é explicado e a operação segue a política aprovada preservando as garantias históricas | RF-03; RN-09 |
-| HU-11 | Quero continuar de onde parei | Dado estudo anterior, quando retorno ao Início, então a ação continuar abre o destino definido em QA-06; na ausência de estudo, vejo orientação inicial | RF-12; QA-06 |
-| HU-13 | Quero saber quais assuntos ainda precisam de material | Dado edital que lista porcentagem e apostila que cobre apenas frações, quando processo os materiais, então o sistema sinaliza porcentagem como aguardando apoio e não gera questões sobre ela com conhecimento externo | RF-14; RN-11/12 |
-| HU-14 | Quero conferir a origem das atividades | Dada questão ou flashcard gerado, quando consulto sua evidência no momento permitido, então vejo trecho real de versão do meu material; referência inexistente ou que não sustenta a resposta impede publicação | RF-15; RN-11/13 |
-| HU-12 | Como integrador, quero contratos confiáveis | Dada API implementada, quando comparo exemplos e esquemas OpenAPI com respostas reais de sucesso e erro, então formatos, limites e autenticação coincidem | RF-14 | Identificar assuntos sem suporte suficiente, sinalizar “aguardando material de apoio” e permitir solicitar/envio de complemento conforme vínculo aprovado | RN-11/12; QA-04/06 |
-| RF-15 | Rastrear cada questão, explicação e flashcard até trechos de versões dos materiais do próprio usuário e verificar sustentação antes de publicar | RN-11/13; QA-04 |
-| RF-13 |
+Dados e recursos de estudo pertencem ao respectivo estudante e devem permanecer isolados entre usuários.
 
-## 4. Casos de borda
+Conhecer o identificador de um recurso não concede acesso. Nenhum usuário pode consultar, alterar ou utilizar como fonte recursos pertencentes a outro usuário.
 
-| ID | Situação | Comportamento exigido ou decisão necessária |
+---
+
+### RN-02 — Admissão de materiais
+
+São aceitos arquivos **PDF, TXT e DOCX**, com máximo de **5 MB por arquivo** e **3 arquivos por envio**.
+
+O backend deve validar formato, tamanho e integridade antes do processamento. Arquivos inválidos, vazios, corrompidos ou incompatíveis não podem gerar conteúdo ativo.
+
+---
+
+### RN-03 — Processamento
+
+O processamento possui os estados `pendente`, `processando`, `concluido` e `falhou`.
+
+`concluido` significa que o conteúdo esperado foi extraído e persistido de forma válida. Falha técnica e insuficiência de conteúdo pedagógico são situações distintas.
+
+Reprocessamentos devem respeitar a idempotência definida em `RN-10`.
+
+---
+
+### RN-04 — RAG e fontes exclusivas
+
+Todo conteúdo pedagógico gerado por IA deve utilizar RAG exclusivamente sobre materiais autorizados do estudante e vinculados ao contexto correspondente.
+
+É proibido utilizar pesquisa externa, bases externas, conhecimento geral do modelo ou conteúdo de outros usuários para suprir informações ausentes.
+
+A escolha ou troca do provedor de IA não altera esta regra.
+
+---
+
+### RN-05 — Evidências e rastreabilidade
+
+Questões, explicações e flashcards gerados devem permanecer vinculados às evidências que os sustentam.
+
+Cada evidência deve permitir identificar o material e o trecho de origem e, quando conhecido, a página. O sistema nunca deve inventar localização ou número de página.
+
+Os vínculos devem ser preservados após processamento e publicação, permitindo ao estudante consultar, após a resposta, as evidências que sustentam o conteúdo apresentado.
+
+---
+
+### RN-06 — Cobertura e lacunas
+
+A identificação ou menção de um assunto não implica cobertura suficiente para gerar atividades.
+
+Quando não houver evidências suficientes, o assunto deve permanecer como `aguardando material de apoio`, sem geração por conhecimento externo nem conclusão, permitindo ao estudante enviar material complementar.
+
+Lacunas pedagógicas não impedem que o processamento tecnicamente válido seja considerado concluído.
+
+---
+
+### RN-07 — Questões
+
+Toda questão deve possuir enunciado, resposta correta, dificuldade, explicação e evidência, ser sustentada conforme `RN-04` e `RN-05` e validada antes da publicação.
+
+O MVP suporta:
+
+- **múltipla escolha:** exatamente 4 alternativas e 1 correta;
+- **verdadeiro ou falso:** opções `Verdadeiro` e `Falso`, com 1 resposta correta.
+
+Questões podem utilizar contextualização sustentada pelas evidências, sem introduzir informações externas.
+
+---
+
+### RN-08 — Flashcards
+
+Flashcards são recursos de revisão, não atividades avaliativas, e devem ser gerados e validados a partir das evidências conforme `RN-04` e `RN-05`.
+
+Cada flashcard deve possuir frente, resposta no verso e evidência vinculada, podendo incluir explicação curta.
+
+O flashcard é liberado após o estudante responder à questão relacionada, e seu verso somente é revelado após ação explícita do estudante.
+
+Flashcards não possuem envio de resposta nem produzem tentativas, pontos, acurácia, progresso, conclusão ou conquistas.
+
+A evidência deve permanecer consultável após a revelação da resposta.
+
+---
+
+### RN-09 — Tentativas
+
+Antes da confirmação da resposta, a API não pode expor o gabarito nem conteúdo que revele a resposta correta.
+
+Após a confirmação, o servidor deve registrar e corrigir a tentativa utilizando o gabarito persistido da versão da questão, sem nova chamada à IA, aplicar os efeitos elegíveis e retornar o resultado conforme `RN-16`.
+
+O histórico deve preservar o resultado original da tentativa mesmo que o conteúdo seja alterado futuramente.
+
+---
+
+### RN-10 — Idempotência
+
+Repetições técnicas da mesma tentativa não podem duplicar tentativas nem efeitos de negócio.
+
+Uma repetição intencional da questão constitui nova tentativa, respeitando as regras de pontuação e conquistas aplicáveis.
+
+---
+
+### RN-11 — Pontuação
+
+Somente o primeiro acerto de cada questão concede pontos, conforme a dificuldade:
+
+- fácil: 1 ponto;
+- médio: 2 pontos;
+- difícil: 3 pontos.
+
+A dificuldade interfere somente na pontuação.
+
+Respostas incorretas não removem pontos. Toda concessão deve ser rastreável à questão que a originou.
+
+Repetições devem respeitar `RN-10`, e flashcards não concedem pontos conforme `RN-08`.
+
+---
+
+### RN-12 — Progresso
+
+Percentual de acertos e percentual de conclusão são métricas distintas.
+
+Uma questão é concluída ao ser acertada. Etapas e trilhas são concluídas quando todas as questões disponíveis que as compõem forem acertadas.
+
+Assuntos `aguardando material de apoio` devem permanecer identificados como lacunas de cobertura, sem impedir a conclusão do conteúdo efetivamente disponível.
+
+---
+
+### RN-13 — Conquistas
+
+O MVP possui exatamente três conquistas:
+
+| Conquista | Critério |
+| --- | --- |
+| Primeira resposta | Registrar a primeira resposta válida |
+| 10 acertos | Acertar 10 questões distintas |
+| Primeira trilha | Concluir a primeira trilha |
+
+Cada conquista pode ser concedida apenas uma vez por estudante. Repetições não aumentam o número de questões distintas acertadas.
+
+---
+
+### RN-14 — Arquivamento e exclusão de materiais
+
+Arquivamento e exclusão definitiva são operações distintas.
+
+O arquivamento retira o material da visualização ativa sem excluí-lo, preservando histórico, versões, evidências e dependências e permitindo restauração.
+
+A exclusão definitiva somente é permitida quando o material não possuir dependências necessárias à consistência, rastreabilidade ou preservação do histórico. Caso existam, a operação deve ser bloqueada.
+
+Toda exclusão definitiva exige confirmação explícita e não pode deixar dados órfãos nem comprometer histórico, pontuação, progresso, conquistas ou evidências.
+
+---
+
+### RN-15 — Datas
+
+Instantes devem ser persistidos em UTC e transportados em ISO 8601.
+
+A apresentação deve seguir o padrão brasileiro, utilizando **UTC−3** para agregações por dia no MVP.
+
+---
+
+### RN-16 — Feedback didático
+
+Após toda resposta confirmada, o estudante deve receber feedback informando:
+
+- resultado da correção;
+- resposta correta;
+- explicação curta e didática;
+- pontos recebidos, quando aplicável;
+- acesso às evidências correspondentes.
+
+O feedback deve utilizar o conteúdo validado e persistido da questão, sem nova chamada à IA.
+
+O avanço para a próxima questão depende de ação do estudante.
+
+---
+
+## 4. Requisitos funcionais
+
+| ID | Requisito |
+| --- | --- |
+| RF-01 | Cadastrar estudantes com nome, e-mail e senha e permitir sua autenticação; o MVP possui apenas o perfil de estudante |
+| RF-02 | Restringir dados e operações ao estudante proprietário conforme `RN-01` |
+| RF-03 | Enviar materiais conforme `RN-02` |
+| RF-04 | Consultar, arquivar, restaurar e excluir materiais conforme `RN-14` |
+| RF-05 | Processar materiais e informar seu estado conforme `RN-03` |
+| RF-06 | Preparar e recuperar conteúdo dos materiais para RAG |
+| RF-07 | Identificar cobertura e lacunas dos assuntos conforme `RN-06` |
+| RF-08 | Criar e disponibilizar trilhas e etapas ordenadas |
+| RF-09 | Gerar questões conforme `RN-07` |
+| RF-10 | Registrar e corrigir tentativas com feedback conforme `RN-09` e `RN-16` |
+| RF-11 | Disponibilizar flashcards conforme `RN-08` |
+| RF-12 | Calcular e registrar pontos conforme `RN-11` |
+| RF-13 | Calcular progresso conforme `RN-12` |
+| RF-14 | Conceder e apresentar conquistas conforme `RN-13` |
+| RF-15 | Exibir evolução com pontos, questões respondidas, acertos, percentual de acertos e progresso das trilhas |
+| RF-16 | Permitir material complementar para assuntos sem cobertura |
+| RF-17 | Permitir consulta às evidências conforme `RN-05` |
+| RF-18 | Disponibilizar documentação OpenAPI/Swagger coerente com os contratos implementados, incluindo autenticação, validações e erros |
+| RF-19 | Permitir consulta ao perfil e às conquistas do estudante |
+
+---
+
+## 5. Histórias de usuário
+
+| ID | História |
+| --- | --- |
+| HU-01 | Como estudante, quero acessar somente meus dados. |
+| HU-02 | Como estudante, quero enviar materiais para gerar conteúdo de estudo. |
+| HU-03 | Como estudante, quero acompanhar o processamento dos meus materiais. |
+| HU-04 | Como estudante, quero estudar os assuntos em uma sequência organizada. |
+| HU-05 | Como estudante, quero responder questões e receber feedback didático. |
+| HU-06 | Como estudante, quero que repetições técnicas não gerem efeitos duplicados. |
+| HU-07 | Como estudante, quero revisar por flashcards os conteúdos relacionados às questões respondidas. |
+| HU-08 | Como estudante, quero acompanhar meu desempenho e progresso. |
+| HU-09 | Como estudante, quero receber conquistas pelos marcos alcançados. |
+| HU-10 | Como estudante, quero identificar assuntos sem material suficiente. |
+| HU-11 | Como estudante, quero consultar a origem do conteúdo gerado. |
+| HU-12 | Como estudante, quero arquivar, restaurar e excluir materiais quando permitido. |
+
+---
+
+## 6. Casos de borda
+
+| ID | Situação | Comportamento esperado |
 | --- | --- | --- |
-| CB-01 | Arquivo vazio, corrompido, protegido por senha ou imagem sem texto | Não marcar como concluído sem conteúdo válido; explicar impossibilidade. Suporte a OCR/senha depende de QA-03/04 |
-| CB-02 | Tamanho ou campo exatamente no limite e um acima | Aceitar fronteira válida e rejeitar excedente igualmente na interface e servidor |
-| CB-03 | Upload interrompido ou armazenamento falha | Não iniciar processamento de arquivo incompleto; limpar resíduos segundo política operacional |
-| CB-04 | Trabalhador para após salvar dados e antes de confirmar tarefa | Recuperação não publica duplicatas; estado eventualmente reflete o resultado persistido |
-| CB-05 | Geração vazia, alternativas repetidas ou duas corretas | Reprovar validação; não publicar questão inválida |
-| CB-06 | Mesmo arquivo enviado novamente ou duas execuções simultâneas | Distinguir novo envio legítimo de repetição técnica; deduplicação por conteúdo é decisão QA-04 |
-| CB-07 | Duplo clique, duas abas ou timeout após aceitar resposta | Mesma tentativa tem efeito único; novas tentativas seguem política de elegibilidade |
-| CB-08 | Questão alterada/desativada entre leitura e resposta | Detectar versão; comportamento de aceitar versão lida ou rejeitar conflito deve ser definido em QA-07; nunca corrigir silenciosamente com outro gabarito |
-| CB-09 | Trilha sem questões ou com total alterado | Não dividir por zero nem exibir conclusão indevida; definir efeito em QA-06 |
-| CB-10 | Virada de dia, mudança de fuso e períodos sem tentativas | Agregações usam regra aprovada e ausência de dados não vira acerto ou progresso fictício |
-| CB-11 | Tentativa de revelar gabarito por payload, flashcard ou outro endpoint | Contrato pré-resposta não contém segredo; decidir acesso intencional ao flashcard antes da resposta em QA-10 |
-| CB-12 | Exclusão em paralelo com processamento ou resposta | Aplicar política e consistência definidas, sem órfãos acessíveis ou histórico alterado |
-| CB-13 | Textos muito longos, caracteres Unicode e tela de 320 px | Preservar conteúdo relevante, aplicar limites de entrada e manter leitura sem rolagem horizontal da página |
-| CB-15 | Edital apenas lista um assunto, trecho é insuficiente ou materiais se contradizem | Não preencher lacuna por conhecimento do modelo; sinalizar falta de apoio ou conflito e manter atividades afetadas indisponíveis |
-| CB-16 | IA fornece referência real, porém sem suporte à resposta, ou inventa página | Reprovar atividade; verificar existência e sustentação, sem confiar apenas no identificador retornado |
-| CB-14 | Provedor indisponível ou material contém instruções maliciosas | Se houver provedor/IA, falhar de forma controlada e tratar material como dados, não instruções do sistema |
+| CB-04 | Upload interrompido | Não processar arquivo incompleto |
+| CB-09 | Materiais contraditórios | Não gerar atividade afetada até resolução |
+| CB-13 | Trilha sem questões disponíveis | Não apresentar conclusão fictícia |
+| CB-14 | Provedor de IA indisponível | Falhar de forma controlada sem publicar conteúdo parcial inválido |
+| CB-15 | Material contém instruções direcionadas à IA | Tratar como conteúdo, nunca como instrução |
+| CB-16 | Material arquivado durante processamento | Preservar consistência e impedir publicação indevida |
+| CB-22 | Confirmação sem resposta selecionada | Não registrar tentativa |
 
-## 5. Requisitos funcionais
+---
 
-Todos os RF abaixo pertencem ao escopo base. Quando houver QA associada, a funcionalidade só pode ser encerrada após resolver a decisão correspondente.
+## 7. Entidades conceituais
 
-| ID | Requisito e resultado observável | Regras/pendências |
-| --- | --- | --- |
-| RF-01 | Identificar o estudante e restringir operações e consultas aos seus recursos | RN-01; QA-02 define entrada, conta e sessão |
-| RF-02 | Enviar material com título, categoria e arquivo; devolver identificação e estado de recebimento | RN-02; QA-03 |
-| RF-03 | Listar e consultar materiais e executar as operações de gerenciamento aprovadas; informar impacto antes de exclusão | RN-01, RN-09; QA-03, QA-05 |
-| RF-04 | Processar material e expor pendente, processando, concluído ou falhou; oferecer reprocessamento controlado | RN-03; QA-04 |
-| RF-05 | Disponibilizar trilhas com etapas ordenadas, assuntos, referências e situação de estudo | RN-04, RN-07; QA-04, QA-06 |
-| RF-06 | Exibir questão com alternativas sem gabarito e receber uma alternativa válida | RN-04, RN-05; QA-07 |
-| RF-07 | Registrar tentativa e devolver resultado, resposta correta e explicação; preservar o resultado histórico | RN-05, RN-06; QA-07 |
-| RF-08 | Exibir flashcard relacionado ao conteúdo e permitir revelar frente/verso de forma acessível | RN-04; QA-10 |
-| RF-09 | Calcular e exibir pontos com origem rastreável, sem duplicação por reenvio | RN-06; QA-07 |
-| RF-10 | Apresentar progresso e situação de conclusão por etapa e trilha | RN-07; QA-06 |
-| RF-11 | Conceder e exibir conquistas com critérios e data, sem concessão duplicada | RN-08; QA-08 |
-| RF-12 | Exibir tentativas, acertos e evolução com definição clara e período aplicável; oferecer continuação do estudo | RN-07, RN-10; QA-06, QA-09 |
-| RF-14 | Identificar assuntos sem suporte suficiente, sinalizar “aguardando material de apoio” e permitir solicitar/envio de complemento conforme vínculo aprovado | RN-11/12; QA-04/06 |
-| RF-15 | Rastrear cada questão, explicação e flashcard até trechos de versões dos materiais do próprio usuário e verificar sustentação antes de publicar | RN-11/13; QA-04 |
-| RF-13 | Disponibilizar especificação OpenAPI e Swagger UI coerentes com operações, validações e erros reais | SKILL.md; QA-01, QA-11 |
+As entidades centrais do domínio são:
 
-## 6. Critérios de sucesso
+- **Estudante:** proprietário dos dados e recursos de estudo;
+- **Material:** conteúdo enviado para estudo;
+- **Trilha:** sequência organizada de etapas;
+- **Etapa:** unidade temática da trilha;
+- **Questão:** atividade avaliativa vinculada a evidências;
+- **Flashcard:** recurso de revisão vinculado a evidências;
+- **Tentativa:** resposta registrada do estudante;
+- **Evidência:** origem rastreável que sustenta conteúdo gerado;
+- **Conquista:** marco obtido pelo estudante.
 
-- **CS-01:** HU-01 a HU-14 aprovadas com dados controlados, cobrindo RF-01 a RF-15; pendências aplicáveis resolvidas.
-- **CS-02:** cenários de repetição, concorrência e recuperação não duplicam pontos, concessões ou conteúdo da mesma execução.
-- **CS-03:** nenhuma consulta/alteração cruzada de usuário testada tem sucesso e nenhum contrato pré-resposta revela gabarito.
-- **CS-04:** histórico reproduz a correção original após mudança de conteúdo e evolução coincide com os dados e fórmulas aprovados.
-- **CS-05:** fluxo principal funciona por teclado e em tela de 320 px e desktop, com erros, vazios e carregamento compreensíveis.
-- **CS-06:** build, testes de regras, integração e contrato passam; OpenAPI corresponde à implementação.
-- **CS-07:** desempenho, qualidade do conteúdo e recuperação cumprem metas QA-04 e QA-11 aprovadas. Não é possível declarar esse critério atendido enquanto as metas estiverem abertas.
+Modelagem, persistência e entidades técnicas pertencem ao `PLAN.md`.
 
-## 7. Suposições e dependências
+---
 
-- SUP-01: o usuário principal é um estudante individual; papéis adicionais não estão definidos.
-- SUP-02: interface web requer conexão com o servidor; não há sincronização offline no escopo.
-- SUP-03: materiais de teste representativos estarão disponíveis para avaliar extração, estrutura e qualidade das questões.
-- SUP-04: o ambiente de execução oferecerá persistência e armazenamento adequados; sua escolha permanece aberta.
-- DEP-01: mecanismo de identificação depende de QA-02; não construir cadastro ou recuperação de senha por suposição.
-- DEP-02: geração depende de QA-04 e formatos de QA-03; credenciais e custos só existem se o mecanismo escolhido os exigir.
-- DEP-03: indicadores dependem das fórmulas de QA-06/07/08/09/10.
-- DEP-04: aceite operacional depende de volumes, infraestrutura, backups e metas de QA-11.
+## 8. Requisitos de qualidade
 
-## 8. Decisões confirmadas e referência existente
+### RQ-01 — Segurança
 
-| ID | Decisão/base | Origem e situação |
-| --- | --- | --- |
-| DC-01 | Plataforma de estudos com materiais, trilhas, questões, flashcards e gamificação | Resumo do usuário |
-| DC-02 | Camadas MVC obrigatórias | Solicitação do usuário e SKILL.md |
-| DC-03 | Código limpo; identificadores próprios em português, curtos e claros; poucos comentários | Solicitação do usuário e SKILL.md |
-| DC-04 | Normalização, datas, validações, exceções e Swagger/OpenAPI | Solicitação do usuário; padrões detalhados em SKILL.md |
-| DC-05 | Interface limpa, componentes consistentes, validações e limites | Solicitação do usuário e DESIGN.md |
-| DC-06 | Preferência por React JSX | Preferência do usuário; JavaScript consta em DESIGN.md; versões não definidas |
-| DC-07 | Três documentos novos, sem alterar a estrutura pedida nem os originais sem autorização | Solicitação atual |
-| DC-09 | IA com fontes restritas aos materiais enviados; lacunas exigem material complementar; origem verificável por trecho | Decisão do usuário nesta revisão |
-| DC-08 | Escolha única, idempotência, isolamento e preservação de histórico | Base técnica já registrada em SKILL.md; detalhada nesta especificação |
+Garantir autenticação, autorização e isolamento entre usuários em todos os recursos e fluxos.
 
-## 9. Regras de negócio e fluxo
+Segredos não podem ser expostos em código, logs ou respostas.
 
-### Regras
+### RQ-02 — Consistência
 
-- **RN-01 — Propriedade:** toda cadeia de material, trilha, questão, tentativa e evolução pertence a um estudante. Conhecer um identificador não concede acesso. Não aceitar vínculos entre recursos de proprietários diferentes.
-- **RN-02 — Admissão:** somente arquivos e campos conformes aos limites aprovados podem iniciar processamento. Nome/extensão informados pelo cliente não comprovam formato. Arquivo recusado não pode gerar conteúdo de estudo ativo.
-- **RN-03 — Processamento:** pendente → processando → concluído ou falhou. Reprocessamento cria execução rastreável; não duplica conteúdo ativo em razão de repetição técnica. “Concluído” significa que o conjunto previsto para aquela execução foi persistido e validado. Política de resultados parciais e nova versão depende de QA-04.
-- **RN-04 — Conteúdo válido:** questão de escolha única exige alternativas distintas, exatamente uma correta e explicação. Trilha exige ordenação e referência de origem; flashcard exige frente, verso e vínculo. Conteúdo inválido não fica disponível para estudo. Página/trecho só é apresentado se efetivamente conhecido.
-- **RN-05 — Tentativa:** somente aceitar alternativa pertencente à versão disponível da questão e ao usuário autorizado. Corrigir no servidor. O contrato pré-resposta não contém gabarito nem explicação que o revele. Guardar versão ou retrato suficiente para reproduzir a correção histórica.
-- **RN-06 — Consistência:** o mesmo identificador de tentativa com o mesmo conteúdo produz o mesmo resultado, sem nova pontuação. Reutilizar identificador com conteúdo diferente deve produzir conflito. Tentativa e seus efeitos devem ter resultado consistente mesmo em concorrência. Repetições legítimas usam novos identificadores, mas sua elegibilidade para pontos depende de QA-07.
-- **RN-07 — Progresso:** percentual de acertos e percentual de conclusão são métricas distintas. Fórmula, unidade de conclusão, trilha vazia, retentativas e alteração do total dependem de QA-06. Não concluir trilha apenas porque foi aberta.
-- **RN-08 — Conquistas:** avaliar critérios com dados persistidos no servidor. Uma conquista não pode ser concedida duas vezes ao mesmo usuário no mesmo contexto de concessão. Catálogo e contexto dependem de QA-08.
-- **RN-09 — Ciclo de vida:** excluir ou reprocessar material não pode silenciosamente invalidar tentativas já registradas. Comportamento de exclusão, retenção, arquivamento e conteúdo derivado depende de QA-05.
-- **RN-10 — Tempo e texto:** manter instantes em UTC, usar fuso configurado nas agregações por dia e preservar texto de estudo. Aplicar normalização e erros conforme SKILL.md; não modificar senhas por normalização.
+Tentativas e seus efeitos devem permanecer consistentes sob repetição, concorrência e falhas recuperáveis.
 
-- **RN-11 — Fontes exclusivas:** usar apenas materiais enviados pelo usuário e autorizados para aquela trilha. Não pesquisar na internet nem usar bases externas ou conhecimento geral do modelo para suprir fatos ausentes. Referência obrigatória identifica material, versão e trecho; página somente quando disponível. Reformulações e cálculos derivados são permitidos se verificáveis a partir da fonte. Alternativas incorretas podem representar erros sobre o conceito, mas sua incorreção deve ser justificável pelo conteúdo. Não é necessário haver cópia literal da questão no material.
-- **RN-12 — Cobertura e lacunas:** edital pode definir os assuntos da trilha, mas a mera lista de tópicos não é suporte pedagógico suficiente. Registrar a situação “aguardando material de apoio” quando faltar conteúdo; não forçar quantidade de questões nem marcar o assunto como concluído. Suficiência é distinta do estado técnico do processamento: uma execução concluída pode produzir um mapa de lacunas. Efeito no denominador do progresso e vínculo de complementos permanecem em QA-06/04.
-- **RN-13 — Validação da geração:** gerar questão e flashcard a partir dos mesmos trechos originais; validar estrutura e sustentação semântica antes da publicação. Referência existente não prova que o trecho sustenta o gabarito. Avaliar ambiguidade, explicação e consistência com a fonte; conteúdo contraditório ou insuficiente fica indisponível até resolução. Outra chamada de IA não é garantia de correção. Guardar modelo e versão das instruções; corrigir tentativas com gabarito persistido, sem geração a cada resposta.
+### RQ-03 — Qualidade do conteúdo
 
-### Fluxo principal
+Conteúdo pedagógico somente pode ser publicado quando possuir evidência autorizada e sustentação suficiente; validade estrutural isolada não comprova qualidade.
 
-1. Estudante é identificado e acessa Materiais.
-2. Seleciona arquivo e informa metadados; interface verifica limites conhecidos e servidor valida novamente.
-3. Sistema registra material aceito e execução; a interface acompanha estado real.
-4. Processamento extrai conteúdo preservando origem, identifica assuntos e verifica cobertura. A IA gera atividades apenas para assuntos sustentados pelos materiais; os demais ficam aguardando apoio. Validar estrutura e sustentação dos resultados antes de publicar.
-5. Conteúdo concluído torna-se disponível; falha apresenta motivo útil e recuperação permitida.
-6. Estudante abre uma etapa, seleciona alternativa e confirma; servidor registra tentativa e efeitos.
-7. Interface apresenta correção e explicação; estudante decide avançar ou revisar flashcard.
-8. Evolução apresenta dados persistidos, critérios e progresso calculado.
+### RQ-04 — Rastreabilidade
 
-Fluxos alternativos: arquivo inválido retorna correção no formulário; processamento falho permite recuperação conforme política; sessão inválida exige restabelecer acesso; timeout de resposta permite consultar ou repetir a mesma tentativa sem duplicá-la. Reprocessamento e exclusão seguem QA-04 e QA-05 antes de serem liberados.
+Conteúdo gerado deve permanecer rastreável às evidências que o sustentam.
 
-## 10. Entidades principais
+### RQ-05 — Substituição da IA
 
-Modelo conceitual; tipos físicos, índices e tabelas pertencem ao plano após escolher persistência.
+Regras de negócio não podem depender de provedor ou modelo específico de IA.
 
-| Entidade | Dados e relações essenciais | Integridade |
-| --- | --- | --- |
-| Usuário | Identidade e configuração de fuso quando adotada | Identidade emitida/verificada pelo mecanismo aprovado |
-| Material | Proprietário, título, categoria, referência do arquivo, estado | Sempre associado ao proprietário |
-| Processamento | Material, identidade da execução, estado, início/fim, erro, versão resultante, modelo e versão das instruções | Separa repetição técnica de nova geração |
-| Trilha | Proprietário, título, origem e versão | Cardinalidade material/trilha depende de QA-04 |
-| Etapa | Trilha, assunto, ordem, situação de cobertura e motivo de insuficiência/conflito | Separar disponibilidade para estudar de conclusão pelo estudante |
-| Trecho de origem | Material/versão, conteúdo extraído e localização disponível | Evidência imutável ou versionada, vinculada a questões, explicações e flashcards do mesmo usuário |
-| Questão/versão | Etapa, enunciado, explicação, origem e disponibilidade | Gabarito da versão preservado |
-| Alternativa | Questão/versão, texto e indicação de correta | Pertence a uma versão; uma correta por questão |
-| Flashcard | Frente, verso, vínculo e origem | Cardinalidade com questão/conceito em QA-10 |
-| Tentativa | Usuário, identidade idempotente, versão, escolha, resultado e instante | Identidade única no escopo aprovado; escolha da versão correta |
-| Registro de pontos | Usuário, origem, valor e versão da regra | Mesma origem elegível não gera crédito repetido |
-| Progresso | Usuário, trilha/versão e dados de conclusão | Pode ser derivado ou materializado; fórmula única |
-| Conquista e concessão | Definição do critério; usuário, contexto e instante de obtenção | Concessão única por usuário, conquista e contexto |
+### RQ-06 — Acessibilidade e responsividade
 
-## 11. Requisitos de qualidade
+Os fluxos principais devem funcionar por teclado e permanecer utilizáveis a partir de 320 px até desktop, conforme `DESIGN.md`.
 
-| ID | Requisito | Evidência esperada |
-| --- | --- | --- |
-| RQ-01 | Segurança e isolamento em API, tarefas e acesso ao arquivo; não registrar segredos | Testes negativos por usuário e inspeção de logs/contratos |
-| RQ-02 | Consistência de tentativa, pontos, progresso e concessão sob falha e concorrência | Testes de integração com interrupção e reenvio |
-| RQ-03 | Acessibilidade e responsividade conforme DESIGN.md, incluindo contraste e teclado | Verificações automáticas complementadas por revisão manual |
-| RQ-04 | Desempenho e capacidade com metas mensuráveis a aprovar | Teste de carga com volume, percentis e ambiente registrados em QA-11 |
-| RQ-05 | Manutenibilidade: MVC, nomes claros em português e comentários necessários | Revisão de dependências, organização e código |
-| RQ-06 | Observabilidade sem exposição de dados; erros correlacionáveis | Traçar uma falha de interface/API até a execução correspondente |
-| RQ-07 | Qualidade e sustentação exclusiva nos materiais enviados | HU-13/14 e CB-15/16; verificar trechos, ambiguidades e lacunas com corpus revisado. Validar formato ou consultar outra IA não prova correção pedagógica; patamar de qualidade em QA-04 |
-| RQ-08 | Recuperação e retenção definidas | Restauração testada e política QA-05/11 documentada |
+### RQ-07 — Manutenibilidade
 
-## 12. Questões em aberto
+A implementação deve seguir a arquitetura do `PLAN.md` e as convenções do `SKILL.md`.
 
-Registrar a resposta e sua data nesta seção quando decidida. O responsável pelas decisões de produto é o solicitante; escolhas técnicas podem ser propostas por quem implementar, sem apresentá-las como já aprovadas. Pendências bloqueiam somente as tarefas dependentes.
+### RQ-08 — API
 
-| ID | Questões a resolver | Por que importa / bloqueia |
-| --- | --- | --- |
-| QA-01 | Linguagem e versão do backend, framework, banco, persistência, versões do frontend, build, biblioteca visual e ferramentas de teste? | Inicialização executável, migrações e dependências |
-| QA-02 | Como usuário entra? Há cadastro, provedor externo, recuperação de acesso, expiração e outros perfis? | Identidade, sessão, telas de acesso e isolamento ponta a ponta |
-| QA-03 | Quais formatos, bytes por arquivo, arquivos por lote, tamanho de campos, paginação e cotas por usuário? | Contratos e testes de limite; esclarecer suporte a arquivos digitalizados |
-| QA-04 | Qual modelo/provedor de IA será usado e como será executado? Haverá OCR? Fontes exclusivas já estão decididas; falta definir como associar material complementar aos assuntos pendentes. Quantos materiais por trilha, questões por etapa e alternativas por questão? A validação estrutural e de sustentação antes da publicação é obrigatória; haverá também revisão humana de cada item ou por amostra? Como tratar resultados parciais, reprocessamento e arquivo repetido? Qual conjunto e patamar de qualidade semântica? | Processamento, publicação, modelo e avaliação de conteúdo |
-| QA-05 | Quais metadados podem ser editados? Exclusão física, arquivamento ou bloqueio? O que acontece com derivados, histórico e arquivos? Qual retenção? | Gerenciamento, concorrência e recuperação |
-| QA-06 | O que conclui etapa/trilha: responder ou acertar? Qual fórmula, denominador e política para alterações/trilhas vazias e assuntos aguardando apoio? Qual destino de “Continuar estudo”? | Progresso e navegação |
-| QA-07 | Quantos pontos por evento, há penalidade, repetição pontua, existe limite? Como responder versão desativada? Qual escopo e prazo de idempotência? | Correção, histórico, concorrência e pontos |
-| QA-08 | Quais conquistas, critérios, contexto de unicidade e efeito de mudança de regra? | Concessões e sua apresentação |
-| QA-09 | Qual fuso e política de alteração? Quais períodos/filtros e definição de acurácia: todas as tentativas ou subconjunto? | Datas, indicadores e agregações |
-| QA-10 | Relação questão/flashcard é um para um ou outra? Flashcard pode ser visto antes da resposta? Revisão conta para progresso ou pontos? | Fluxo de estudo e possível exposição intencional da resposta |
-| QA-11 | Onde executar? Quantos usuários simultâneos, materiais e armazenamento? Qual p95 de API, prazo de processamento por faixa de arquivo, disponibilidade, RPO/RTO e orçamento? Quem opera e recebe alertas? | Capacidade, arquitetura operacional, carga e aceite |
+Os contratos da API devem permanecer coerentes e documentados em OpenAPI/Swagger.
 
-Não há necessidade identificada de mudar a estrutura solicitada. Após responder as pendências, revisar a consistência entre Spec → Plan → Tasks. Qualquer sincronização necessária com SKILL.md ou DESIGN.md requer autorização prévia do solicitante.
+---
+
+## 9. Critérios de sucesso
+
+- **CS-01:** a jornada principal do estudante funciona de ponta a ponta, do cadastro ao acompanhamento de evolução e conquistas.
+- **CS-02:** dados e recursos permanecem isolados entre estudantes.
+- **CS-03:** conteúdo pedagógico é gerado exclusivamente a partir dos materiais autorizados, com sustentação e rastreabilidade.
+- **CS-04:** tentativas, feedback, pontuação, progresso, conquistas e flashcards respeitam as regras de negócio aplicáveis.
+- **CS-05:** os fluxos principais funcionam em desktop e mobile, atendem aos requisitos de acessibilidade e possuem contratos de API coerentes.
+
+---
+
+## 10. Fluxo principal
+
+```text
+Cadastro e autenticação
+    ↓
+Envio e processamento de materiais
+    ↓
+Identificação de cobertura
+    ↓
+RAG e geração de conteúdo sustentado
+    ↓
+Trilha e questões
+    ↓
+Correção + feedback + evidências
+    ↓
+Flashcards de revisão
+    ↓
+Pontos + progresso + conquistas
+    ↓
+Evolução
+```
+
+Lacunas de cobertura seguem `RN-06`. Demais comportamentos do fluxo seguem as regras de negócio aplicáveis.
+
+---
+
+## 11. Regra de documentação
+
+Este `SPEC.md` é a fonte de verdade para escopo, requisitos e regras de negócio.
+
+Os demais documentos devem referenciar seus `RF` e `RN` quando necessário, sem duplicar sua especificação.
+
+Mudanças no comportamento do produto devem ser registradas primeiro neste documento e refletidas nos demais somente quando necessário.

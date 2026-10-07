@@ -1,111 +1,1116 @@
-# Tarefas da plataforma de estudos gamificada
+# Tarefas — Plataforma de Estudos Gamificada
 
-Versão 0.1, 25/09/2026. 
-Base: [Spec.md](Spec.md), [Plan.md](Plan.md), [SKILL.md](SKILL.md) e [DESIGN.md](DESIGN.md).
+## 1. Objetivo
 
-## Como executar e acompanhar
+Definir a ordem e as dependências de implementação do sistema especificado em `SPEC.md`, `DESIGN.md`, `PLAN.md` e `SKILL.md`.
 
-As caixas abaixo representam trabalho futuro, a criação destes documentos não conclui tarefas de implementação. Marcar `[x]` somente com a evidência indicada. 
-Cada tarefa lista dependências obrigatórias, tarefas sem dependência entre si podem avançar simultaneamente após seus pré-requisitos. 
-Paralelismo é uma possibilidade de planejamento, não uma instrução para criar agentes ou executar trabalho agora.
+Este documento determina **o que implementar e em qual ordem**, referenciando os documentos responsáveis pelos requisitos, arquitetura, interface e instruções permanentes sem duplicá-los.
 
-Resolver questões QA em Spec.md e registrar as escolhas técnicas correspondentes em Plan.md. Preservar IDs e atualizar vínculos quando o escopo mudar. Não alterar SKILL.md ou DESIGN.md sem autorização prévia. Manter a estrutura dos três documentos; solicitar antes qualquer mudança nessa estrutura.
+---
 
-## Fase 0 — Refinamento e decisões
+## 2. Regras de execução
 
-Objetivo: converter lacunas em decisões testáveis. As tarefas T-001 a T-006 podem ser discutidas em paralelo; T-007 consolida a consistência.
+Utilizar:
 
-- [ ] **T-001 — Definir stack e ferramentas.** Resolver QA-01: linguagem/versões, framework, banco, persistência, frontend, biblioteca visual, build e testes. Registrar compatibilidade e motivos em Plan.md. **Depende de:** nenhuma. **Pronto quando:** escolhas e versões estão registradas, sem confundir React preferido com backend definido.
-- [ ] **T-002 — Definir identidade e admissão.** Resolver QA-02 e QA-03 com método de acesso, formatos, cotas, campos e limites exatos. **Depende de:** nenhuma. **Pronto quando:** contrato de usuário e tabela de limites permitem escrever testes de fronteira. **Cobre:** RF-01/02/03, HU-01/02.
-- [ ] **T-003 — Definir conteúdo e ciclo de vida.** Resolver as partes restantes de QA-04, QA-05 e QA-10: modelo/provedor, extração, corpus, critério de qualidade, publicação, relações, reprocessamento, exclusão e acesso a flashcards. A geração por IA com fontes exclusivamente enviadas já está decidida. Definir vínculo de material complementar e política para conflitos. **Depende de:** nenhuma para refinamento; compatibilizar formatos com T-002 antes de concluir. **Pronto quando:** políticas têm exemplos de sucesso, falha, repetição e exclusão com histórico. **Cobre:** RF-03/04/05/08, CB-01/04/05/06/11/12.
-- [ ] **T-004 — Definir estudo e gamificação.** Resolver QA-06 a QA-09: fórmulas, versões, idempotência, retentativas, conquistas, fuso e continuação. **Depende de:** nenhuma. **Pronto quando:** exemplos numéricos aprovados cobrem primeira tentativa, erro, acerto, repetição, trilha vazia e mudança de conteúdo. **Cobre:** RF-06/07/09/10/11/12.
-- [ ] **T-006 — Definir metas e operação.** Resolver QA-11: ambiente, escala, latência, processamento, custo, RPO/RTO e responsáveis. **Depende de:** nenhuma para refinamento; alinhar viabilidade com T-001/T-003. **Pronto quando:** metas incluem valor, unidade, carga e método de medição. **Cobre:** RQ-04/06/08, CS-07.
-- [ ] **T-007 — Consolidar baseline.** Atualizar Spec e Plan com decisões; conferir escopo e matriz de aceitação. **Depende de:** T-001, T-002, T-003, T-004, T-006. **Pronto quando:** não há QA bloqueante para o incremento a iniciar; eventual mudança nos originais foi apresentada e autorizada antes da edição. Uma decisão sem impacto nos originais não exige editá-los.
+- `[ ]` pendente;
+- `[~]` em andamento;
+- `[x]` concluída;
+- `[!]` bloqueada.
 
-## Fase 1 — Fundação técnica e contratos
+Uma tarefa somente pode ser marcada como concluída quando seu critério de conclusão tiver sido atendido e sua implementação necessária estiver funcional, não apenas simulada.
 
-Objetivo: uma base executável com princípios verificáveis. T-011, T-012 e T-013 podem avançar em paralelo após T-010; T-014 integra contratos e erros.
+Tarefas cujas dependências estejam satisfeitas podem avançar em paralelo.
 
-- [ ] **T-010 — Inicializar aplicação e verificações.** Criar estrutura MVC, configuração por ambiente, dependências fixadas e comandos reais de build, test e run. **Depende de:** T-007. **Pronto quando:** aplicação inicia e build/verificações executam em ambiente limpo; dependências entre camadas estão documentadas. **Cobre:** DC-02/03, RQ-05.
-- [ ] **T-011 — Implementar identidade e autorização.** Implementar o mecanismo aprovado, contexto de usuário e proteção de recursos. **Depende de:** T-010. **Pronto quando:** usuário sem sessão e usuário de outro recurso não conseguem ler/alterar dados; testes executados. **Cobre:** RF-01, HU-01, RQ-01.
-- [ ] **T-012 — Criar base visual.** Implementar tema, navegação, campos, botões, diálogos, avisos e estados acessíveis. **Depende de:** T-010. **Pronto quando:** componentes funcionam por teclado, têm estados e respeitam DESIGN.md em celular/desktop. **Cobre:** RQ-03/05.
-- [ ] **T-013 — Criar modelo e políticas transversais.** Implementar esquema inicial, migrações, normalização, datas e validações comuns; preparar relações/versões das entidades aprovadas. **Depende de:** T-010. **Pronto quando:** migração funciona e testes cobrem Unicode, datas, referências e limites. **Cobre:** RN-01/04/10, entidades de Spec.md.
-- [ ] **T-014 — Firmar contratos e erros.** Criar contratos de operações por módulo, formato uniforme de erro, correlação, OpenAPI e Swagger UI. **Depende de:** T-011, T-013. **Pronto quando:** contratos refletem limites aprovados, autenticação e separação entre questão e correção; exemplos de sucesso/erro validados. **Cobre:** RF-13, HU-12, RQ-06.
+Quando uma tarefa depender de decisão técnica aberta (`TD-*`), resolver somente a decisão necessária e registrá-la no `PLAN.md` antes da implementação correspondente.
 
-## Fase 2 — Materiais de ponta a ponta
+Não inventar decisões técnicas apenas para desbloquear desenvolvimento.
 
-Objetivo: enviar e gerenciar material com isolamento e falhas tratadas. T-020 e T-021 podem avançar em paralelo com contratos estáveis; T-023 pode usar respostas simuladas do contrato antes da integração T-024.
+---
 
-- [ ] **T-020 — Implementar armazenamento.** Receber/finalizar arquivos com identificadores internos, acesso controlado e tratamento de upload interrompido. **Depende de:** T-011, T-013, T-014. **Pronto quando:** arquivo incompleto não entra em processamento e acesso cruzado é negado. **Cobre:** RN-01/02, CB-03.
-- [ ] **T-021 — Implementar admissão e consulta.** Criar API de envio, listagem e detalhe; validar formato real, campos, cotas e paginação. **Depende de:** T-011, T-013, T-014. **Pronto quando:** testes de contratos e limites passam com adaptador de armazenamento; integração real é verificada em T-024. **Cobre:** RF-02/03, HU-02, CB-01/02.
-- [ ] **T-022 — Implementar gerenciamento e exclusão.** Aplicar edição/arquivamento/exclusão permitidos e proteger derivados e histórico. **Depende de:** T-020, T-021. **Pronto quando:** política aprovada é executada e casos com referências existentes são testados. **Cobre:** RF-03, RN-09, HU-10.
-- [ ] **T-023 — Implementar interface de materiais.** Criar envio, lista, detalhe, erros, vazios e diálogo de impacto. **Depende de:** T-012, T-014. **Pronto quando:** limites e estados funcionam com contratos simulados, sem declarar integração concluída. **Cobre:** RF-02/03, HU-02/10, CB-13.
-- [ ] **T-024 — Integrar e aceitar materiais.** Conectar UI, API e arquivo real de teste. **Depende de:** T-020, T-021, T-022, T-023. **Pronto quando:** HU-01/02 e gerenciamento de HU-10 passam, incluindo upload interrompido e fronteiras. **Cobre:** CS-03/05 parcialmente; processamento ainda é fase seguinte.
+# Fase 0 — Decisões técnicas iniciais
 
-## Fase 3 — Processamento e trilhas
+Objetivo: resolver somente as decisões necessárias para criar a fundação do projeto.
 
-Objetivo: transformar material válido em conteúdo disponível e rastreável. T-030 e T-031 podem avançar em paralelo após T-024 por adaptadores contratados; T-033 pode trabalhar com contratos simulados em paralelo.
+### T-001 — Definir ORM e migrations
 
-- [ ] **T-030 — Implementar extração e geração.** Criar adaptadores aprovados, extração por seções com trechos versionados, geração estruturada de questão/flashcard a partir das mesmas fontes, validação de estrutura e sustentação semântica. Proibir ferramentas de pesquisa externa e filtrar evidências por proprietário/trilha. Registrar modelo e versão das instruções. **Depende de:** T-024. **Pronto quando:** corpus aprovado atende estrutura e patamar semântico com revisão humana de referência; conteúdo inválido, sem evidência ou contraditório é recusado. A simples aprovação por outra IA não encerra a validação. **Cobre:** RF-04/05/08, RN-04, RQ-07, CB-01/05/14.
-- [ ] **T-031 — Implementar execução durável.** Criar estados, agendamento recuperável, limites de repetição e idempotência de execução/publicação. **Depende de:** T-024. **Pronto quando:** interrupção e reentrega não perdem execução nem duplicam conteúdo ativo. **Cobre:** RF-04, RN-03, CB-03/04/06.
-- [ ] **T-032 — Persistir e publicar trilhas.** Integrar geração e execução a versões, etapas ordenadas e consultas de conteúdo disponível. **Depende de:** T-030, T-031. **Pronto quando:** só conjuntos válidos são publicados conforme política e histórico não é substituído silenciosamente. **Cobre:** RF-05, RN-03/04/09.
-- [ ] **T-033 — Implementar acompanhamento e trilhas na UI.** Exibir estado real, falha/recuperação, etapas e origem, distinguindo assuntos aguardando material de apoio do estado da execução. Oferecer envio de complemento, sem busca externa, conforme vínculo aprovado. **Depende de:** T-012, T-014, T-024. **Pronto quando:** estados e navegação correspondem ao contrato; integração completa em T-034. **Cobre:** RF-04/05, HU-03/04.
-- [ ] **T-034 — Aceitar material até trilha.** Executar caminho completo, reprocessamento e falhas com persistência real. **Depende de:** T-032, T-033. **Pronto quando:** HU-03/04 e CB-01/04/05/06 passam, inclusive recuperação após falha. **Cobre:** CS-02 e RQ-07 no fluxo de conteúdo.
+- [ ] Resolver `TD-01` e `TD-02`.
+- [ ] Registrar as decisões no `PLAN.md`.
 
-- [ ] **T-035 — Verificar fontes exclusivas e lacunas.** Testar edital que lista assunto sem explicação, complemento enviado, referência inventada, trecho real sem sustentação, contradição e tentativa de usar fonte de outro usuário. Conferir geração de exercício derivado verificável sem exigir cópia literal. **Depende de:** T-034. **Pronto quando:** HU-13/14 e CB-15/16 passam, questões sem fundamento não são publicadas e estado de apoio/progresso respeita a política aprovada. **Cobre:** RF-14/15, RN-11/12/13, RQ-07.
+**Depende de:** nenhuma.
 
-## Fase 4 — Estudo, histórico e evolução
+**Concluída quando:** ORM e mecanismo de migrations estiverem definidos e compatíveis com a stack do projeto.
 
-Objetivo: registrar aprendizado e efeitos consistentes. T-040 e T-043 podem avançar em paralelo após T-035. A UI T-044 pode começar pelos contratos e integra em T-046.
+---
 
-- [ ] **T-040 — Implementar questão e tentativa.** Separar contrato pré-resposta, corrigir versão, preservar histórico e tratar identidade idempotente/conflito. **Depende de:** T-035. **Pronto quando:** HU-05/06 e CB-07/08 passam sem efeitos duplicados nem vazamento do gabarito pelo contrato. **Cobre:** RF-06/07, RN-05/06.
-- [ ] **T-041 — Implementar pontos e conquistas.** Aplicar elegibilidade e versão de regras, registro de origem e unicidade de concessão; integrar atomicidade ou mecanismo durável escolhido. **Depende de:** T-040. **Pronto quando:** exemplos aprovados, concorrência e reenvio produzem os totais esperados. **Cobre:** RF-09/11, HU-06/09, RN-06/08.
-- [ ] **T-042 — Implementar progresso e indicadores.** Aplicar fórmula e períodos aprovados, continuação de estudo e estado sem atividade. **Depende de:** T-040. **Pronto quando:** HU-08/11 e CB-09/10 conferem com dados controlados e alterações de trilha. **Cobre:** RF-10/12, RN-07/10.
-- [ ] **T-043 — Implementar flashcards.** Criar consulta, frente/verso e regras de acesso/contribuição aprovadas. **Depende de:** T-035. **Pronto quando:** vínculos e política antes/depois da resposta são respeitados. **Cobre:** RF-08, HU-07, CB-11.
-- [ ] **T-044 — Implementar interface de estudo e evolução.** Criar questão, feedback, flashcard, pontos, progresso e conquistas com teclado e estados. **Depende de:** T-012, T-014, T-034. **Pronto quando:** contratos simulados cobrem falhas e espera sem mostrar recompensa não confirmada; integração em T-046. **Cobre:** RF-06 a RF-12, RQ-03.
-- [ ] **T-045 — Verificar ciclo de vida completo.** Exercitar exclusão/reprocessamento concorrentes com tentativas e conferir histórico e projeções. **Depende de:** T-022, T-041, T-042, T-043. **Pronto quando:** HU-10, CB-08/09/12 e CS-04 passam com dados de estudo reais de teste. **Cobre:** RN-09, RQ-02/08.
-- [ ] **T-046 — Aceitar jornada integrada.** Conectar interfaces e serviços e executar estudo até evolução. **Depende de:** T-041, T-042, T-043, T-044, T-045. **Pronto quando:** HU-05 a HU-11 passam, inclusive timeout, repetição e nova sessão. **Cobre:** CS-01/02/04 no fluxo de estudo.
+# Fase 1 — Fundação
 
-## Fase 5 — Qualidade, operação e aceite
+Objetivo: criar uma aplicação executável com banco, contratos e estrutura base.
 
-Objetivo: reunir evidências do produto completo. T-090, T-091, T-092 e T-093 podem avançar em paralelo após T-046 em ambientes/dados isolados; T-094 consolida resultados.
+### T-010 — Inicializar backend
 
-- [ ] **T-090 — Verificar segurança, contratos sensíveis e consistência.** Testar acesso cruzado, validação server-side, gabarito, concorrência, filtragem de evidências e logs sem segredos. Verificar ausência de pesquisa externa no fluxo de geração e correção pelo gabarito salvo, sem nova geração a cada resposta. **Depende de:** T-046. **Pronto quando:** CS-02/03 e RQ-01/02/06 têm evidências sem falhas pendentes no escopo.
-- [ ] **T-091 — Verificar experiência e acessibilidade.** Revisar teclado, foco, contraste, 320 px/desktop, conteúdo longo e todos os estados. **Depende de:** T-046. **Pronto quando:** CS-05 e RQ-03 atendidos com evidência manual e automatizada.
-- [ ] **T-092 — Verificar build, testes e OpenAPI.** Executar comandos reais, testes de contrato, exemplos e revisão MVC/nomenclatura; manter documentação coerente. **Depende de:** T-046. **Pronto quando:** HU-12, CS-06 e RQ-05 passam em ambiente reproduzível. Não preencher SKILL.md sem autorização para editá-lo; registrar comandos em Plan.md enquanto necessário.
-- [ ] **T-093 — Verificar carga e recuperação.** Medir metas QA-11, provocar falha de executor, restaurar banco/arquivos e validar procedimentos/alertas. **Depende de:** T-046. **Pronto quando:** RQ-04/08 e parte operacional de CS-07 têm resultados comparados às metas, com responsáveis e procedimentos definidos.
-- [ ] **T-094 — Consolidar aceite e documentação.** Conferir todos os RF, HU, CB e CS; atualizar Spec/Plan/Tasks com decisões e evidências. **Depende de:** T-090, T-091, T-092, T-093. **Pronto quando:** CS-01 a CS-07 atendidos, incluindo avaliação de conteúdo T-030 e política de fontes T-035, sem pendências bloqueantes omitidas. Qualquer mudança necessária nos originais é solicitada antes da edição.
+- [ ] Criar projeto Python + FastAPI.
+- [ ] Configurar dependências e ambientes.
+- [ ] Conectar PostgreSQL.
+- [ ] Configurar ORM e migrations definidos em `T-001`.
+- [ ] Criar estrutura arquitetural definida no `PLAN.md`.
+- [ ] Disponibilizar OpenAPI/Swagger.
 
-## Mapa de dependências e paralelismo
+**Depende de:** T-001.
 
-| Marco | Necessita | Trabalho que pode ocorrer em paralelo |
-| --- | --- | --- |
-| Baseline T-007 | T-001, T-002, T-003, T-004, T-006 | Refinamentos por tema; reconciliar decisões antes de concluir |
-| Fundação T-014 | T-010 → T-011 e T-013 | T-012 independente após T-010 |
-| Materiais T-024 | T-020, T-021, T-022, T-023 | Armazenamento/API por contrato; UI simulada após base visual |
-| Trilhas T-034 | T-030/T-031 → T-032; T-033 | Gerador, executor e interface por contratos estáveis |
-| Estudo T-046 | T-034 → T-035 → T-040 → T-041/T-042; T-043; T-044; T-045 | Flashcards e UI durante backend; pontos e indicadores após tentativa |
-| Aceite T-094 | T-090, T-091, T-092, T-093 | Segurança, visual, contratos e operação com ambientes isolados |
+**Concluída quando:** API inicia, conecta ao PostgreSQL e executa a migration inicial.
 
-Migrações compartilhadas e mudanças de contrato exigem coordenação, mesmo em tarefas marcadas como paralelizáveis. Antes de integrar, reconciliar esquemas, limites e contratos. Não executar carga sobre o mesmo ambiente usado para medir comportamento funcional sem isolamento.
+---
 
-## Matriz de rastreabilidade
+### T-011 — Inicializar frontend
 
-| Requisitos | Tarefas principais | Aceitação |
-| --- | --- | --- |
-| RF-01 | T-002, T-011, T-024, T-090 | HU-01; CS-03 |
-| RF-02/03 | T-002/003, T-020 a T-024, T-045 | HU-02/10; CB-01/02/03/12 |
-| RF-04/05 | T-003, T-030 a T-034 | HU-03/04; CB-04/05/06 |
-| RF-06/07 | T-004, T-040, T-044, T-046 | HU-05/06; CB-07/08/11 |
-| RF-08 | T-003, T-030, T-043, T-044 | HU-07; CB-11 |
-| RF-09/11 | T-004, T-041, T-044, T-046 | HU-06/09; CS-02 |
-| RF-10/12 | T-004, T-042, T-044, T-046 | HU-08/11; CB-09/10 |
-| RF-14/15 | T-003, T-030, T-032/033, T-035, T-090 | HU-13/14; CB-15/16 |
-| RF-13 | T-014, T-092 | HU-12; CS-06 |
-| RQ-01/02/06 | T-011/014/031/040/041, T-090 | CS-02/03/04 |
-| RQ-03/05 | T-010/012/044, T-091/092 | CS-05/06; CB-13 |
-| RQ-04/07/08 | T-003/006/030/045, T-093 | CS-07; CB-14 |
+- [ ] Criar aplicação React JS + Vite com Material UI.
+- [ ] Criar estrutura inicial do frontend conforme `PLAN.md` e `SKILL.md`.
+- [ ] Configurar tema claro/escuro.
+- [ ] Implementar presets independentes de paleta e tipografia conforme `DESIGN.md`.
+- [ ] Criar navegação e componentes fundamentais.
 
-## Registro de conclusão
+**Depende de:** nenhuma.
 
-Ao concluir uma tarefa, registrar junto dela a data, decisão/implementação correspondente, testes executados e localização da evidência. Falhas e limitações devem permanecer visíveis. Uma implementação parcial ou teste simulado de UI não encerra uma tarefa de integração; uma QA aberta não pode ser marcada como resolvida apenas para liberar a fase seguinte.
+**Cobre:** `UI-02`, `UI-03`.
+
+**Concluída quando:** aplicação inicia, estrutura base funciona em desktop e mobile e os presets de paleta e tipografia podem ser avaliados independentemente.
+
+---
+
+### T-012 — Implementar autenticação
+
+- [ ] Resolver `TD-11` e registrar a decisão no `PLAN.md`.
+- [ ] Implementar cadastro, login, refresh e logout no backend.
+- [ ] Implementar hash de senha, JWT e autorização por usuário.
+- [ ] Implementar fluxo de Login e Cadastro conforme `DESIGN.md`.
+- [ ] Manter Access Token em memória e implementar renovação da sessão.
+- [ ] Proteger áreas autenticadas no frontend.
+- [ ] Implementar `/auth/me` ou contrato equivalente para recuperação do estudante autenticado.
+- [ ] Garantir funcionamento em desktop e mobile.
+
+**Depende de:** T-010, T-011.
+
+**Cobre:** `RF-01`, `RF-02`, `HU-01`, `RN-01`.
+
+**Concluída quando:** estudante consegue cadastrar-se, autenticar-se, recuperar e renovar sua sessão e acessar somente recursos autorizados.
+
+---
+
+### T-013 — Padronizar contratos e erros
+
+- [ ] Implementar formato uniforme de erro conforme `PLAN.md`.
+- [ ] Criar tratamento central de exceções.
+- [ ] Implementar `idRequisicao`.
+- [ ] Padronizar validações e códigos HTTP.
+- [ ] Aplicar convenções de datas conforme `RN-15`.
+- [ ] Garantir representação dos contratos no OpenAPI.
+
+**Depende de:** T-010.
+
+**Cobre:** `RF-18`, `RN-15`.
+
+**Concluída quando:** erros, validações e convenções transversais da API estão padronizados e representados no OpenAPI.
+
+---
+
+# Fase 2 — Materiais
+
+Objetivo: completar o fluxo de envio e gerenciamento de materiais antes de introduzir IA.
+
+### T-020 — Implementar modelo de materiais
+
+- [ ] Implementar Material e Versão do material.
+- [ ] Relacionar materiais ao estudante proprietário.
+- [ ] Criar persistência e relacionamentos necessários.
+- [ ] Aplicar integridade e isolamento conforme `RN-01`.
+
+**Depende de:** T-010, T-012.
+
+**Cobre:** `RF-02`, `RF-03`.
+
+**Concluída quando:** materiais e suas versões podem ser persistidos e relacionados ao estudante proprietário com integridade e isolamento.
+
+---
+
+### T-021 — Implementar armazenamento de arquivos
+
+- [ ] Configurar armazenamento de desenvolvimento conforme `PLAN.md`.
+- [ ] Gerar identificadores internos para os arquivos.
+- [ ] Associar arquivos aos respectivos materiais e proprietários.
+- [ ] Proteger o acesso aos arquivos.
+
+**Depende de:** T-020.
+
+**Cobre:** `RN-01`.
+
+**Concluída quando:** arquivos podem ser armazenados e recuperados de forma controlada, sem utilizar o nome original como identidade física e respeitando a propriedade do estudante.
+
+---
+
+### T-022 — Implementar API de materiais
+
+- [ ] Implementar upload, listagem e detalhe.
+- [ ] Implementar arquivamento e restauração.
+- [ ] Validar formato, tamanho, quantidade e integridade conforme `RN-02`.
+- [ ] Aplicar propriedade e autorização nas operações.
+- [ ] Documentar os contratos no OpenAPI.
+
+**Depende de:** T-020, T-021.
+
+**Cobre:** `RF-03`, `RF-04`, `RN-01`, `RN-02`, `RN-14`.
+
+**Concluída quando:** materiais válidos podem ser enviados, consultados, arquivados e restaurados por seu proprietário conforme as regras aplicáveis.
+
+---
+
+### T-024 — Implementar exclusão segura de materiais
+
+- [ ] Implementar exclusão definitiva conforme `RN-14`.
+- [ ] Validar propriedade e dependências no backend.
+- [ ] Retornar erro estruturado quando a exclusão estiver bloqueada.
+- [ ] Remover de forma consistente os dados associados já existentes.
+- [ ] Evitar referências ou dados órfãos.
+- [ ] Permitir extensão das verificações conforme novas dependências forem introduzidas.
+
+**Depende de:** T-020, T-021, T-022.
+
+**Cobre:** `RF-04`, `RN-14`.
+
+**Concluída quando:** materiais elegíveis podem ser excluídos definitivamente, materiais com dependências conhecidas têm a exclusão bloqueada e nenhuma operação deixa dados órfãos.
+
+---
+
+### T-023 — Implementar interface de materiais
+
+- [ ] Implementar upload, listagem e detalhe conforme `DESIGN.md`.
+- [ ] Implementar arquivamento e restauração.
+- [ ] Implementar solicitação e confirmação de exclusão.
+- [ ] Apresentar corretamente exclusão bloqueada por dependências.
+- [ ] Implementar estados vazios, carregamento e erros.
+
+**Depende de:** T-011, T-022, T-024.
+
+**Cobre:** `HU-02`, `HU-12`.
+
+**Concluída quando:** o estudante consegue enviar e gerenciar materiais pela interface utilizando a API real, incluindo arquivamento, restauração e os estados de exclusão permitida ou bloqueada.
+
+---
+
+# Fase 3 — Base RAG
+
+Objetivo: transformar materiais em uma base de conhecimento vetorial rastreável.
+
+### T-030 — Implementar extração
+
+- [ ] Resolver `TD-07` e registrar a decisão no `PLAN.md`.
+- [ ] Implementar adaptadores para PDF, TXT e DOCX.
+- [ ] Preservar texto e metadados de origem disponíveis.
+- [ ] Não inventar metadados ausentes.
+- [ ] Validar extração com fixtures dos três formatos.
+
+**Depende de:** T-022.
+
+**Cobre:** `RF-06`, `RN-04`, `RN-05`.
+
+**Concluída quando:** os três formatos suportados podem ser extraídos preservando texto e rastreabilidade até material e versão, incluindo localização quando disponível.
+
+---
+
+### T-031 — Implementar chunking
+
+- [ ] Implementar estratégia inicial e configurável de fragmentação.
+- [ ] Preservar vínculo e metadados de origem.
+- [ ] Evitar perda desnecessária de contexto semântico.
+- [ ] Permitir ajuste dos parâmetros necessários à avaliação.
+
+**Depende de:** T-030.
+
+**Cobre:** `RF-06`, `RN-04`, `RN-05`.
+
+**Concluída quando:** chunks rastreáveis podem ser produzidos e seus parâmetros podem ser ajustados para avaliação.
+
+---
+
+### T-032 — Implementar embeddings
+
+- [ ] Resolver `TD-05` e registrar a decisão no `PLAN.md`.
+- [ ] Implementar adaptador substituível de embeddings.
+- [ ] Gerar representação vetorial para chunks elegíveis.
+- [ ] Registrar modelo e versão utilizados.
+- [ ] Tratar falhas e limites da integração.
+
+**Depende de:** T-031.
+
+**Cobre:** `RF-06`.
+
+**Concluída quando:** chunks elegíveis podem gerar embeddings rastreáveis utilizando o adaptador configurado.
+
+---
+
+### T-033 — Implementar armazenamento vetorial
+
+- [ ] Resolver `TD-04` e registrar a decisão no `PLAN.md`.
+- [ ] Configurar a tecnologia escolhida.
+- [ ] Persistir embeddings vinculados aos chunks.
+- [ ] Implementar filtros obrigatórios de autorização e contexto.
+- [ ] Validar isolamento entre usuários.
+
+**Depende de:** T-032.
+
+**Cobre:** `RF-06`, `RN-01`, `RN-04`.
+
+**Concluída quando:** embeddings podem ser armazenados e recuperados com vínculo aos chunks sem permitir acesso vetorial cruzado entre usuários.
+
+---
+
+### T-034 — Implementar retrieval
+
+- [ ] Implementar vetorização da consulta e busca vetorial.
+- [ ] Aplicar filtros obrigatórios de autorização e contexto.
+- [ ] Recuperar chunks com seus metadados.
+- [ ] Implementar tratamento para recuperação insuficiente.
+- [ ] Tornar parâmetros experimentais configuráveis.
+
+**Depende de:** T-033.
+
+**Cobre:** `RN-01`, `RN-04`, `RN-06`.
+
+**Concluída quando:** consultas recuperam somente chunks autorizados e rastreáveis e o sistema consegue identificar ausência de sustentação suficiente.
+
+---
+
+### T-035 — Avaliar chunking e retrieval
+
+- [ ] Criar corpus controlado com respostas e evidências conhecidas.
+- [ ] Avaliar recuperação correta, ausência de resposta, cobertura insuficiente, irrelevância, contradições e isolamento.
+- [ ] Avaliar os parâmetros experimentais de chunking e retrieval definidos no `PLAN.md`.
+- [ ] Registrar a configuração inicial justificada.
+- [ ] Atualizar `TD-09` e `TD-10` no `PLAN.md` conforme os resultados.
+
+**Depende de:** T-034.
+
+**Concluída quando:** existe configuração inicial de chunking e retrieval sustentada por avaliação reproduzível, sem valores escolhidos arbitrariamente.
+
+---
+
+# Fase 4 — Processamento e geração
+
+Objetivo: transformar a base RAG em conteúdo de estudo validado.
+
+### T-040 — Implementar processamento assíncrono
+
+- [ ] Resolver `TD-03` e `TD-13` e registrar as decisões no `PLAN.md`.
+- [ ] Implementar execução fora da requisição HTTP.
+- [ ] Persistir e atualizar os estados definidos em `RN-03`.
+- [ ] Tratar falhas e recuperação de execuções.
+- [ ] Implementar reprocessamento controlado e idempotência.
+- [ ] Impedir publicação duplicada.
+
+**Depende de:** T-020, T-022.
+
+**Cobre:** `RF-05`, `RN-03`, `RN-10`.
+
+**Concluída quando:** processamentos podem ser executados fora da requisição, acompanhados por estado e repetidos de forma controlada sem duplicar efeitos.
+
+---
+
+### T-041 — Implementar adaptador de IA
+
+- [ ] Resolver `TD-06` e registrar a decisão no `PLAN.md`.
+- [ ] Implementar abstração de IA independente de provedor.
+- [ ] Implementar o adaptador do provedor/modelo escolhido.
+- [ ] Suportar saída estruturada.
+- [ ] Tratar falhas, limites e indisponibilidade da integração.
+
+**Depende de:** T-010.
+
+**Cobre:** `RQ-05`.
+
+**Concluída quando:** o backend consegue utilizar o provedor escolhido através de uma abstração substituível sem acoplamento do domínio.
+
+---
+
+### T-042 — Implementar construção do contexto RAG
+
+- [ ] Recuperar chunks autorizados para a necessidade de geração.
+- [ ] Construir contexto somente com evidências recuperadas.
+- [ ] Separar instruções do sistema e conteúdo dos materiais.
+- [ ] Tratar materiais como dados, nunca como instruções.
+- [ ] Interromper geração quando a sustentação for insuficiente.
+
+**Depende de:** T-034.
+
+**Cobre:** `RN-04`, `RN-06`.
+
+**Concluída quando:** uma necessidade de geração produz contexto rastreável e autorizado ou é rejeitada por sustentação insuficiente.
+
+---
+
+### T-043 — Implementar geração de trilhas
+
+- [ ] Identificar assuntos e cobertura a partir dos materiais.
+- [ ] Criar trilhas e etapas ordenadas.
+- [ ] Identificar conteúdo insuficiente.
+- [ ] Marcar assuntos sem cobertura como aguardando material.
+
+**Depende de:** T-041, T-042.
+
+**Cobre:** `RF-07`, `RF-08`, `RN-06`.
+
+**Concluída quando:** o sistema consegue criar trilhas sustentadas pelos materiais e representar explicitamente assuntos sem cobertura suficiente.
+
+---
+
+### T-044 — Implementar geração de questões e flashcards
+
+- [ ] Gerar questões conforme os tipos e restrições de `RN-07`.
+- [ ] Gerar resposta correta, dificuldade e explicação didática.
+- [ ] Vincular questões às evidências recuperadas.
+- [ ] Gerar flashcards conforme `RN-08`.
+- [ ] Gerar flashcards a partir das evidências, sem utilizar apenas a questão como fonte.
+- [ ] Persistir conteúdo gerado como candidato à validação, sem publicá-lo antecipadamente.
+
+**Depende de:** T-041, T-042, T-043.
+
+**Cobre:** `RF-09`, `RF-11`, `RN-05`, `RN-07`, `RN-08`.
+
+**Concluída quando:** questões e flashcards rastreáveis podem ser gerados em estrutura compatível com suas regras e encaminhados à validação antes da publicação.
+
+---
+
+### T-045 — Implementar validação de conteúdo
+
+- [ ] Implementar validação estrutural conforme `RN-07` e `RN-08`.
+- [ ] Validar existência, autorização e rastreabilidade das evidências.
+- [ ] Validar sustentação de questão, resposta, explicação e flashcard.
+- [ ] Rejeitar conteúdo contraditório ou insuficientemente sustentado.
+- [ ] Impedir publicação de conteúdo inválido.
+
+**Depende de:** T-044.
+
+**Cobre:** `RN-05`, `RN-07`, `RN-08`, `RQ-03`.
+
+**Concluída quando:** somente conteúdo estruturalmente válido, autorizado e sustentado pelas evidências pode ser publicado.
+
+---
+
+### T-046 — Integrar pipeline de processamento e geração
+
+Integrar o fluxo definido no `PLAN.md`, do material persistido até a publicação do conteúdo validado.
+
+**Depende de:** T-035, T-040, T-045.
+
+**Cobre:** `RF-05` a `RF-09`, `HU-03`.
+
+**Concluída quando:** um material real válido percorre o pipeline assíncrono, possui estados observáveis e produz somente conteúdo validado e rastreável.
+
+---
+
+# Fase 5 — Interface de trilhas
+
+### T-050 — Implementar acompanhamento de processamento
+
+- [ ] Integrar a interface de materiais aos estados reais de processamento conforme `RN-03`.
+- [ ] Atualizar o estado apresentado durante a execução.
+- [ ] Apresentar falhas de forma compreensível.
+- [ ] Disponibilizar recuperação/reprocessamento quando permitido.
+
+**Depende de:** T-023, T-046.
+
+**Cobre:** `RF-05`, `HU-03`, `RN-03`.
+
+**Concluída quando:** o estudante consegue acompanhar pela interface o processamento real de seus materiais, incluindo conclusão, falha e recuperação quando aplicável.
+
+---
+
+### T-051 — Implementar interface de trilhas
+
+- [ ] Exibir trilhas e etapas conforme `DESIGN.md`.
+- [ ] Representar ordem, disponibilidade e estado das etapas.
+- [ ] Permitir acesso às etapas disponíveis.
+- [ ] Representar assuntos aguardando material conforme `RN-06`.
+- [ ] Disponibilizar ação para envio de material complementar.
+- [ ] Garantir funcionamento em desktop e mobile.
+
+**Depende de:** T-011, T-043, T-050.
+
+**Cobre:** `HU-04`, `HU-10`, `RN-06`, `UI-05`.
+
+**Concluída quando:** o estudante consegue visualizar a estrutura da trilha, acessar etapas disponíveis e identificar assuntos que aguardam material complementar.
+
+---
+
+### T-052 — Integrar material complementar
+
+- [ ] Permitir envio complementar a partir do assunto sem cobertura.
+- [ ] Relacionar o material ao contexto que motivou o envio.
+- [ ] Integrar o novo material ao pipeline conforme a estratégia de reprocessamento definida em `TD-13`.
+- [ ] Reavaliar a cobertura após processamento válido.
+- [ ] Atualizar a disponibilidade das etapas conforme o novo conteúdo sustentado.
+
+**Depende de:** T-046, T-051.
+
+**Cobre:** `RF-16`, `RN-06`.
+
+**Concluída quando:** material complementar válido pode ser enviado para um assunto sem cobertura, processado pelo pipeline e refletido na cobertura da trilha sem gerar conteúdo não sustentado.
+
+---
+
+# Fase 6 — Estudo
+
+Objetivo: permitir estudar conteúdo já publicado sem depender da IA durante a resposta.
+
+### T-060 — Implementar consulta de questões
+
+- [ ] Disponibilizar questões publicadas ao estudante autorizado.
+- [ ] Aplicar o contrato pré-resposta definido em `RN-09`.
+- [ ] Preservar vínculo com a versão publicada da questão.
+
+**Depende de:** T-046.
+
+**Cobre:** `RF-09`, `RN-09`.
+
+**Concluída quando:** o estudante autorizado consegue consultar uma questão sem receber gabarito, explicação ou outros dados restritos ao pós-resposta.
+
+---
+
+### T-061 — Implementar tentativas e correção
+
+- [ ] Registrar tentativa e resposta do estudante.
+- [ ] Corrigir utilizando o gabarito persistido, sem nova chamada à IA.
+- [ ] Suportar os tipos de questão definidos em `RN-07`.
+- [ ] Persistir e retornar o resultado pós-resposta conforme `RN-09` e `RN-16`.
+- [ ] Garantir idempotência conforme `RN-10`.
+- [ ] Disponibilizar o resultado persistido para os efeitos posteriores de gamificação.
+
+**Depende de:** T-060.
+
+**Cobre:** `RF-10`, `RN-07`, `RN-09`, `RN-10`, `RN-16`.
+
+**Concluída quando:** tentativas são registradas e corrigidas de forma idempotente utilizando o gabarito persistido, e o estudante recebe o conteúdo pós-resposta permitido.
+
+---
+
+### T-062 — Implementar pontuação
+
+- [ ] Implementar concessão de pontos conforme `RN-11`.
+- [ ] Registrar origem e valor da pontuação.
+- [ ] Garantir idempotência e impedir pontuação duplicada.
+
+**Depende de:** T-061.
+
+**Cobre:** `RF-12`, `RN-11`.
+
+**Concluída quando:** tentativas elegíveis geram exatamente os efeitos de pontuação definidos em `RN-11`, sem duplicação.
+
+---
+
+### T-063 — Implementar progresso
+
+- [ ] Calcular e persistir progresso conforme `RN-12`.
+- [ ] Manter acurácia e conclusão como métricas distintas.
+- [ ] Disponibilizar o progresso para trilhas e evolução.
+- [ ] Integrar o progresso real aos estados apresentados na interface de trilhas.
+
+**Depende de:** T-051, T-061.
+
+**Cobre:** `RF-13`, `RN-12`.
+
+**Concluída quando:** progresso de questões, etapas e trilhas é calculado a partir dos dados persistidos e refletido corretamente na interface de trilhas.
+
+---
+
+### T-064 — Implementar conquistas
+
+- [ ] Implementar concessão das conquistas definidas em `RN-13`.
+- [ ] Garantir concessão única por estudante e conquista.
+- [ ] Persistir as concessões.
+- [ ] Disponibilizar o evento ou resultado necessário para comunicar uma nova conquista à interface.
+- [ ] Integrar notificação global de conquista desbloqueada conforme `DESIGN.md`.
+
+**Depende de:** T-011, T-061, T-063.
+
+**Cobre:** `RF-14`, `RN-13`.
+
+**Concluída quando:** os marcos definidos em `RN-13` concedem suas respectivas conquistas uma única vez e uma nova concessão é comunicada ao estudante conforme a experiência definida no `DESIGN.md`.
+
+---
+
+### T-065 — Implementar revisão por flashcards
+
+- [ ] Disponibilizar flashcard após a resposta da questão relacionada conforme `RN-08`.
+- [ ] Implementar frente, revelação explícita do verso, explicação e evidência quando aplicável.
+- [ ] Utilizar somente conteúdo previamente validado e persistido.
+- [ ] Garantir que a revisão não produza efeitos avaliativos ou de gamificação.
+
+**Depende de:** T-061.
+
+**Cobre:** `RF-11`, `RF-17`, `RN-08`, `HU-07`.
+
+**Concluída quando:** o estudante consegue revisar por flashcards e consultar suas evidências sem gerar tentativa, pontuação, acurácia, progresso ou conquistas.
+
+---
+
+### T-066 — Implementar interface de estudo
+
+- [ ] Implementar apresentação e resposta dos tipos de questão conforme `DESIGN.md`.
+- [ ] Exigir resposta válida antes da confirmação e impedir envio técnico duplicado.
+- [ ] Apresentar feedback pós-resposta conforme `RN-09` e `RN-16`.
+- [ ] Permitir consulta à evidência vinculada.
+- [ ] Apresentar pontuação recebida quando aplicável.
+- [ ] Disponibilizar revisão por flashcard após a resposta.
+- [ ] Manter navegação sob ação explícita do estudante.
+- [ ] Garantir suporte a conteúdo longo e funcionamento responsivo.
+
+**Depende de:** T-011, T-061, T-062, T-063, T-065.
+
+**Cobre:** `RF-10`, `RF-11`, `RF-17`, `HU-05`, `HU-06`, `HU-07`, `HU-11`, `RN-08`, `RN-09`, `RN-16`.
+
+**Concluída quando:** a jornada de estudo funciona integrada à API real, sem exposição antecipada do gabarito e com correção, feedback, evidência, pontuação e revisão disponíveis conforme as regras aplicáveis.
+
+---
+
+# Fase 7 — Experiência e acompanhamento
+
+Objetivo: apresentar ao estudante informações úteis sobre sua evolução, facilitar a continuidade dos estudos e concentrar informações pessoais e conquistas no Perfil.
+
+### T-070 — Implementar API de evolução
+
+- [ ] Consolidar as métricas definidas em `RF-15` a partir dos dados persistidos.
+- [ ] Manter acurácia e conclusão como métricas distintas.
+- [ ] Restringir os dados ao estudante autenticado.
+- [ ] Representar corretamente ausência de atividade.
+
+**Depende de:** T-062, T-063.
+
+**Cobre:** `RF-15`, `HU-08`, `RN-12`.
+
+**Concluída quando:** o estudante autenticado consegue consultar sua evolução com métricas derivadas dos dados persistidos, sem valores fictícios.
+
+---
+
+### T-071 — Implementar tela de evolução
+
+- [ ] Apresentar as métricas de evolução conforme `DESIGN.md`.
+- [ ] Diferenciar claramente acurácia de conclusão.
+- [ ] Representar progresso das trilhas.
+- [ ] Implementar estado sem atividade.
+- [ ] Utilizar visualizações que preservem compreensão e acessibilidade.
+
+**Depende de:** T-011, T-070.
+
+**Cobre:** `RF-15`, `HU-08`.
+
+**Concluída quando:** o estudante consegue compreender seu desempenho e progresso a partir dos dados reais de evolução, incluindo o estado sem atividade.
+
+---
+
+### T-072 — Implementar Início
+
+- [ ] Implementar os estados de estudante novo e estudante com atividade conforme `DESIGN.md`.
+- [ ] Apresentar próxima ação coerente com o estado atual.
+- [ ] Utilizar somente dados reais disponíveis.
+- [ ] Integrar acesso a materiais, continuidade de estudo e resumo de evolução quando aplicável.
+
+**Depende de:** T-023, T-051, T-070.
+
+**Concluída quando:** a tela inicial apresenta uma próxima ação coerente com o estado do estudante e não utiliza informações fictícias.
+
+---
+
+### T-073 — Implementar Perfil e conquistas
+
+- [ ] Disponibilizar os contratos necessários para consulta do perfil e das conquistas.
+- [ ] Compor informações de identidade e gamificação conforme `PLAN.md`.
+- [ ] Implementar a interface de Perfil conforme `DESIGN.md`.
+- [ ] Apresentar as conquistas definidas em `RN-13`.
+- [ ] Diferenciar conquistas obtidas e pendentes e apresentar os dados aplicáveis de concessão.
+- [ ] Não introduzir conquistas além das definidas para o MVP.
+
+**Depende de:** T-011, T-012, T-064.
+
+**Cobre:** `RF-14`, `RF-19`, `HU-09`, `RN-13`.
+
+**Concluída quando:** o estudante consegue consultar seu perfil e todas as conquistas do MVP, distinguindo as obtidas das pendentes a partir dos dados persistidos.
+
+---
+
+# Fase 8 — Validação integrada
+
+Objetivo: validar de forma integrada os requisitos, riscos e jornadas críticas do sistema completo.
+
+### T-080 — Validar segurança e isolamento
+
+- [ ] Validar isolamento entre usuários na API e persistência relacional.
+- [ ] Validar proteção de arquivos e conteúdo processado.
+- [ ] Validar isolamento de chunks e recuperação vetorial.
+- [ ] Validar autorização sobre trilhas, questões, tentativas e demais recursos pertencentes ao estudante.
+- [ ] Validar cenários de acesso cruzado definidos no `SPEC.md`.
+
+**Depende de:** T-046, T-061.
+
+**Cobre:** `RN-01`, `RQ-01`, `CS-02`.
+
+**Concluída quando:** os testes de acesso cruzado não permitem consultar, recuperar ou modificar dados pertencentes a outro estudante.
+
+---
+
+### T-081 — Validar RAG e qualidade do conteúdo
+
+- [ ] Executar avaliação integrada utilizando corpus controlado.
+- [ ] Validar cobertura suficiente e insuficiente.
+- [ ] Validar relevância e sustentação das evidências.
+- [ ] Validar tratamento de conteúdo contraditório e referências inválidas.
+- [ ] Validar tratamento de instruções maliciosas presentes nos materiais.
+- [ ] Validar isolamento durante a recuperação.
+- [ ] Validar que conteúdo sem sustentação suficiente não seja publicado.
+- [ ] Validar qualidade da geração a partir das evidências recuperadas.
+
+**Depende de:** T-035, T-045, T-046.
+
+**Cobre:** `RN-04`, `RN-05`, `RN-06`, `RN-07`, `RN-08`, `RQ-03`, `RQ-04`.
+
+**Concluída quando:** o pipeline recupera evidências adequadas, rejeita conteúdo insuficiente ou inválido e publica somente conteúdo rastreável e sustentado pelos materiais autorizados.
+
+---
+
+### T-082 — Validar tentativas e gamificação
+
+- [ ] Validar idempotência de tentativas e seus efeitos.
+- [ ] Validar pontuação conforme `RN-11`.
+- [ ] Validar progresso conforme `RN-12`.
+- [ ] Validar concessão única das conquistas conforme `RN-13`.
+- [ ] Validar repetição de questões e primeiro acerto.
+- [ ] Validar consistência entre tentativa, pontuação, progresso e conquistas.
+- [ ] Validar que flashcards não produzam efeitos avaliativos ou de gamificação.
+
+**Depende de:** T-061, T-062, T-063, T-064, T-065.
+
+**Cobre:** `RN-08`, `RN-10`, `RN-11`, `RN-12`, `RN-13`, `RQ-02`.
+
+**Concluída quando:** tentativas e seus efeitos permanecem consistentes sob acertos, erros, repetições e reenvios técnicos, sem duplicação de pontuação, progresso ou conquistas.
+
+---
+
+### T-083 — Validar ciclo de vida de materiais
+
+- [ ] Validar arquivamento e restauração preservando histórico e dependências.
+- [ ] Validar exclusão definitiva de materiais elegíveis.
+- [ ] Validar bloqueio da exclusão diante das dependências definidas em `RN-14`.
+- [ ] Validar propriedade antes das operações de ciclo de vida.
+- [ ] Validar remoção consistente dos dados associados quando a exclusão for permitida.
+- [ ] Validar ausência de dados órfãos entre PostgreSQL, armazenamento de arquivos e armazenamento vetorial.
+- [ ] Validar envio de material complementar.
+- [ ] Validar reprocessamento e reindexação conforme a estratégia definida.
+
+**Depende de:** T-024, T-046, T-052, T-061.
+
+**Cobre:** `RN-14`, `CS-04`, `PLAN.md §23`.
+
+**Concluída quando:** arquivamento e restauração preservam os dados necessários, exclusões respeitam as dependências existentes e as operações de ciclo de vida mantêm consistência entre os mecanismos de persistência.
+
+---
+
+### T-084 — Validar interface e experiência
+
+- [ ] Validar responsividade e acessibilidade conforme `RQ-06` e `DESIGN.md`.
+- [ ] Validar navegação por teclado, foco, contraste e conteúdo longo.
+- [ ] Validar temas e presets ainda ativos de paleta e tipografia.
+- [ ] Validar estados de carregamento, vazio, erro, acesso negado e ações indisponíveis.
+- [ ] Validar as jornadas principais de autenticação, materiais, trilhas, estudo, evolução e Perfil.
+- [ ] Validar feedback, evidências e revisão por flashcards.
+- [ ] Validar notificações transitórias e confirmações de ações destrutivas.
+- [ ] Validar funcionamento a partir de 320 px até desktop.
+
+**Depende de:** T-023, T-050, T-051, T-066, T-071, T-072, T-073.
+
+**Cobre:** `RQ-06`, `UI-02`, `UI-03`, `UI-05`, `CS-04`.
+
+**Concluída quando:** as jornadas e estados principais da interface permanecem utilizáveis, acessíveis, responsivos e coerentes com o `DESIGN.md`.
+
+---
+
+### T-085 — Validar contratos, arquitetura e documentação
+
+- [ ] Validar OpenAPI e Swagger contra os contratos implementados.
+- [ ] Validar documentação de erros, autenticação e operações da API.
+- [ ] Validar build e execução dos testes.
+- [ ] Validar configuração dos ambientes e exemplos necessários.
+- [ ] Verificar conformidade da implementação com o `PLAN.md`.
+- [ ] Verificar conformidade com as responsabilidades e convenções do `SKILL.md`.
+
+**Depende de:** T-080, T-081, T-082, T-083, T-084.
+
+**Cobre:** `RF-18`, `RQ-07`, `RQ-08`, `CS-04`.
+
+**Concluída quando:** contratos, documentação, build, testes e estrutura implementada estão coerentes com os documentos oficiais do projeto.
+
+---
+
+# Fase 9 — Aceite do MVP
+
+Objetivo: executar as jornadas críticas do produto e verificar formalmente se o MVP atende aos critérios de sucesso definidos no `SPEC.md`.
+
+### T-090 — Executar jornada principal do MVP
+
+Executar de ponta a ponta a jornada principal definida no `SPEC.md`:
+
+```text
+Cadastro
+   ↓
+Login
+   ↓
+Upload
+   ↓
+Processamento
+   ↓
+RAG
+   ↓
+Trilha
+   ↓
+Questão
+   ↓
+Confirmação da resposta
+   ↓
+Correção + Feedback didático
+   ↓
+Evidência
+   ↓
+Flashcard de revisão
+   ↓
+Pontos
+   ↓
+Progresso
+   ↓
+Conquista
+   ↓
+Evolução
+   ↓
+Perfil + Conquistas
+```
+
+Durante a jornada:
+
+- [ ] utilizar dados reais e integrações implementadas;
+- [ ] validar rastreabilidade do conteúdo até os materiais autorizados;
+- [ ] validar separação entre os contratos pré-resposta e pós-resposta;
+- [ ] validar feedback didático e acesso à evidência após a resposta;
+- [ ] validar flashcard como recurso exclusivamente de revisão;
+- [ ] validar os efeitos de pontuação, progresso e conquistas;
+- [ ] validar atualização das informações de evolução;
+- [ ] validar apresentação das informações e conquistas no Perfil.
+
+**Depende de:** T-085.
+
+**Cobre:** `CS-01`, `CS-03`, `CS-05`.
+
+**Concluída quando:** a jornada principal pode ser executada de ponta a ponta com dados reais e apresenta os resultados esperados em cada etapa sem violar as regras do produto.
+
+---
+
+### T-091 — Executar jornada de conteúdo insuficiente
+
+Executar de ponta a ponta o fluxo de conteúdo sem cobertura suficiente:
+
+```text
+Assunto identificado
+   ↓
+Conteúdo insuficiente
+   ↓
+Aguardando material de apoio
+   ↓
+Material complementar
+   ↓
+Processamento
+   ↓
+Atualização da base RAG
+   ↓
+Reavaliação da cobertura
+   ↓
+Conteúdo sustentado disponível
+```
+
+Durante a jornada:
+
+- [ ] validar que assunto sem sustentação suficiente não produz atividade artificial;
+- [ ] validar estado `Aguardando material de apoio`;
+- [ ] validar envio de material complementar relacionado ao contexto;
+- [ ] validar processamento do novo material conforme a estratégia definida;
+- [ ] validar atualização da base de conhecimento;
+- [ ] validar reavaliação da cobertura;
+- [ ] validar que somente conteúdo posteriormente sustentado seja disponibilizado.
+
+**Depende de:** T-085.
+
+**Cobre:** `RF-16`, `RN-06`, `CS-05`.
+
+**Concluída quando:** um assunto sem cobertura permanece indisponível até que material complementar válido forneça sustentação suficiente e o pipeline atualize corretamente sua disponibilidade.
+
+---
+
+### T-092 — Conferir critérios de sucesso do MVP
+
+- [ ] Verificar `CS-01` a `CS-05` do `SPEC.md`.
+- [ ] Relacionar cada critério às evidências produzidas pelas validações e jornadas executadas.
+- [ ] Identificar critérios não atendidos ou sem evidência suficiente.
+- [ ] Registrar pendências bloqueantes antes do aceite.
+- [ ] Confirmar que nenhum critério seja considerado atendido apenas por existência de interface ou implementação parcial.
+
+**Depende de:** T-090, T-091.
+
+**Cobre:** `CS-01` a `CS-05`.
+
+**Concluída quando:** todos os critérios de sucesso possuem evidência verificável de atendimento e não existe pendência bloqueante omitida para o aceite do MVP.
+
+---
+
+# 10. Dependências principais
+
+Este mapa apresenta as dependências técnicas principais entre as tasks.
+
+Não substitui o campo `Depende de` de cada tarefa.
+
+```text
+FUNDAÇÃO E AUTENTICAÇÃO
+
+T-001 → T-010
+           ├→ T-012
+           └→ T-013
+
+T-011 ────→ T-012
+
+
+MATERIAIS
+
+T-010 + T-012
+       ↓
+     T-020
+       ↓
+     T-021
+       ↓
+     T-022
+       ↓
+     T-024
+       ↓
+     T-023
+
+
+BASE RAG
+
+T-022
+   ↓
+T-030  [resolve TD-07]
+   ↓
+T-031
+   ↓
+T-032  [resolve TD-05]
+   ↓
+T-033  [resolve TD-04]
+   ↓
+T-034
+   ↓
+T-035
+
+
+PROCESSAMENTO E GERAÇÃO
+
+T-020 + T-022
+       ↓
+     T-040  [resolve TD-03 e estratégia de reprocessamento]
+
+T-010
+   ↓
+T-041  [resolve TD-06]
+
+T-034
+   ↓
+T-042
+
+T-041 + T-042
+       ↓
+     T-043
+       ↓
+     T-044
+       ↓
+     T-045
+
+T-035 + T-040 + T-045
+          ↓
+        T-046
+
+
+TRILHAS E PROCESSAMENTO NA INTERFACE
+
+T-023 + T-046
+       ↓
+     T-050
+
+T-011 + T-043 + T-050
+          ↓
+        T-051
+
+T-046 + T-051
+       ↓
+     T-052
+
+
+ESTUDO
+
+T-046
+   ↓
+T-060
+   ↓
+T-061
+   ├────────→ T-062
+   ├────────→ T-063
+   └────────→ T-065
+
+T-051 + T-061
+       ↓
+     T-063
+
+T-011 + T-061 + T-063
+          ↓
+        T-064
+
+T-011 + T-061 + T-062 + T-063 + T-065
+                    ↓
+                  T-066
+
+
+EXPERIÊNCIA E ACOMPANHAMENTO
+
+T-062 + T-063
+       ↓
+     T-070
+       ↓
+     T-071
+
+T-023 + T-051 + T-070
+          ↓
+        T-072
+
+T-011 + T-012 + T-064
+          ↓
+        T-073
+
+
+VALIDAÇÃO INTEGRADA
+
+T-046 + T-061
+       ↓
+     T-080
+
+T-035 + T-045 + T-046
+          ↓
+        T-081
+
+T-061 + T-062 + T-063 + T-064 + T-065
+                    ↓
+                  T-082
+
+T-024 + T-046 + T-052 + T-061
+                    ↓
+                  T-083
+
+T-023 + T-050 + T-051 + T-066 + T-071 + T-072 + T-073
+                              ↓
+                            T-084
+
+T-080 + T-081 + T-082 + T-083 + T-084
+                    ↓
+                  T-085
+
+
+ACEITE DO MVP
+
+T-085
+   ├────────→ T-090
+   └────────→ T-091
+
+T-090 + T-091
+       ↓
+     T-092
+```
+
+O frontend pode avançar em paralelo quando os contratos necessários estiverem definidos.
+
+As dependências representam restrições técnicas, não atribuição de responsáveis.
+
+Tasks independentes podem ser executadas em paralelo quando suas dependências já estiverem satisfeitas.
+
+Decisões técnicas abertas devem ser resolvidas somente quando forem necessárias para a execução da task correspondente, conforme definido no `PLAN.md`.
+
+---
+
+# 11. Marcos
+
+| Marco | Resultado |
+| --- | --- |
+| M1 — Fundação | Frontend, backend, banco, contratos base e autenticação funcionando |
+| M2 — Materiais | Upload, consulta, arquivamento, restauração e exclusão segura funcionando |
+| M3 — Base RAG | Materiais extraídos, fragmentados, vetorizados e recuperáveis com rastreabilidade e isolamento |
+| M4 — Geração | Pipeline assíncrono produz trilhas, questões e flashcards validados e sustentados por evidências |
+| M5 — Trilhas | Trilhas e estados de processamento disponíveis na interface, incluindo fluxo de material complementar |
+| M6 — Estudo | Questões, tentativas, correção, feedback, evidências e flashcards funcionando |
+| M7 — Gamificação | Pontuação, progresso e conquistas funcionando de forma consistente |
+| M8 — Experiência | Início, Evolução e Perfil integrados aos dados reais do estudante |
+| M9 — Validação | Segurança, RAG, gamificação, ciclo de vida, interface e contratos validados de forma integrada |
+| M10 — MVP | Jornadas críticas executadas e critérios de sucesso do `SPEC.md` verificados |
+
+---
+
+# 12. Registro de conclusão
+
+Ao concluir uma task relevante, registrar apenas:
+
+- estado;
+- implementação correspondente;
+- testes executados;
+- pendências reais.
+
+Não utilizar este documento como diário de desenvolvimento.
+
+Detalhes extensos de implementação ou investigação devem permanecer:
+
+- no código;
+- nos testes;
+- no README;
+- na documentação técnica apropriada.
+
+Não registrar neste documento histórico de protótipos, experimentações ou implementações descartadas.
+
+Uma task somente deve ser marcada como concluída quando atender ao respectivo critério `Concluída quando` e às regras de execução definidas neste documento.
+
+---
+
+# 13. Regra de documentação
+
+Este `TASKS.md` é a fonte principal para **ordem, dependências e acompanhamento da implementação**.
+
+Não duplicar:
+
+- regras completas do `SPEC.md`;
+- explicações arquiteturais do `PLAN.md`;
+- especificações visuais do `DESIGN.md`;
+- instruções permanentes do `SKILL.md`.
+
+Utilizar referências curtas aos documentos proprietários quando necessário, por exemplo:
+
+
+**Cobre:** RN-04, RF-06
+
+
+Quando uma decisão `TD-*` for necessária, consultar o `PLAN.md` e resolvê-la somente quando bloquear a execução da task correspondente.
+
+Quando houver dúvida sobre comportamento ou regra de negócio, consultar o `SPEC.md`.
+
+Quando houver dúvida sobre arquitetura ou decisão técnica, consultar o `PLAN.md`.
+
+Quando houver dúvida sobre interface ou experiência, consultar o `DESIGN.md`.
+
+Quando houver dúvida sobre convenções e forma de execução pelo agente, consultar o `SKILL.md`.
+
+Uma mudança deve ser realizada primeiro no documento proprietário da informação e somente depois refletida, de forma curta, nas tasks afetadas.
+
+Referências temporárias utilizadas durante discussões ou resolução de conflitos não devem permanecer como fonte normativa depois que a decisão tiver sido incorporada ao documento proprietário.
