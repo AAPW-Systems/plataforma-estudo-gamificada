@@ -66,3 +66,4 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 | 2026-09-29 | [Brainstorming aprofundado](2026-09-29-brainstorming-aprofundado.md) | Esclarecer | Artur Lins |
 | 2026-09-29 | [Diretrizes sobre terceiros e exigências do PO](2026-09-29-diretrizes-terceiros-exigencias-po.md) | Estruturação | Artur Lins |
 | 2026-09-29 | [Diretrizes de git e testes](2026-09-29-diretrizes-git-testes.md) | Estruturação | Artur Lins |
+| 2026-10-12 | [Alinhamento do produto e da arquitetura](2026-10-12-alinhamento-produto-arquitetura.md) | Esclarecer | Artur Lins |

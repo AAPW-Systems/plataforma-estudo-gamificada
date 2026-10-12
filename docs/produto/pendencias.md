@@ -1,64 +1,53 @@
 # Pendências e impactos das decisões
 
-**Data:** 29/09/2026
+**Data:** 29/09/2026; atualizado em 12/10/2026 ([alinhamento do produto e da arquitetura](../prompts/2026-10-12-alinhamento-produto-arquitetura.md))
 **Origem:** [brainstorming aprofundado](../prompts/2026-09-29-brainstorming-aprofundado.md)
 **Responsável geral:** a equipe (Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson). Recorte do MVP e decisões de produto são validados com o professor Aldo Nunes (PO).
 
-Este documento reúne o que **ainda não foi decidido**, o que cada pendência bloqueia e o impacto de cada opção. Ele serve de pauta para as reuniões da equipe e com o professor. As decisões já tomadas estão na [visão](visao.md#decisões-do-brainstorming-aprofundado) e o recorte está no [backlog](backlog.md#recorte-do-mvp).
+Este documento reúne o que **ainda não foi decidido**, o que cada pendência bloqueia e o impacto de cada opção. Ele serve de pauta para as reuniões da equipe. Os itens que dependem do professor estão na [pauta com o PO](pauta-po.md). As decisões já tomadas estão na [visão](visao.md#decisões-do-brainstorming-aprofundado) e o recorte está no [backlog](backlog.md#recorte-do-mvp).
 
 As recomendações abaixo são do agente e **não são decisões**. Uma pendência só é encerrada quando a equipe registra a resposta: questões técnicas vão para um ADR ou `research.md`, e questões de produto para a visão ou a spec. Ao encerrar uma pendência, mova-a para a seção [Encerradas](#encerradas) com a data e o link da decisão, sem apagar o texto.
 
 ## Prazos de referência
 
-- **MVP:** 3 semanas a partir de 29/09/2026 (estimativa: 20/10/2026), podendo rodar localmente.
-- **Plataforma final:** novembro de 2026, com deploy obrigatório (URL com HTTPS).
-- **Caminho crítico:** QA-18 e QA-22 bloqueiam o primeiro `plan.md`. Cada dia sem elas consome o prazo do MVP.
+- **MVP:** 3 semanas a partir de 29/09/2026 (estimativa: 20/10/2026), rodando localmente.
+- **Final acadêmico:** novembro de 2026, com deploy obrigatório (URL com HTTPS).
+- **Caminho crítico (12/10/2026):** esquema inicial em DBML (QA-21) e aprovação da primeira spec. A arquitetura foi aprovada em 12/10/2026 (VAL-06).
 
 ## Resumo
 
-| ID | Pendência | Tipo | Bloqueia | Responsável | Prazo sugerido |
+| ID | Pendência | Tipo | Bloqueia | Responsável | Situação |
 |---|---|---|---|---|---|
-| [QA-22](#qa-22-stack-de-ia-llm-embeddings-e-busca) | Stack de IA: LLM, embeddings e busca | Técnica | QA-21, QA-11, plano de F-03, F-04 e F-06 | Equipe | 01/10/2026 |
-| [QA-18](#qa-18-framework-do-backend-fastapi-ou-django) | Framework do backend: FastAPI ou Django | Técnica | Primeiro `plan.md`, QA-21, estrutura de pastas | Equipe | 01/10/2026 |
-| [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | No plano de F-01 |
-| [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy final | Equipe | Antes do fim do MVP |
-| [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação automática e limite de novos cartões (provisória) | Produto | Spec de F-04 e F-05 | Equipe e professor | Na spec de F-04 |
-| [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 | Equipe e professor | Na spec de F-06 |
-| [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Na spec de F-09 |
-| [QA-25](#qa-25-sessão-no-navegador-migração-para-bff) | Sessão no navegador: migração para BFF | Técnica e segurança | Deploy final | Equipe | Antes do deploy |
-| [QA-04](#qa-04-qualidade-e-verificação-da-geração) | Qualidade e verificação da geração (restante) | Produto e técnica | Spec de F-03 e F-04 | Equipe | Na spec de F-04 |
-| [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Antes da interface de F-01 |
-| [QA-26](#qa-26-níveis-de-dificuldade) | Significado dos níveis de dificuldade (EX-05) | Produto | Spec de F-04 | Professor | Próxima review |
-| [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 (versão final) | Equipe e professor | Antes da spec do incremento |
-| [QA-28](#qa-28-complementos-do-pytest) | Complementos do pytest (cliente HTTP, plugins, cobertura) | Técnica | Primeiro `plan.md` | Equipe | No plano de F-01 |
-| [QA-29](#qa-29-ferramenta-de-testes-do-frontend) | Ferramenta de testes do frontend | Técnica | Primeira interface | Equipe | No plano de F-01 |
-| [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Antes da primeira implementação |
-| [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Próxima review |
-| [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição v0.3 | Processo | Aprovação da primeira spec | Equipe | Próxima reunião |
-| [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Antes da primeira sprint |
-| [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO (se haverá e quem) | Processo | Aprovações entre as reviews com o professor | Equipe | Próxima reunião |
-| [VAL-05](#val-05-aprovação-das-regras-de-git-e-testes) | Aprovação das regras de git e testes e da DTEC 001 | Processo | Primeira implementação | Equipe | Próxima reunião |
+| [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | **Próximo passo:** esquema em DBML |
+| [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy do final acadêmico | Equipe | Parcial: DTEC 013; VPS e domínio pendentes |
+| [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
+| [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026 (revisão pelo estudante); valor padrão do limite na spec |
+| [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 (final acadêmico) | Equipe e professor | Provisória |
+| [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Aberta; na spec de F-09 |
+| [QA-04](#qa-04-qualidade-e-verificação-da-geração) | Qualidade e verificação da geração (restante) | Produto e técnica | Spec de F-03 e F-04 | Equipe | Aberta; na spec de F-04 |
+| [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Aberta (UI-01 a UI-03 do [design](../base-specs/design.md#12-pendências-de-design)) |
+| [QA-26](#qa-26-níveis-de-dificuldade) | Níveis de dificuldade (EX-05) | Produto | Spec de F-04 e F-05 | Professor | Em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
+| [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 | Equipe e professor | Depende de [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) |
+| [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Aberta |
+| [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Em pauta ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
+| [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição (v0.4) | Processo | Aprovação da primeira spec | Equipe | Aberta |
+| [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Aberta |
+| [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO | Processo | Aprovações entre as reviews | Equipe | Aberta |
+| [VAL-05](#val-05-aprovação-das-regras-de-git-e-testes) | Aprovação das regras de git e testes e da DTEC 001 | Processo | Primeira implementação | Equipe | Aberta |
 
 ## Mapa de dependências
 
 ```mermaid
 flowchart LR
-    QA22[QA-22 Stack de IA] --> QA21[QA-21 Esquema do banco]
-    QA18[QA-18 Framework] --> QA21
-    QA22 --> QA11[QA-11 VPS]
-    QA21 --> PLAN[Primeiro plan.md]
-    QA18 --> PLAN
-    VAL01[VAL-01 MVP com professor] --> SPEC[Aprovação da primeira spec]
-    VAL02[VAL-02 Constituição v0.3] --> SPEC
+    QA21[QA-21 Esquema em DBML] --> PLAN[Primeiro plan.md]
+    VAL01[VAL-01 / PO-03 Recorte do MVP] --> SPEC[Aprovação da primeira spec]
+    VAL02[VAL-02 Constituição] --> SPEC
     SPEC --> PLAN
-    QA11 --> DEPLOY[Deploy final]
-    QA25[QA-25 BFF] --> DEPLOY
-    QA18 --> QA28[QA-28 Complementos do pytest]
-    QA28 --> PLAN
-    QA29[QA-29 Testes do frontend] --> PLAN
     PLAN --> IMPL[Primeira implementação]
     QA30[QA-30 develop e verificação automática] --> IMPL
     VAL05[VAL-05 Regras de git e testes] --> IMPL
+    QA11[QA-11 VPS e domínio] --> DEPLOY[Deploy do final acadêmico]
+    QA31[QA-31 Framework de agentes] --> PLANCHAT[Plano de F-06 e F-16]
 ```
 
 ---
@@ -66,6 +55,8 @@ flowchart LR
 ## Técnicas
 
 ### QA-22 Stack de IA: LLM, embeddings e busca
+
+> **Encerrada em 12/10/2026 (arquitetura aprovada, VAL-06):** Gemini (camada gratuita) e Groq como alternativa, com PydanticAI ([DTEC 007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes)); embeddings bge-m3 e reranking no Workers AI da Cloudflare, só no final acadêmico ([DTEC 008](../research.md#decisão-dtec-008-embeddings-e-reranking)); busca híbrida no Postgres ([DTEC 005](../research.md#decisão-dtec-005-banco-de-dados-único)). O MVP não usa embeddings. O texto abaixo é o histórico da análise.
 
 Refina QA-04. São três decisões ligadas. A de embeddings é a que mais repercute no resto do sistema.
 
@@ -106,7 +97,7 @@ Os números de RAM são estimativas e precisam ser medidos no `research.md`.
 2. **Reindexação.** Trocar de modelo exige recalcular os embeddings de **todos** os trechos de todos os usuários. Por isso, cada embedding deve registrar o modelo e a versão que o gerou, para permitir reindexação rastreável sem misturar vetores de modelos diferentes (Princípio IV, histórico preservado).
 3. **Custo da VPS (QA-11).** As opções A e B somam RAM fixa ao servidor. A opção C troca RAM por custo variável e por dependência externa.
 4. **Privacidade (Princípio II).** As opções C e LLM externo enviam trechos dos materiais a terceiros. Isso deve ser declarado ao usuário e registrado no ADR. A opção B é a única que mantém os trechos no servidor com custo fixo baixo, embora o LLM ainda os receba se for externo.
-5. **Tempo de processamento (F-03).** Modelos locais em CPU tornam a indexação de um PDF grande lenta, da ordem de minutos. Isso reforça a necessidade do worker assíncrono e de estados de processamento visíveis (RN-03 do init).
+5. **Tempo de processamento (F-03).** Modelos locais em CPU tornam a indexação de um PDF grande lenta, da ordem de minutos. Isso reforça a necessidade do worker assíncrono e de estados de processamento visíveis (RN-03 do brainstorming inicial).
 6. **Avaliação.** A comparação exigida pelas guidelines ("solução de referência simples") fica natural: busca textual pura (D) contra busca híbrida (textual + vetorial), medindo evidência e correção nos mesmos casos.
 
 **Recomendação do agente:** manter a busca híbrida (requisito da disciplina) e escolher entre **B**, se a VPS tiver RAM sobrando, e **C**, se a VPS for mínima. Em qualquer caso, esconder o provedor atrás de uma interface e registrar modelo e versão por embedding. A decisão sobre "remover os modelos locais" deve considerar B como meio-termo, e não só A contra C.
@@ -122,6 +113,8 @@ Os números de RAM são estimativas e precisam ser medidos no `research.md`.
 ---
 
 ### QA-18 Framework do backend: FastAPI ou Django
+
+> **Encerrada em 12/10/2026 (arquitetura aprovada, VAL-06):** FastAPI + SQLAlchemy 2 + Alembic, com fila Procrastinate no Postgres ([DTEC 002](../research.md#decisão-dtec-002-framework-do-backend), [DTEC 006](../research.md#decisão-dtec-006-fila-e-processamento-assíncrono)). A direção "Keycloak" citada abaixo foi substituída pela autenticação própria ([DTEC 003](../research.md#decisão-dtec-003-autenticação)).
 
 **Decidido:** Python no backend, React no frontend (front e back separados, e o React é a View do MVC), Postgres, Keycloak.
 
@@ -147,7 +140,9 @@ Os números de RAM são estimativas e precisam ser medidos no `research.md`.
 
 ### QA-21 Esquema inicial do banco
 
-**Depende de:** QA-22 (dimensão do vetor) e QA-18 (ORM e migrações). Será detalhado no primeiro `plan.md` (`data-model.md`).
+**Próximo passo do projeto (decidido em 12/10/2026):** escrever o esquema inicial em DBML (`docs/arquitetura/esquema-inicial.dbml`), a partir das [entidades da base de especificação](../base-specs/spec.md#8-entidades-conceituais), antes das specs. Cada `data-model.md` parte dele. A dimensão do vetor é 1024 (bge-m3, DTEC 008).
+
+A tabela abaixo é a proposta de 29/09/2026. Atualizações de 12/10/2026: `materia` passa a conter `fonte` (antes `material`); o cartão ganha os estados `aguardando_revisao`, `ativo`, `suspenso` e `recusado`, a cópia da descrição da origem e a imagem opcional; entra a entidade de geração (pedido e resultado, para a taxa de aceitação).
 
 Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 
@@ -155,19 +150,21 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 |---|---|
 | `usuario` (referência ao `sub` do Keycloak, fuso, preferências) | Autenticação, fuso, configurações da meta e da lição |
 | `materia` | Organização por matérias |
-| `material` e sua versão | Envio, reprocessamento e histórico (RN-03, RN-09 do init) |
+| `material` e sua versão | Envio, reprocessamento e histórico (RN-03, RN-09 do brainstorming inicial) |
 | `trecho` (texto, página quando conhecida, posição) e embedding (com modelo e versão) | Citações e busca híbrida |
 | `execucao_processamento` | Estados visíveis e reprocessamento rastreável |
 | `flashcard` (origem: gerado e verificado, editado, criado; estado: ativo, suspenso; vínculo com trechos) | Princípio I, edição manual, exclusão de material |
 | Estado FSRS por cartão | Agendamento |
 | `revisao` (evento imutável com ID gerado no cliente, nota, duração) | Idempotência, tempo dedicado, histórico |
-| Eventos de XP | XP rastreável e sem duplicação (RN-06 do init) |
+| Eventos de XP | XP rastreável e sem duplicação (RN-06 do brainstorming inicial) |
 | Dia de estudo (agregado por usuário e dia local) | Meta, sequência e heatmap |
 | `conversa`, `mensagem` e citação | Chat com histórico |
 
 ---
 
 ### QA-11 VPS e operação do deploy
+
+> **Atualização de 12/10/2026:** Docker Compose e Caddy numa VPS de 2 a 4 GB, provavelmente Hetzner ([DTEC 013](../research.md#decisão-dtec-013-hospedagem-e-operação)). Sem Keycloak e sem embeddings locais, a estimativa cai para ~1 a 1,8 GB ([arquitetura](../arquitetura/README.md#4-contêineres-e-dimensionamento)). Pendentes: escolha do plano, domínio e custo mensal.
 
 **Decidido:** VPS única com Docker Compose e Caddy (HTTPS automático) ou, como alternativa, Coolify. Kubernetes (k3s) só se sobrar tempo. O MVP pode rodar localmente.
 
@@ -198,6 +195,8 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 
 ### QA-25 Sessão no navegador: migração para BFF
 
+> **Encerrada em 12/10/2026 (arquitetura aprovada, VAL-06):** autenticação própria com sessão opaca em cookie `HttpOnly` desde o MVP ([DTEC 003](../research.md#decisão-dtec-003-autenticação)). Nenhum token fica acessível ao JavaScript, e a migração deixa de ser necessária. O texto abaixo é o histórico.
+
 **Decidido para o MVP:** `keycloak-js` no front (Authorization Code + PKCE), com o access token só em memória e o backend validando o JWT pela JWKS do Keycloak. O realm fica exportado em JSON no repositório.
 
 **Pendente:** migrar para BFF (o backend conduz o fluxo OIDC e o navegador recebe só um cookie httpOnly) antes do deploy final.
@@ -209,6 +208,8 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 ---
 
 ### QA-28 Complementos do pytest
+
+> **Encerrada em 12/10/2026 (arquitetura aprovada, VAL-06):** [DTEC 014](../research.md#decisão-dtec-014-complementos-de-teste).
 
 **Origem:** [sessão de diretrizes de git e testes](../prompts/2026-09-29-diretrizes-git-testes.md). **Decidido em 29/09/2026:** pytest como ferramenta de testes do backend ([DTEC 001](../research.md#decisão-dtec-001-ferramenta-de-testes-do-backend)), com os marcadores `unit`, `integration`, `functional`, `security` e `adversarial` (regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md)).
 
@@ -223,6 +224,8 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 ---
 
 ### QA-29 Ferramenta de testes do frontend
+
+> **Encerrada em 12/10/2026 (arquitetura aprovada, VAL-06):** [DTEC 004](../research.md#decisão-dtec-004-frontend) e [DTEC 014](../research.md#decisão-dtec-014-complementos-de-teste).
 
 **Origem:** [sessão de diretrizes de git e testes](../prompts/2026-09-29-diretrizes-git-testes.md). O pytest cobre apenas o código Python. A regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md) exige testes para toda spec implementada, e as specs com interface precisam de uma ferramenta para o React.
 
@@ -247,11 +250,26 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 - **Merge direto:** a regra 14 aceita "pull request ou merge". Com a proteção ativa, o merge direto na `main` fica bloqueado. A equipe precisa decidir se aceita só pull request, que deixa a verificação registrada e visível na avaliação.
 - **Documentação:** com a `main` protegida, decidir se as alterações de documentação (specs, planos, registros de prompts) também passam pela `develop` ou continuam indo direto para a `main`. As regras 14 a 17 tratam apenas da fase de desenvolvimento.
 
+### QA-31 Framework de agentes do final acadêmico
+
+**Origem:** [alinhamento de 12/10/2026](../prompts/2026-10-12-alinhamento-produto-arquitetura.md). O MVP usa PydanticAI para o agente gerador de cartões ([DTEC 007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes)). Um integrante da equipe tem experiência com LangGraph.
+
+**Pendente, antes do plano de F-06:** manter o PydanticAI ou passar ao LangGraph nos agentes do chat e do tira-dúvidas.
+
+| Se mantiver o PydanticAI | Se passar ao LangGraph |
+|---|---|
+| Mesmo código e mesmo ecossistema do MVP; busca como ferramenta tipada | Grafo de estados explícito, retomada e aprovação humana; aproveita a experiência do integrante |
+| Delegação entre agentes, MCP e pydantic-evals disponíveis | Duas abordagens de agente no mesmo projeto, ou reescrita do gerador do MVP |
+
+**Critério sugerido:** a exigência do PO sobre agentes no final acadêmico (multiagentes, MCP, memória) e a fluência da equipe.
+
 ---
 
 ## Produto
 
 ### QA-23 Publicação automática e limite de novos cartões
+
+> **Respondida em 12/10/2026:** os cartões gerados passam pela revisão do estudante (aceitar, editar e aceitar, recusar, aceitar todos), com resumo e "Gerar mais" (RN-22 da [base de especificação](../base-specs/spec.md)). O valor padrão do limite de novos cartões continua para a spec de F-05. O texto abaixo é o histórico.
 
 **Provisório (a confirmar com a equipe):** cartões gerados que passam na verificação entram direto na matéria como novos. O limite de novos cartões por dia é configurável pelo usuário, com padrão inicial de 10 (a revisar: é pouco para quem estuda muito).
 
@@ -264,6 +282,8 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 **A decidir na spec de F-04 e F-05:** o valor padrão do limite, se existe um teto máximo e se o limite é global ou por matéria.
 
 ### QA-16 Escopo do chat
+
+> **Atualização de 12/10/2026:** o chat (F-06) passou para o final acadêmico e fica ao lado das fontes da matéria.
 
 **Provisório (a confirmar com a equipe):** busca numa matéria (padrão) ou em todas; histórico de conversas salvo; resposta em streaming; citações clicáveis que abrem o trecho e a página; resposta explícita de "não encontrei nos seus materiais" quando faltar evidência; apenas um limite técnico de uso por usuário.
 
@@ -302,6 +322,8 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 
 ### QA-26 Níveis de dificuldade
 
+> **Atualização de 12/10/2026:** a equipe considera a seleção por dificuldade incompatível com o FSRS. Levada ao PO com proposta em [PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05).
+
 **Origem:** EX-05 das [exigências do PO](exigencias_po.md) ("definição de dificuldades: fácil, médio e difícil"). O texto não diz a que a dificuldade se aplica.
 
 | Interpretação | O que muda | Impacto |
@@ -315,6 +337,8 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 **Recomendação do agente:** perguntar ao professor na próxima review, apresentando A como proposta, por ser a mais simples de demonstrar e de avaliar.
 
 ### QA-27 Regras da consulta externa
+
+> **Atualização de 12/10/2026:** a equipe considera a consulta externa incompatível com o Princípio I e propõe retirá-la ([PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01)). As regras abaixo só valem se o PO mantiver a exigência.
 
 **Origem:** EX-01 das [exigências do PO](exigencias_po.md). **Decidido em 29/09/2026:** a consulta externa existe apenas no tira-dúvidas de um flashcard (F-16), é acionada pelo estudante, fica fora do MVP e está presente na versão final. As condições mínimas estão no Princípio I da [constituição](../constitution.md) v0.3.
 
@@ -332,11 +356,15 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 
 ### VAL-01 Validação do MVP com o professor
 
+> **Atualização de 12/10/2026:** o recorte foi revisto (chat e tira-dúvidas passam ao final acadêmico; trilha entra no MVP) e levado ao PO em [PO-03](pauta-po.md#po-03-novo-recorte-do-mvp).
+
 As guidelines definem o professor como PO e exigem um "acordo do MVP" com escopo, hipótese de valor mensurável, escopo adiado e critérios de sucesso. O recorte do [backlog](backlog.md#recorte-do-mvp) precisa ser apresentado e aceito na próxima review. Até lá, specs podem ser escritas, mas não aprovadas como definitivas.
 
 Em 29/09/2026, o recorte passou a incluir as [exigências do PO](backlog.md#exigências-do-po): EX-02, EX-03 e EX-05 em F-04 e F-05, e F-16 restrito aos materiais (EX-04). A consulta externa (EX-01) ficou fora do MVP. Esse ajuste também deve ser confirmado na review.
 
 ### VAL-02 Aprovação da constituição v0.3
+
+> **Atualização de 12/10/2026:** a constituição passou para a v0.4 (referências à base de especificação e restrição de stack apontando para a arquitetura). A aprovação vale para a versão vigente.
 
 A [constituição](../constitution.md) passou para a v0.2 no brainstorming aprofundado (ajuste do Princípio I para cartões manuais) e para a v0.3 com as exigências do PO (exceção da consulta externa no Princípio I). As mudanças exigem acordo da equipe.
 
@@ -355,6 +383,12 @@ O PO é o professor Aldo Nunes. Ainda não foi decidido se a equipe terá um rep
 
 As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continuam válidas como proposta até a validação com a equipe e com o professor (VAL-01).
 
+### VAL-06 Aprovação da arquitetura e das DTEC 002 a 014
+
+> **Encerrada em 12/10/2026:** arquitetura aprovada, registrada por Artur Lins ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)). A criação de código está liberada no [`AGENTS.md`](../../.agents/AGENTS.md).
+
+Em 12/10/2026, Artur Lins definiu com o agente a [arquitetura](../arquitetura/README.md) em três estágios e registrou as DTEC 002 a 014 no [`research.md`](../research.md) como propostas ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Duas mudanças revertem direções anteriores: a autenticação própria no lugar do Keycloak (DTEC 003) e o frontend em TypeScript com Tailwind no lugar de JavaScript com Material UI (DTEC 004). A equipe precisa aprová-las antes do primeiro `plan.md`.
+
 ### VAL-05 Aprovação das regras de git e testes
 
 Em 29/09/2026, Artur Lins incluiu no [`AGENTS.md`](../../.agents/AGENTS.md) as regras 14 a 17 (branches `main` e `develop`, Conventional Commits, commits atômicos e testes com pytest obrigatórios antes do merge) e registrou o pytest na [DTEC 001](../research.md#decisão-dtec-001-ferramenta-de-testes-do-backend) ([registro da sessão](../prompts/2026-09-29-diretrizes-git-testes.md)). As regras mudam a forma de trabalho de todos os integrantes e precisam do acordo da equipe antes da primeira implementação.
@@ -365,17 +399,26 @@ Em 29/09/2026, Artur Lins incluiu no [`AGENTS.md`](../../.agents/AGENTS.md) as r
 
 | Tema | Destino |
 |---|---|
-| Rota visual de progressão (QA-15, QA-06) | F-07 |
+| ~~Rota visual de progressão (QA-15, QA-06)~~ | Entrou no MVP como trilha de lições em 12/10/2026 (F-07) |
 | Conquistas e catálogo (QA-08) | F-11 |
 | Edital → plano de estudos e lacunas | F-13 e F-14 |
 | Congelamento da sequência | Incremento de F-10 |
 | Desfazer revisão | Incremento de F-05 |
-| Consulta externa no tira-dúvidas (EX-01) | Incremento de F-16, regras em QA-27 |
-| Formatos DOCX, PPTX, SRT e VTT | Incremento de F-02 |
-| OCR de PDF digitalizado (ex.: Docling) | Incremento de F-03 |
-| Envio em lote | Incremento de F-02 |
-| Kubernetes (k3s) | Aprofundamento opcional da entrega final |
+| Consulta externa no tira-dúvidas (EX-01) | Em pauta ([PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01)) |
+| Formatos SRT, VTT e DOCX | Incremento de F-02 no final acadêmico; PPTX e XLSX na referência |
+| OCR de PDF digitalizado | Referência pós-acadêmica (custo de VPS) |
+| Envio de mais de um arquivo | Incremento de F-02 no final acadêmico |
+| Kubernetes (k3s) | Aprofundamento opcional da entrega final; descrito na referência |
+| Chat com as fontes (F-06) e tira-dúvidas (F-16) | Final acadêmico |
+| Cartão com imagem | Final acadêmico |
 
 ## Encerradas
 
-Nenhuma ainda.
+| ID | Pendência | Encerrada em | Decisão |
+|---|---|---|---|
+| [VAL-06](#val-06-aprovação-da-arquitetura-e-das-dtec-002-a-014) | Aprovação da arquitetura e das DTEC 002 a 014 | 12/10/2026 | [Arquitetura](../arquitetura/README.md) aprovada |
+| [QA-18](#qa-18-framework-do-backend-fastapi-ou-django) | Framework do backend | 12/10/2026 | [DTEC 002](../research.md#decisão-dtec-002-framework-do-backend) |
+| [QA-22](#qa-22-stack-de-ia-llm-embeddings-e-busca) | Stack de IA | 12/10/2026 | [DTEC 007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) e [DTEC 008](../research.md#decisão-dtec-008-embeddings-e-reranking) |
+| [QA-25](#qa-25-sessão-no-navegador-migração-para-bff) | Sessão no navegador | 12/10/2026 | [DTEC 003](../research.md#decisão-dtec-003-autenticação) |
+| [QA-28](#qa-28-complementos-do-pytest) | Complementos do pytest | 12/10/2026 | [DTEC 014](../research.md#decisão-dtec-014-complementos-de-teste) |
+| [QA-29](#qa-29-ferramenta-de-testes-do-frontend) | Ferramenta de testes do frontend | 12/10/2026 | [DTEC 004](../research.md#decisão-dtec-004-frontend) e [DTEC 014](../research.md#decisão-dtec-014-complementos-de-teste) |

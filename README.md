@@ -1,10 +1,10 @@
 # Plataforma de estudos gamificada
 
-Plataforma web em que o estudante envia seus materiais de estudo e a IA os transforma em flashcards rastreáveis até o trecho de origem. A revisão segue repetição espaçada, e o ritmo de estudo é ditado por mecânicas de jogo: XP, sequência diária e uma rota de progressão. Um chat responde a perguntas **apenas** com base nos materiais enviados, com citações.
+Plataforma web que funde **repetição espaçada** com uma **trilha visual de progressão**. O estudante organiza os estudos em matérias, guarda nelas suas fontes e cria flashcards à mão ou pede à IA que os gere a partir das fontes, com referência ao trecho de origem. Os cartões são respondidos numa trilha unificada de lições montadas pelo algoritmo FSRS, com XP, meta diária e sequência. No final acadêmico, cada matéria ganha um chat que responde **apenas** com base nas fontes, com citações.
 
 Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido com **Spec-Driven Development (SDD)**.
 
-> **Estado:** brainstorming aprofundado concluído. O recorte do MVP está no backlog, pendente de validação com o professor. Framework do backend, stack de IA e esquema do banco ainda estão em aberto ([pendências](docs/produto/pendencias.md)). Ainda não há código.
+> **Estado (12/10/2026):** produto e arquitetura alinhados em três estágios: MVP (local), final acadêmico (publicado) e referência pós-acadêmica (documentada). A arquitetura foi aprovada em 12/10/2026; o novo recorte do MVP está em [pauta com o professor](docs/produto/pauta-po.md). Próximos passos: esquema inicial do banco em DBML e specs. A criação de código está liberada, mas ainda não há código.
 
 ## Equipe
 
@@ -26,7 +26,9 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 |---|---|
 | Entender o produto | [`docs/produto/visao.md`](docs/produto/visao.md) |
 | Ver as funcionalidades planejadas e o MVP | [`docs/produto/backlog.md`](docs/produto/backlog.md) |
-| Ver o que está pendente de decisão | [`docs/produto/pendencias.md`](docs/produto/pendencias.md) |
+| Ver as regras globais que servem de base às specs | [`docs/base-specs/`](docs/base-specs/README.md) |
+| Entender a arquitetura | [`docs/arquitetura/`](docs/arquitetura/README.md) e [`docs/research.md`](docs/research.md) |
+| Ver o que está pendente de decisão | [`docs/produto/pendencias.md`](docs/produto/pendencias.md) e [`docs/produto/pauta-po.md`](docs/produto/pauta-po.md) |
 | Ver as exigências do professor (PO) | [`docs/produto/exigencias_po.md`](docs/produto/exigencias_po.md) |
 | Conhecer as regras do projeto | [`docs/constitution.md`](docs/constitution.md) |
 | Entender o processo SDD | [`docs/sdd_guidelines/00_COMECE_AQUI.md`](docs/sdd_guidelines/00_COMECE_AQUI.md) e [`docs/skills/fluxo-sdd.md`](docs/skills/fluxo-sdd.md) |
@@ -43,15 +45,18 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 ├── CLAUDE.md                # ponteiro → .agents/AGENTS.md
 └── docs/
     ├── constitution.md      # princípios estáveis do projeto
+    ├── research.md          # decisões técnicas (DTEC)
+    ├── arquitetura/         # arquitetura vigente e referência pós-acadêmica
+    ├── base-specs/          # regras, telas e orientação técnica globais, base para as specs
     ├── produto/
     │   ├── visao.md         # diferencial, escopo, decisões de produto e questões
-    │   ├── backlog.md       # funcionalidades candidatas (F-01 a F-16) e recorte do MVP
+    │   ├── backlog.md       # funcionalidades candidatas (F-01 a F-16) e recorte por estágio
     │   ├── pendencias.md    # decisões em aberto, opções e impactos
-    │   └── exigencias_po.md # exigências do PO (EX-xx) e onde estão no backlog
+    │   ├── exigencias_po.md # exigências do PO (EX-xx) e onde estão no backlog
+    │   └── pauta-po.md      # itens em discussão com o PO
     ├── specs/               # uma pasta por funcionalidade: NNN-nome-curto/
     ├── skills/              # guias por tarefa, independentes de ferramenta
     ├── prompts/             # registro de todas as sessões com agentes
-    ├── init/                # brainstorming inicial (histórico, somente leitura)
     └── sdd_guidelines/      # material SDD da disciplina (somente leitura)
 ```
 

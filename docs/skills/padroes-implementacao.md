@@ -1,7 +1,7 @@
 # Guia: padrões de implementação
 
-**Origem:** seções agnósticas de stack de [`../init/SKILL.md`](../init/SKILL.md), migradas em 29/09/2026.
-**Pendente:** seções dependentes da stack (comandos, estrutura de pastas, bibliotecas, endereços do OpenAPI e do Swagger UI) serão acrescentadas depois da decisão de QA-18, registrada em `research.md`. Até lá, **não crie código de aplicação**.
+**Origem:** seções agnósticas de stack do brainstorming inicial (`docs/init/SKILL.md`, hoje [`../base-specs/`](../base-specs/README.md)), migradas em 29/09/2026; revisto em 12/10/2026.
+**Stack:** [arquitetura](../arquitetura/README.md) e DTEC 002 a 014 do [`research.md`](../research.md), aprovadas em 12/10/2026. Comandos, estrutura de pastas e endereços do OpenAPI e do Swagger UI são acrescentados aqui quando a estrutura base do código for criada.
 
 ## Arquitetura MVC
 
@@ -11,7 +11,7 @@
 | View | Interface, apresentação, interação e validações de experiência | Não acessa o banco nem decide pontuação, agendamento ou autorização |
 | Controller | Recebe requisições, valida a entrada, aciona casos de uso e devolve respostas | Não concentra processamento de arquivos nem regras de negócio |
 
-- Organize por domínio (materiais, flashcards, revisões, chat, gamificação, evolução) mantendo as camadas identificáveis em cada módulo.
+- Organize por domínio (os domínios estão na [arquitetura](../arquitetura/README.md#51-organização-mvc-por-domínio)) mantendo as camadas identificáveis em cada módulo.
 - Serviços e repositórios são permitidos quando reduzem acoplamento. Eles complementam o MVC, não o substituem.
 - Com front e backend separados, o frontend é a View. Não crie páginas de servidor só para cumprir o MVC.
 - Registre no `plan.md` o mapeamento das camadas para diretórios reais.
@@ -79,6 +79,12 @@
 - Teste regras e invariantes de negócio, não a implementação.
 - São obrigatórios os testes negativos de isolamento entre usuários, de reenvio idempotente, de fronteira de datas e de falha do provedor de IA.
 - O comportamento da IA é avaliado com um conjunto de casos revisado por pessoa responsável (Princípio V).
+
+## Dependências
+
+- Antes de adicionar uma dependência, confirme que a stack aprovada não resolve o problema e avalie necessidade, manutenção, licença e sobreposição de responsabilidades.
+- Não adicione frameworks, bancos, filas ou serviços residentes por conveniência: cada serviço novo na VPS precisa de uma DTEC (restrição de custo da [constituição](../constitution.md)).
+- Fixe as versões no arquivo de dependências e registre licenças restritivas (ex.: AGPL do PyMuPDF, [DTEC 009](../research.md#decisão-dtec-009-extração-de-texto)).
 
 ## Docker
 

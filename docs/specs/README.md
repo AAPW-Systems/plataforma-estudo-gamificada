@@ -24,7 +24,7 @@ docs/specs/NNN-nome-curto/
 
 ## Como criar uma pasta
 
-1. Escolha a funcionalidade `F-xx` no [backlog](../produto/backlog.md), conforme o recorte aprovado.
+1. Escolha a funcionalidade `F-xx` no [backlog](../produto/backlog.md), conforme o recorte aprovado. Parta das regras da [base de especificação](../base-specs/spec.md) citadas na coluna "Origem na base".
 2. Use o próximo número livre com 3 dígitos (`001`, `002`, …) e um nome curto em kebab-case, sem acentos (ex.: `001-envio-materiais`).
 3. Copie os modelos de [`../sdd_guidelines/modelos/`](../sdd_guidelines/modelos/) conforme a etapa. Não copie tudo de uma vez: cada arquivo nasce na sua etapa.
 4. Crie o `README.md` da pasta com: `F-xx` de origem, status e ordem de leitura.
@@ -41,4 +41,4 @@ Mantido no `README.md` de cada pasta e refletido no índice abaixo.
 
 | Pasta | Funcionalidade | Status |
 |---|---|---|
-| — | Nenhuma funcionalidade especificada ainda. A primeira depende do recorte do MVP (QA-12). | — |
+| — | Nenhuma funcionalidade especificada ainda. Antes da primeira, vem o esquema inicial do banco em DBML (QA-21). A ordem está no [backlog](../produto/backlog.md#ordem). | — |

@@ -4,17 +4,25 @@ Instruções canônicas para **qualquer** agente de programação (Claude, Codex
 
 ## Projeto
 
-Plataforma web de estudos gamificada para a disciplina de IA do curso de Sistemas de Informação. O estudante envia seus materiais, a IA gera flashcards rastreáveis até o trecho de origem, a revisão segue repetição espaçada e o ritmo é gamificado com XP, sequência diária e uma rota de progressão. Há também um chat com os materiais (RAG), que responde apenas com base nas fontes enviadas e cita os trechos usados.
+Plataforma web de estudos gamificada para a disciplina de IA do curso de Sistemas de Informação. Funde repetição espaçada (algoritmo FSRS) com uma trilha visual de progressão. O estudante organiza os estudos em **matérias**, guarda nelas suas **fontes** e cria flashcards à mão ou pede à IA que os gere a partir das fontes, com referência ao trecho de origem; ele revisa os cartões gerados antes de aceitá-los. Os cartões são respondidos numa **trilha** unificada de lições, com XP, meta diária e sequência. No final acadêmico, cada matéria ganha um chat com as fontes (RAG), que responde apenas com base nelas e cita os trechos usados.
+
+O produto tem três estágios: **MVP** (local), **final acadêmico** (publicado numa VPS) e **referência pós-acadêmica** (documentada, não implementada).
 
 O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `docs/sdd_guidelines/`, que devem ser seguidas **à risca**: o projeto é avaliado por elas.
 
 ## Estado atual
 
-- **Fase:** brainstorming aprofundado concluído (29/09/2026). Recorte do MVP em `docs/produto/backlog.md`, pendente de validação com o professor (PO). Decisões de produto em `docs/produto/visao.md`. O próximo passo é resolver as pendências técnicas e escrever a spec de F-01.
+- **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Próximos passos, nesta ordem: (1) esquema inicial do banco em DBML (`docs/arquitetura/esquema-inicial.dbml`, QA-21); (2) specs das funcionalidades do MVP conforme as guidelines.
+- **Produto:** visão v0.3 em `docs/produto/visao.md`; recorte por estágio em `docs/produto/backlog.md`; regras globais (RN, RF, HU, CB) em `docs/base-specs/spec.md`. O novo recorte do MVP e as exigências EX-01 e EX-05 estão na pauta com o PO (`docs/produto/pauta-po.md`).
 - **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
-- **Exigências do PO:** `docs/produto/exigencias_po.md`. As exigências de 29/09/2026 (EX-01 a EX-05) já foram movidas para o backlog.
-- **Stack:** direção parcial (Python, React, PostgreSQL, Keycloak, front e back separados). Framework do backend (QA-18) e stack de IA (QA-22) pendentes. Decisões técnicas transversais em `docs/research.md` (pytest para os testes do backend, DTEC 001). **Não crie código de aplicação, dependências, Dockerfiles nem pastas de backend e frontend** antes de a stack estar registrada em um `research.md` aprovado.
-- **Constituição:** v0.3 em rascunho, aguardando aprovação da equipe.
+- **Exigências do PO:** `docs/produto/exigencias_po.md`. EX-01 a EX-05 estão no backlog; EX-01 e EX-05 aguardam resposta do PO.
+- **Stack:** **aprovada em 12/10/2026** em `docs/arquitetura/README.md` e nas DTEC 001 a 014 de `docs/research.md` (FastAPI, PostgreSQL com pgvector, Procrastinate, autenticação própria com sessão em cookie, React com TypeScript e Tailwind, PydanticAI, Gemini e Groq, bge-m3 na Cloudflare no final acadêmico, pytest).
+- **Código:** a criação de código, dependências, Dockerfiles e pastas de backend e frontend **está liberada**, dentro destes limites:
+  - Use somente a stack aprovada. Tecnologia ou serviço fora dela exige antes uma nova DTEC no `research.md`.
+  - A estrutura base (pastas, Compose, Dockerfiles, configuração, ferramentas de qualidade) segue a arquitetura e é registrada no "Mapa do repositório" abaixo e em `docs/skills/padroes-implementacao.md` assim que criada.
+  - Comportamento de uma funcionalidade só é implementado com a spec, o plano e as tarefas dela aprovados (regra 1).
+  - Todo código é escrito na branch `develop` (regra 14), com testes (regra 17).
+- **Constituição:** v0.4 em rascunho, aguardando aprovação da equipe.
 - **Specs:** nenhuma criada ainda (ver `docs/specs/README.md`).
 - **Equipe:** Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson.
 - **PO:** professor Aldo Nunes. Ainda não foi decidido se haverá um representante interno do PO na equipe.
@@ -25,8 +33,10 @@ Atualize esta seção sempre que a fase mudar.
 ## Leitura obrigatória antes de agir
 
 1. `docs/constitution.md`: princípios que nenhuma entrega pode violar.
-2. `docs/produto/visao.md` e `docs/produto/backlog.md`: o que é o produto e quais funcionalidades existem.
-3. `docs/produto/exigencias_po.md`: exigências feitas diretamente pelo PO. **Consulta obrigatória ao escrever ou revisar qualquer spec.** Toda exigência que tocar a funcionalidade especificada deve ser coberta por requisitos da spec ou virar uma questão `Q-xxx`. Se uma exigência conflitar com a constituição ou com a visão, registre o conflito como questão para o PO; não o resolva por conta própria.
+2. `docs/produto/visao.md` e `docs/produto/backlog.md`: o que é o produto e quais funcionalidades existem em cada estágio.
+   - `docs/base-specs/`: regras globais (`spec.md`), telas (`design.md`) e orientação técnica (`plan.md`) que servem de base para cada spec. Cite os IDs dela; não os renumere.
+   - `docs/arquitetura/README.md` e `docs/research.md`: arquitetura vigente e decisões técnicas. `docs/arquitetura/referencia-pos-academica.md` descreve o que **não** é implementado.
+3. `docs/produto/exigencias_po.md` e `docs/produto/pauta-po.md`: exigências feitas diretamente pelo PO e itens em discussão com ele. **Consulta obrigatória ao escrever ou revisar qualquer spec.** Toda exigência que tocar a funcionalidade especificada deve ser coberta por requisitos da spec ou virar uma questão `Q-xxx`. Se uma exigência conflitar com a constituição ou com a visão, registre o conflito como questão para o PO; não o resolva por conta própria.
 4. O guia de `docs/skills/` correspondente à tarefa:
 
 | Tarefa | Guia |
@@ -47,15 +57,16 @@ README.md                  # visão geral para pessoas
 docs/
 ├── constitution.md        # princípios estáveis do projeto
 ├── research.md            # decisões técnicas transversais (DTEC), válidas para todas as specs
-├── produto/               # visão, backlog (com recorte do MVP), pendências e exigências do PO
+├── arquitetura/           # arquitetura vigente (MVP e final acadêmico) e referência pós-acadêmica
+├── base-specs/            # regras, telas e orientação técnica globais, base para as specs
+├── produto/               # visão, backlog (recorte por estágio), pendências, exigências e pauta do PO
 ├── specs/NNN-nome-curto/  # uma pasta por funcionalidade (spec, plan, tasks...)
 ├── skills/                # guias de agente por tarefa, independentes de ferramenta
 ├── prompts/               # registro obrigatório de toda sessão com agente
-├── init/                  # brainstorming inicial: SOMENTE LEITURA (histórico)
 └── sdd_guidelines/        # material da disciplina: SOMENTE LEITURA
 ```
 
-A estrutura de código (ex.: `backend/`, `frontend/`, `compose.yaml`) será definida no primeiro `plan.md` e registrada aqui.
+A estrutura de código (ex.: `backend/`, `frontend/`, `compose.yaml`) segue a [arquitetura](../docs/arquitetura/README.md) e é registrada aqui quando for criada. Até 12/10/2026, `docs/base-specs/` se chamava `docs/init/`; os registros de prompts anteriores a essa data citam o nome antigo.
 
 ## Regras inegociáveis
 
@@ -74,20 +85,20 @@ A estrutura de código (ex.: `backend/`, `frontend/`, `compose.yaml`) será defi
 
 ### Produto e segurança
 
-8. **Fontes exclusivas:** a IA do produto usa apenas os materiais do usuário e sempre cita a origem (Princípio I). A única exceção é a consulta externa acionada pelo usuário no tira-dúvidas de um flashcard (F-16, fora do MVP), nas condições do Princípio I.
+8. **Fontes exclusivas:** a IA do produto usa apenas os materiais do usuário e sempre cita a origem (Princípio I). A única exceção é a consulta externa acionada pelo usuário no tira-dúvidas de um flashcard (F-16, fora do MVP), nas condições do Princípio I, que está em pauta com o PO (`docs/produto/pauta-po.md`, PO-02).
 9. **Sem segredos no repositório:** chaves e tokens nunca aparecem em código, documentação, exemplos ou prompts registrados. Use `.env` (ignorado pelo git) e documente as variáveis em `.env.example`.
 10. **Sem dados pessoais reais** em testes, exemplos ou demonstrações.
 11. **Docker obrigatório:** todo serviço roda em contêiner. O ambiente completo sobe com um comando documentado.
 
 ### Arquivos protegidos
 
-12. `docs/sdd_guidelines/` e `docs/init/` são **somente leitura**. Novas decisões vão para a constituição, o produto, as specs ou os skills.
+12. `docs/sdd_guidelines/` é **somente leitura**. `docs/base-specs/` pode ser atualizado, mas só para refletir decisões já registradas na visão, na constituição, nas specs aprovadas ou no `research.md`; ele nunca é o primeiro lugar de uma decisão nova. Os registros em `docs/prompts/` não são reescritos depois de encerrados.
 
 ### Produtos de terceiros
 
-13. **Sem menção a produtos concorrentes ou de referência na documentação oficial.** Prompts e conversas podem citar aplicativos e ferramentas de terceiros como exemplo; isso serve apenas de contexto para o agente. README, constituição, documentos de produto, specs, planos, pesquisas, tarefas, skills e interface descrevem cada capacidade pelo que ela faz (ex.: "repetição espaçada", "chat com citações", "rota de progressão"), nunca pelo nome ou pelo "estilo" de outro produto.
+13. **Sem menção a produtos concorrentes ou de referência na documentação oficial.** Prompts e conversas podem citar aplicativos e ferramentas de terceiros como exemplo; isso serve apenas de contexto para o agente. README, constituição, documentos de produto, specs, planos, pesquisas, tarefas, skills e interface descrevem cada capacidade pelo que ela faz (ex.: "repetição espaçada", "chat com citações", "trilha de progressão"), nunca pelo nome ou pelo "estilo" de outro produto.
     - A regra não se aplica a tecnologias adotadas ou avaliadas no projeto (bibliotecas, frameworks, algoritmos, serviços), que continuam sendo nomeadas no `plan.md` e no `research.md`.
-    - Exceções: `docs/prompts/`, que registra os prompts literalmente, e as pastas somente leitura (`docs/init/`, `docs/sdd_guidelines/`).
+    - Exceções: `docs/prompts/`, que registra os prompts literalmente, e a pasta somente leitura `docs/sdd_guidelines/`.
 
 ### Git e testes (fase de desenvolvimento)
 

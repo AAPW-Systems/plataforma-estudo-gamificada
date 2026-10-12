@@ -1,7 +1,7 @@
 # Guia: padrões de interface
 
-**Origem:** seções agnósticas de stack e de identidade visual de [`../init/DESIGN.md`](../init/DESIGN.md), migradas em 29/09/2026.
-**Pendente:** biblioteca de interface, solução de estilos, ícones, nome do produto, tema, paleta e tipografia (QA-18 e QA-19). Os valores de tema claro e azul `#2563EB` do init **não** foram adotados.
+**Origem:** seções agnósticas de stack e de identidade visual do brainstorming inicial (`docs/init/DESIGN.md`, hoje [`../base-specs/design.md`](../base-specs/design.md)), migradas em 29/09/2026; revisto em 12/10/2026.
+**Stack:** React, TypeScript e Tailwind CSS com tokens centralizados e componentes próprios ([DTEC 004](../research.md#decisão-dtec-004-frontend)), aprovada em 12/10/2026. **Pendente:** ícones, nome do produto, paleta e tipografia (QA-19, UI-01 a UI-03). As telas estão em [`../base-specs/design.md`](../base-specs/design.md).
 
 ## Princípios de interface
 
@@ -17,7 +17,7 @@
 | Campos | Rótulo persistente (o *placeholder* não substitui o rótulo), indicação de obrigatório e erro junto ao campo |
 | Botões | Variantes primária, secundária, discreta e destrutiva. Uma ação principal por área, com verbos claros ("Enviar material", "Revelar resposta") |
 | Upload | Seleção por botão além de arrastar e soltar, formatos e limites visíveis e estado individual por arquivo |
-| Flashcard | Ação explícita "Revelar resposta", operável por teclado e sem depender de gesto ou animação. O verso mostra a resposta e a referência ao trecho de origem |
+| Flashcard | Ação explícita "Revelar resposta", operável por teclado e sem depender de gesto ou animação. O verso mostra a resposta e a referência ao trecho de origem. Os quatro botões de autoavaliação são os mesmos para todos os cartões |
 | Chat | Cada resposta exibe as citações navegáveis até o trecho. Quando não há evidência, isso é dito claramente |
 | Progresso e XP | Valor textual junto de qualquer barra ou gráfico. Os valores vêm do servidor e nunca são exibidos antes da confirmação |
 | Diálogos | Título, ação inequívoca, foco controlado e retorno do foco ao acionador. Confirmação para exclusões com impacto |

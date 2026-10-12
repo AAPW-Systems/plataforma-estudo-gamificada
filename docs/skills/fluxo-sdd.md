@@ -14,7 +14,7 @@ Cada etapa termina em um **portão humano**. O agente não avança para a etapa 
 
 | # | Etapa | Entrada | Saída | Modelo | Portão |
 |---|---|---|---|---|---|
-| 1 | Especificar | descrição da jornada, itens do init citados no backlog | `spec.md` | [`modelos/spec.md`](../sdd_guidelines/modelos/spec.md) | — |
+| 1 | Especificar | descrição da jornada, itens da [base de especificação](../base-specs/spec.md) citados no backlog | `spec.md` | [`modelos/spec.md`](../sdd_guidelines/modelos/spec.md) | — |
 | 2 | Esclarecer | `spec.md` | no máximo 5 perguntas de alto impacto | [prompt](../sdd_guidelines/atividades/prompts_para_agente.md) | PO responde |
 | 3 | Revisar requisitos | `spec.md` | `checklists/requirements.md` | [`modelos/checklists/requirements.md`](../sdd_guidelines/modelos/checklists/requirements.md) | **Spec aprovada** |
 | 4 | Pesquisar | dúvidas técnicas | `research.md` | [`modelos/research.md`](../sdd_guidelines/modelos/research.md) | — |
@@ -35,7 +35,7 @@ Cada etapa termina em um **portão humano**. O agente não avança para a etapa 
 - **Arquivos não aplicáveis** são omitidos, ou marcados como "não aplicável" com a justificativa. Nada de seção vazia.
 - **Mudanças após a aprovação** seguem o modelo ancorado: atualize a spec, registre a mudança e propague para plano, tarefas, testes e contratos. Não reescreva o histórico.
 - **IDs são estáveis.** Não renumere RF, CS, RQ, US ou T existentes. Ao remover um item, marque-o como removido.
-- **Reaproveite o init.** Os itens listados na coluna "Origem no init" do backlog devem ser revisados e citados (ex.: "deriva de RN-06 do init").
+- **Reaproveite a base.** Os itens listados na coluna "Origem na base" do backlog devem ser revisados e citados com os IDs da [base de especificação](../base-specs/spec.md) (ex.: "deriva de RN-17 da base"). Nunca renumere esses IDs.
 
 ## Antes da entrega
 
