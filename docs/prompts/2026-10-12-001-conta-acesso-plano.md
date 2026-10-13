@@ -85,6 +85,9 @@ aprovo, faça os commits separados e siga
 | `.agents/AGENTS.md` | alterado ("Estado atual") |
 | `docs/prompts/README.md` | alterado (índice) |
 | `docs/prompts/2026-10-12-001-conta-acesso-plano.md` | criado (este registro) |
+| `docs/specs/001-conta-acesso/plan.md`, `research.md`, `README.md`, `docs/research.md`, `docs/produto/pendencias.md`, `docs/specs/README.md`, `.agents/AGENTS.md` | alterados depois do prompt 2 (registro da aprovação do plano) |
+| `docs/specs/001-conta-acesso/tasks.md` | criado (etapa 6, T001 a T065) |
+| `docs/specs/001-conta-acesso/traceability.md` | criado (etapa 7, com análise de consistência) |
 
 ## Alterações humanas
 
@@ -95,11 +98,13 @@ Plano aprovado por Artur Lins em 12/10/2026 sem alterações (prompt 2), com a e
 - Links relativos e âncoras de todos os arquivos Markdown alterados conferidos por script: nenhum quebrado.
 - `contracts/openapi.yaml` validado com `openapi-spec-validator` (OpenAPI 3.1): OK.
 - Conector do Procrastinate conferido na documentação oficial (sem conector asyncpg; conexão externa só com psycopg 3, `SyncPsycopgConnector` ou `SQLAlchemyPsycopg2Connector`), base da emenda da DTEC 002.
+- Commits do prompt 2: `e4f6777` (decisões transversais), `aa51e5b` (esquema), `1fb863d` (artefatos da 001), `5aabfd6` (registro).
+- Tarefas conferidas por script: 65 tarefas, todas citadas na rastreabilidade, e todo ID citado na rastreabilidade existe em `tasks.md`.
 - Nenhum código foi escrito nem executado: as versões exatas das dependências e a compatibilidade com Python 3.14 serão verificadas na tarefa de estrutura base.
 
 ## Pendências
 
-- Etapa 6 (`tasks.md`) e etapa 7 (`traceability.md`) da 001, depois da aprovação.
+- Portão "Tarefas aprovadas": aprovação de `tasks.md` e `traceability.md` da 001 por uma pessoa da equipe, antes de qualquer implementação.
 - QA-30: proteção da `main` no GitHub e decisões de processo (revisão obrigatória, documentação pela `develop`) continuam com a equipe.
 - Lista curta de senhas comuns em português (DTEC 022): revisão pela equipe antes do merge.
 - Specs 002 e 004: os planos devem adotar o formato de chave `usuarios/{public_id}/...` e tarefas que terminam sem efeito quando o registro não existe mais (DTEC 021).
