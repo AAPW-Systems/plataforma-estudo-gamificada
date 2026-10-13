@@ -95,7 +95,7 @@ Como estudante, quero que minha sequência conte os dias em que cumpri a meta e 
 
 - **RF-001:** O sistema deverá conceder XP na primeira revisão de cada cartão no dia de estudo, independentemente da nota. Revisões seguintes do mesmo cartão no mesmo dia não concedem XP (deriva de RN-18 da base).
 - **RF-002:** O sistema deverá conceder um bônus de XP quando a estabilidade de um cartão atingir o limiar de domínio pela primeira vez ([005](../005-licao-trilha/spec.md), D-003), uma única vez por cartão (deriva de RN-18 da base).
-- **RF-003:** Todo XP deverá ser calculado no servidor, registrado como evento ligado à revisão que o originou, com a versão da regra de valores, e nunca removido (deriva de RN-18 da base).
+- **RF-003:** Todo XP deverá ser calculado no servidor, registrado como evento ligado à revisão que o originou, com a versão da regra de valores, e nunca removido, exceto na exclusão da conta pelo próprio estudante ([001](../001-conta-acesso/spec.md), D-003) (deriva de RN-18 da base).
 - **RF-004:** O progresso da meta deverá contar cartões distintos revisados no dia de estudo (deriva de RN-21 da base).
 - **RF-005:** A meta efetiva deverá ser o menor valor entre a meta diária e a soma dos cartões distintos já revisados no dia com os cartões ainda disponíveis (deriva de RN-21 da base).
 - **RF-006:** O dia de estudo deverá ser marcado como estudado assim que os cartões distintos revisados atingirem a meta efetiva, com pelo menos uma revisão, e não deverá deixar de sê-lo depois.

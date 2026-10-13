@@ -68,7 +68,7 @@ Como estudante, quero ver quantos cartões aceitei e pedir mais, para aprofundar
 **Cenários de aceitação**
 
 1. **Dado** que todos os cartões de uma geração foram aceitos ou recusados, **quando** a revisão termina, **então** um resumo mostra quantos foram gerados, aceitos e recusados, e oferece "Gerar mais".
-2. **Dado** o resumo, **quando** o estudante escolhe "Gerar mais", **então** uma nova geração da mesma fonte começa, e nenhum dos novos cartões repete um cartão existente ou recusado da matéria.
+2. **Dado** o resumo, **quando** o estudante escolhe "Gerar mais", **então** uma nova geração da mesma fonte começa, e nenhum dos novos cartões repete um cartão existente (inclusive aguardando revisão) ou recusado da matéria.
 3. **Dado** uma fonte cujo conteúdo já está todo coberto, **quando** o estudante escolhe "Gerar mais", **então** recebe a mensagem de que não há novos cartões a gerar dessa fonte, e nada repetido é criado (CB-26).
 
 ### História de usuário 3 Conferir a origem e a explicação de um cartão gerado P2

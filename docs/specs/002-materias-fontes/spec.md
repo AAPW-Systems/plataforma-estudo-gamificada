@@ -74,9 +74,9 @@ Como estudante, quero excluir uma fonte de vez e decidir o que acontece com os c
 4. **Dado** qualquer uma das opções, **quando** a exclusão termina, **então** os cartões aguardando revisão daquela fonte foram apagados.
 5. **Dado** o diálogo aberto, **quando** o estudante cancela, **então** nada muda.
 
-### História de usuário 3 Organizar as matérias P3
+### História de usuário 3 Organizar matérias e fontes P3
 
-Como estudante, quero renomear e excluir matérias, para manter meus estudos organizados.
+Como estudante, quero renomear e excluir matérias e renomear fontes, para manter meus estudos organizados.
 
 **Motivo da prioridade:** criar matérias já cobre a jornada principal; renomear e excluir são manutenção.
 **Teste independente:** renomear uma matéria, tentar repetir um nome existente e excluir uma matéria com fontes e cartões, conferindo o impacto e a confirmação pelo nome.

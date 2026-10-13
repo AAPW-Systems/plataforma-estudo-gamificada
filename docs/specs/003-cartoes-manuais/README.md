@@ -9,9 +9,10 @@
 
 ## Ordem de leitura
 
-1. [`spec.md`](spec.md): o quê e por quê. Rascunho, aguardando o esclarecimento (até 5 perguntas) e a revisão pelo checklist de requisitos.
+1. [`spec.md`](spec.md): o quê e por quê. Rascunho esclarecido.
+2. [`checklists/requirements.md`](checklists/requirements.md): revisão preliminar do agente; aguarda o revisor humano.
 
-Os demais artefatos (`checklists/requirements.md`, `research.md`, `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`, `tasks.md` e `traceability.md`) nascem nas etapas seguintes do [fluxo SDD](../../skills/fluxo-sdd.md), cada uma depois do portão humano anterior.
+Os demais artefatos (`research.md`, `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`, `tasks.md` e `traceability.md`) nascem nas etapas seguintes do [fluxo SDD](../../skills/fluxo-sdd.md), cada uma depois do portão humano anterior.
 
 ## Histórico
 
@@ -19,3 +20,4 @@ Os demais artefatos (`checklists/requirements.md`, `research.md`, `plan.md`, `da
 |---|---|
 | 12/10/2026 | Spec criada em rascunho ([registro](../../prompts/2026-10-12-specs-funcionalidades.md)) |
 | 12/10/2026 | Esclarecimento (E11 a E13) incorporado à spec; próxima etapa: revisão pelo checklist de requisitos ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md)) |
+| 12/10/2026 | Revisão preliminar pelo checklist de requisitos ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |

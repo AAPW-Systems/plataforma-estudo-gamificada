@@ -105,6 +105,7 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - Cartão excluído, suspenso ou com a fonte excluída durante a lição: deixa de ser apresentado; as revisões registradas permanecem (CB-27).
 - Cartão aceito durante uma lição aberta: entra só nas lições seguintes.
 - Mudança da retenção desejada durante uma lição: vale a partir da próxima revisão (CB-29).
+- Menos cartões disponíveis que o tamanho da lição: a lição tem só os disponíveis, e o fechamento indica que não há mais cartões no dia.
 - Limite de novos por dia igual a zero: a lição só tem devidos.
 - Alteração do tamanho da lição com uma lição em andamento: vale a partir da próxima lição.
 - Cartão marcado Errei várias vezes seguidas na mesma lição: volta a cada passo curto vencido enquanto a lição está em andamento, e não impede a conclusão (D-004).

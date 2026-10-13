@@ -49,12 +49,12 @@ Como estudante, quero criar minha conta e entrar nela, para guardar meus estudos
 
 1. **Dado** um e-mail ainda não cadastrado, **quando** o estudante informa nome, e-mail e uma senha válida, **então** a conta é criada com o papel estudante, as preferências padrão e o fuso detectado no navegador (ou `America/Sao_Paulo`, se não for possível detectar), e o estudante já entra na plataforma.
 2. **Dado** uma senha com menos de 8 caracteres ou presente na lista de senhas comuns, **quando** o estudante tenta se cadastrar, **então** o cadastro é recusado com a explicação junto do campo, e os demais valores digitados são preservados.
-7. **Dado** um e-mail que já tem conta (sem diferenciar maiúsculas e minúsculas), **quando** alguém tenta se cadastrar com ele, **então** o cadastro é recusado com a mensagem de que o e-mail já está em uso, e nenhuma conta é criada (D-005).
-8. **Dado** a tela de cadastro, **quando** o estudante a abre, **então** vê um aviso curto de privacidade: quais dados a plataforma guarda e que, ao pedir cartões gerados pela IA, trechos das fontes são enviados a um provedor externo.
 3. **Dado** uma conta existente, **quando** o estudante entra com e-mail e senha corretos, **então** uma sessão é iniciada e ele chega à trilha.
 4. **Dado** uma senha errada ou um e-mail inexistente, **quando** o estudante tenta entrar, **então** a mensagem é a mesma nos dois casos e não revela se o e-mail tem conta.
 5. **Dado** uma sessão aberta, **quando** o estudante sai, **então** a sessão deixa de valer no servidor, e uma requisição posterior com ela é tratada como não autenticada.
 6. **Dado** cinco tentativas de entrada malsucedidas para a mesma conta em 15 minutos, **quando** chega a sexta tentativa, **então** ela é recusada temporariamente, com a indicação de tentar mais tarde, mesmo que a senha esteja correta.
+7. **Dado** um e-mail que já tem conta (sem diferenciar maiúsculas e minúsculas), **quando** alguém tenta se cadastrar com ele, **então** o cadastro é recusado com a mensagem de que o e-mail já está em uso, e nenhuma conta é criada (D-005).
+8. **Dado** a tela de cadastro, **quando** o estudante a abre, **então** vê um aviso curto de privacidade: quais dados a plataforma guarda e que, ao pedir cartões gerados pela IA, trechos das fontes são enviados a um provedor externo.
 
 ### História de usuário 2 Acessar somente meus dados P1
 
@@ -126,7 +126,7 @@ Como estudante, quero trocar minha senha e, se quiser, excluir minha conta com t
 - **RF-012:** No cadastro, o sistema deverá verificar se o e-mail já está em uso e, nesse caso, recusar o cadastro informando que o e-mail já está em uso (D-005).
 - **RF-013:** A tela de cadastro deverá exibir um aviso curto de privacidade, sem caixa de aceite (D-007).
 - **RF-014:** O estudante deverá conseguir trocar a senha informando a senha atual. A troca deverá encerrar todas as outras sessões da conta (D-004).
-- **RF-015:** O estudante deverá conseguir excluir a própria conta, confirmando com a senha atual. A exclusão deverá apagar definitivamente todos os dados e arquivos da conta e encerrar todas as sessões (D-003).
+- **RF-015:** O estudante deverá conseguir excluir a própria conta, confirmando com a senha atual. A exclusão deverá apagar definitivamente todos os dados e arquivos da conta e encerrar todas as sessões (D-003). É a única situação em que revisões, XP e sequência são removidos (exceção a RN-14 e RN-18 da base).
 
 ## Entidades principais
 
