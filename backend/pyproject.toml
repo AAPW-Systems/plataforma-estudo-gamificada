@@ -59,7 +59,7 @@ known-first-party = ["app"]
 strict = true
 python_version = "3.13"
 mypy_path = "src"
-files = ["src", "tests", "migracoes"]
+files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
 
