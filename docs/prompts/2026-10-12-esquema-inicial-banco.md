@@ -58,6 +58,12 @@ confirmo
 ativei o docker, valide o sql
 ```
 
+### Prompt 4
+
+```text
+coloque a observação no  "D:\Workspaces\Python\plataforma-estudo-gamificada\.agents\AGENTS.md"
+```
+
 ## Decisões consolidadas
 
 | Tema | Decisão |
@@ -89,7 +95,7 @@ ativei o docker, valide o sql
 | `docs/base-specs/design.md`, `plan.md`, `tasks.md` | alterados: lição com reapresentação, perfil com retenção, revisão com FSRS, passo 1 concluído |
 | `docs/research.md` | alterado: DTEC 010 revisada (tudo no R2), DTEC 012 com as consequências do FSRS, DTEC 013 (backup) |
 | `docs/arquitetura/README.md`, `referencia-pos-academica.md` | alterados: R2 para fontes, diagramas, backup, pendência QA-21 |
-| `.agents/AGENTS.md`, `README.md` | alterados: estado atual e mapa do repositório |
+| `.agents/AGENTS.md`, `README.md` | alterados: estado atual, mapa do repositório e convenção de banco (identity `always` nas migrações; FK em relações 1:1 do DBML) |
 | `docs/prompts/2026-10-12-esquema-inicial-banco.md`, `docs/prompts/README.md` | criado e alterado (índice) |
 
 Commits na `develop`: `edd123c` (esquema), `7887f83` (FSRS soberano), `8a7066e` (DTEC 010), `4746d1a` (F-17) e o commit deste registro.
@@ -109,7 +115,6 @@ Pendente de revisão: o autor vai conferir o diagrama no dbdiagram.io.
 
 ## Pendências
 
-- As migrações (Alembic) devem usar `generated always as identity`; a exportação do dbdiagram gera `by default`.
 - QA-32 e PO-06: escopo do painel administrativo e validação com o PO.
 - Criar o `.env.example` com as variáveis de armazenamento previstas na DTEC 010 quando a estrutura do backend for criada.
 - Exportar o diagrama do dbdiagram como imagem para a documentação, se a equipe quiser.
