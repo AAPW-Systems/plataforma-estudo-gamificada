@@ -60,7 +60,9 @@ Pendente de revisão.
 - T025: testes escritos antes do cliente falharam por módulo ausente; depois, **15 testes do frontend passaram**, incluindo quatro do cliente (CSRF, corpo preservado, uma repetição, erro tipado). Geração OpenAPI, tipos, lint e build passaram. MSW 3 usa `onUnhandledFrame`, confirmado no pacote instalado. Os limites gerados estão vazios enquanto o OpenAPI só contém saúde; serão regenerados quando os DTOs da identidade existirem (T036/T037), sem valores inventados.
 - `docker compose up -d --wait` passou com banco/API/web saudáveis, worker em execução e migrate concluído. CI remoto ainda não verificado (T027).
 
+- T026: testes escritos antes do roteamento; 18 testes passaram no contêiner, incluindo redirecionamento 401, sessão válida e erro 503. Formatação, lint, tipos e build passaram. A leitura de perfil usa resposta desconhecida temporariamente até a exportação dos DTOs na T036/T037; não presume o formato do contrato ainda ausente no OpenAPI gerado.
+
 ## Pendências
 
-- Continuar T025 a T045 até S1.
+- Continuar T027 a T045 até S1.
 - Contrato 413 e cobertura de rotas de US3/US4 posteriores a S1 conforme registro anterior.

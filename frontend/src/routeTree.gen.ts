@@ -9,50 +9,122 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './rotas/__root'
-import { Route as IndexRouteImport } from './rotas/index'
+import { Route as AutenticadoRouteImport } from './rotas/_autenticado'
+import { Route as PublicoRouteImport } from './rotas/_publico'
+import { Route as AutenticadoIndexRouteImport } from './rotas/_autenticado/index'
+import { Route as PublicoEntrarRouteImport } from './rotas/_publico/entrar'
 
-const IndexRoute = IndexRouteImport.update({
+const AutenticadoRoute = AutenticadoRouteImport.update({
+  id: '/_autenticado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicoRoute = PublicoRouteImport.update({
+  id: '/_publico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutenticadoIndexRoute = AutenticadoIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AutenticadoRoute,
+} as any)
+const PublicoEntrarRoute = PublicoEntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => PublicoRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AutenticadoIndexRoute
+  '/entrar': typeof PublicoEntrarRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AutenticadoIndexRoute
+  '/entrar': typeof PublicoEntrarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_autenticado': typeof AutenticadoRouteWithChildren
+  '/_publico': typeof PublicoRouteWithChildren
+  '/_publico/entrar': typeof PublicoEntrarRoute
+  '/_autenticado/': typeof AutenticadoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/entrar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/entrar'
+  id:
+    | '__root__'
+    | '/_autenticado'
+    | '/_publico'
+    | '/_publico/entrar'
+    | '/_autenticado/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AutenticadoRoute: typeof AutenticadoRouteWithChildren
+  PublicoRoute: typeof PublicoRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_autenticado': {
+      id: '/_autenticado'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AutenticadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_publico': {
+      id: '/_publico'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_autenticado/': {
+      id: '/_autenticado/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AutenticadoIndexRouteImport
+      parentRoute: typeof AutenticadoRoute
+    }
+    '/_publico/entrar': {
+      id: '/_publico/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof PublicoEntrarRouteImport
+      parentRoute: typeof PublicoRoute
     }
   }
 }
 
+interface AutenticadoRouteChildren {
+  AutenticadoIndexRoute: typeof AutenticadoIndexRoute
+}
+
+const AutenticadoRouteChildren: AutenticadoRouteChildren = {
+  AutenticadoIndexRoute: AutenticadoIndexRoute,
+}
+
+const AutenticadoRouteWithChildren = AutenticadoRoute._addFileChildren(
+  AutenticadoRouteChildren,
+)
+
+interface PublicoRouteChildren {
+  PublicoEntrarRoute: typeof PublicoEntrarRoute
+}
+
+const PublicoRouteChildren: PublicoRouteChildren = {
+  PublicoEntrarRoute: PublicoEntrarRoute,
+}
+
+const PublicoRouteWithChildren =
+  PublicoRoute._addFileChildren(PublicoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AutenticadoRoute: AutenticadoRouteWithChildren,
+  PublicoRoute: PublicoRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

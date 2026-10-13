@@ -1,18 +1,12 @@
 import "./estilos/global.css";
 
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { routeTree } from "./routeTree.gen";
+import { criarRoteador } from "./roteador";
 
-const roteador = createRouter({ routeTree, defaultPreload: "intent" });
-
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof roteador;
-  }
-}
+const roteador = criarRoteador();
 
 const elemento = document.getElementById("raiz");
 if (!elemento) throw new Error("Elemento #raiz ausente no index.html.");

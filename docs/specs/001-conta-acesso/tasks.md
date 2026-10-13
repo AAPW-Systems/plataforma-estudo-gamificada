@@ -90,7 +90,7 @@
   - script `gerar:api`, que produz `esquema.gerado.d.ts` e `limites.gerado.ts` a partir de `backend/openapi.json`.
 
   Teste em `frontend/src/api/cliente.test.ts`, com MSW.
-- [ ] T026 Criar o roteamento em `frontend/src/rotas/`: `__root.tsx` e os layouts `_publico` e `_autenticado`. O `beforeLoad` deste último consulta `GET /api/v1/perfil` pelo TanStack Query e redireciona para `/entrar` com `401`. Criar também `frontend/src/testes/`, com os *handlers* do MSW e a renderização com roteador. Teste: uma rota protegida sem sessão redireciona.
+- [x] T026 Criar o roteamento em `frontend/src/rotas/`: `__root.tsx` e os layouts `_publico` e `_autenticado`. O `beforeLoad` deste último consulta `GET /api/v1/perfil` pelo TanStack Query e redireciona para `/entrar` com `401`. Criar também `frontend/src/testes/`, com os *handlers* do MSW e a renderização com roteador. Teste: uma rota protegida sem sessão redireciona.
 - [ ] T027 **Verificar a base:** `docker compose up --build` sobe todos os serviços saudáveis, `/health/ready` responde `200` e a integração contínua passa na `develop`. Registrar o resultado no registro de prompts da sessão de implementação.
 
 ## Fase 3 História de usuário 1 Criar conta e entrar (P1)
