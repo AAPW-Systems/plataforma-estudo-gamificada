@@ -53,6 +53,8 @@ Cada spec pertence a um único estágio. Os incrementos do final acadêmico de u
 | [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Tarefas aprovadas |
 | [007-evolucao](007-evolucao/README.md) | F-12 (parte): evolução mínima | Tarefas aprovadas |
 
+A divisão da implementação do MVP entre os responsáveis, com a ordem das ondas e o protocolo de trabalho na `develop`, está em [`divisao-implementacao-mvp.md`](divisao-implementacao-mvp.md).
+
 ### Final acadêmico
 
 | Pasta | Funcionalidade | Status |
