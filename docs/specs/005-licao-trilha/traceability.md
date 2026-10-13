@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 005-licao-trilha (lição com repetição espaçada e trilha de progressão)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md))  
-**Status:** em revisão; aguarda o portão "Tarefas aprovadas", junto com as [tarefas](tasks.md)
+**Status:** aprovada em 13/10/2026 por Artur Lins (equipe), junto com as [tarefas](tasks.md)
 
 Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo comportamento. Os nomes de teste são planejados e passam a ser links quando a implementação existir (T049). Os caminhos de teste são relativos a `backend/tests/`, salvo os do frontend. Todo teste com instante usa o relógio injetável (T007).
 
