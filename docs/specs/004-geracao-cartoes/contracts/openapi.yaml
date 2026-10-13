@@ -1,0 +1,892 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - geração de cartões pela IA e revisão (spec 004)
+  version: 0.1.0
+  description: |
+    Contrato da spec 004-geracao-cartoes. É a referência de projeto: o OpenAPI gerado pela
+    aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de resposta e
+    esquemas daqui, e um teste de contrato verifica isso.
+
+    Convenções herdadas das specs 001, 002 e 003 (não redefinidas aqui):
+    - Frontend e API na mesma origem; API sob `/api/v1`; JSON em camelCase; instantes em
+      ISO 8601 UTC.
+    - Sessão no cookie `__Host-sessao`; toda requisição POST, PATCH, PUT ou DELETE exige
+      `X-CSRF-Token` (double submit assinado, DTEC 023), `Origin` permitida e
+      `Sec-Fetch-Site: same-origin`.
+    - Erros sempre no esquema `Erro`; o enum `codigo` é cumulativo. Sem sessão válida,
+      `401 nao_autenticado`. `429` traz `Retry-After` (spec 001).
+
+    Regras desta spec:
+    - Toda rota opera só sobre recursos do estudante da sessão. Um `{fonteId}`,
+      `{materiaId}`, `{geracaoId}` ou `{cartaoId}` de outro estudante ou inexistente responde
+      `404 recurso_nao_encontrado`, com corpo idêntico (DTEC 019). Uma geração cuja fonte foi
+      excluída também responde `404` (ela some da tela junto com a fonte).
+    - Nenhum conteúdo é enviado ao provedor de IA sem a ciência da versão vigente do aviso
+      (RF-002, DTEC 039).
+    - Cartões aguardando revisão nunca aparecem nas rotas da spec 003 nem entram em lições;
+      cartões recusados nunca aparecem ao estudante (RF-010, RF-014).
+    - Texto dos cartões: as regras de normalização e os limites da spec 003 (DTEC 036), com os
+      limites vigentes em `GET /api/v1/cartoes/limites`.
+    - Nenhuma resposta expõe instruções, tokens, cartões descartados nem detalhes do provedor
+      (RQ-003, RQ-005).
+    - Leituras com `Cache-Control: no-store`; acompanhamento por polling enquanto houver
+      geração `pendente` ou `processando` (DTEC 026).
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: ia
+    description: Aviso do provedor de IA externo e ciência do estudante (RF-002)
+  - name: geracoes
+    description: Pedido, acompanhamento, resumo e uso das gerações (US1, US2, US4)
+  - name: revisao
+    description: Revisão dos cartões gerados e evidência (US1, US3)
+paths:
+  /api/v1/ia/aviso:
+    get:
+      tags: [ia]
+      operationId: consultarAvisoIa
+      summary: Aviso do provedor configurado e se o estudante já tem ciência dele (RF-002)
+      responses:
+        '200':
+          description: Aviso vigente
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvisoIa'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /api/v1/ia/aviso/ciencia:
+    post:
+      tags: [ia]
+      operationId: registrarCienciaAvisoIa
+      summary: Registra a ciência da versão do aviso lida (RF-002, US1-1)
+      description: Idempotente. Uma versão diferente da vigente responde `409 aviso_desatualizado`.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CienciaAvisoEntrada'
+      responses:
+        '204':
+          description: Ciência registrada (ou já existente)
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '409':
+          description: Versão lida diferente da vigente (`aviso_desatualizado`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/geracoes/uso:
+    get:
+      tags: [geracoes]
+      operationId: consultarUsoGeracoes
+      summary: Limite diário de gerações, uso no dia de estudo e orçamento de IA (D-005, RQ-002)
+      responses:
+        '200':
+          description: Uso vigente
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsoGeracoes'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /api/v1/fontes/{fonteId}/geracoes:
+    parameters:
+      - $ref: '#/components/parameters/FonteId'
+    post:
+      tags: [geracoes]
+      operationId: pedirGeracao
+      summary: Pede até 10 cartões de uma fonte concluída; também é o "Gerar mais" (US1-2, US2-2, RF-001, RF-004)
+      description: |
+        Ordem das verificações, numa transação (DTEC 044): fonte do dono; chave já usada
+        (mesma fonte devolve a geração com `200`, outra fonte responde
+        `409 idempotencia_divergente`); ciência do aviso; fonte `concluido`; geração em
+        andamento da mesma fonte (devolvida com `200`); limite diário e orçamento (`429`);
+        trechos ainda não cobertos (`409 sem_conteudo_novo`, CB-26). Só a resposta `202` cria
+        uma geração nova e conta no limite.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoGeracaoEntrada'
+      responses:
+        '202':
+          description: Geração criada como `pendente` e enfileirada
+          headers:
+            Location:
+              description: '`/api/v1/geracoes/{geracaoId}`'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geracao'
+        '200':
+          description: Reenvio com a mesma chave, ou geração já em andamento para a fonte; devolve a existente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geracao'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: |
+            `ciencia_aviso_pendente` (abrir o aviso), `fonte_nao_concluida`,
+            `idempotencia_divergente` ou `sem_conteudo_novo` ("não há novos cartões a gerar
+            desta fonte")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              examples:
+                semConteudoNovo:
+                  value:
+                    codigo: sem_conteudo_novo
+                    mensagem: Não há novos cartões a gerar desta fonte. Todo o conteúdo dela já foi usado.
+                    idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '429':
+          description: '`limite_geracoes_excedido` (D-005) ou `orcamento_ia_esgotado` (RQ-002); `Retry-After` até a próxima virada do dia de estudo'
+          headers:
+            Retry-After:
+              description: Segundos até a próxima virada das 4h no fuso do estudante
+              schema:
+                type: integer
+                minimum: 1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              examples:
+                limite:
+                  value:
+                    codigo: limite_geracoes_excedido
+                    mensagem: Você atingiu o limite de 20 gerações hoje. Ele volta às 4h.
+                    idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  /api/v1/materias/{materiaId}/geracoes:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    get:
+      tags: [geracoes]
+      operationId: listarGeracoesMateria
+      summary: Gerações relevantes da matéria (RF-003, US1-8)
+      description: |
+        Devolve, sem repetição e do mais recente para o mais antigo: as gerações `pendente` ou
+        `processando`, as que têm cartões aguardando revisão e a última geração de cada fonte
+        existente. No máximo 50 itens, sem paginação (limitado pelas cotas da spec 002).
+        Gerações de fontes excluídas não aparecem.
+      responses:
+        '200':
+          description: Gerações da matéria
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaGeracoes'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/geracoes/{geracaoId}:
+    parameters:
+      - $ref: '#/components/parameters/GeracaoId'
+    get:
+      tags: [geracoes]
+      operationId: consultarGeracao
+      summary: Estado, falha e resumo de uma geração (RF-003, RF-012, US4)
+      responses:
+        '200':
+          description: Geração
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geracao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/geracoes/{geracaoId}/cartoes:
+    parameters:
+      - $ref: '#/components/parameters/GeracaoId'
+    get:
+      tags: [revisao]
+      operationId: listarCartoesEmRevisao
+      summary: Cartões da geração aguardando revisão, com a evidência (US1-3)
+      description: No máximo 10, na ordem de publicação. Lista vazia quando a revisão terminou.
+      responses:
+        '200':
+          description: Cartões aguardando revisão
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaCartoesEmRevisao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/geracoes/{geracaoId}/aceitacao:
+    parameters:
+      - $ref: '#/components/parameters/GeracaoId'
+    post:
+      tags: [revisao]
+      operationId: aceitarTodos
+      summary: Aceita todos os cartões da geração ainda aguardando revisão (US1-7)
+      description: |
+        Na ordem de publicação, com a ordem de entrada no estudo igual à da tela (RN-20).
+        Recusados não mudam. Repetido, responde `200` sem efeito.
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '200':
+          description: Geração com o resumo atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geracao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/cartoes/{cartaoId}/aceitacao:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    post:
+      tags: [revisao]
+      operationId: aceitarCartao
+      summary: Aceita, ou edita e aceita, um cartão aguardando revisão (US1-4, US1-5, RF-010, RF-011)
+      description: |
+        Sem corpo (ou corpo vazio), aceita como está: "Gerado e verificado". Com
+        `frente`, `verso` ou `explicacao`, aplica as regras de texto e de origem da spec 003:
+        com mudança efetiva, a origem passa a "Editado por você", sem o selo, e a evidência é
+        mantida. O cartão entra como novo, na ordem de aceitação. Aceitar um cartão já aceito
+        responde `200` sem efeito; aceitar um recusado responde `409 cartao_ja_decidido`. Um
+        cartão manual responde `404`.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AceitacaoCartaoEntrada'
+      responses:
+        '200':
+          description: Cartão ativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          $ref: '#/components/responses/CartaoJaDecidido'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/cartoes/{cartaoId}/recusa:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    post:
+      tags: [revisao]
+      operationId: recusarCartao
+      summary: Recusa um cartão aguardando revisão, com motivo opcional (US1-6, US1-9, RF-014, RF-020)
+      description: |
+        O cartão some da revisão e nunca entra em lições. Num cartão já recusado, responde `200`
+        e grava ou troca o motivo enviado (o "um clique" depois de recusar). Recusar um cartão
+        já aceito responde `409 cartao_ja_decidido`.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecusaCartaoEntrada'
+      responses:
+        '200':
+          description: Cartão recusado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoRecusa'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          $ref: '#/components/responses/CartaoJaDecidido'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/cartoes/{cartaoId}/evidencias:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    get:
+      tags: [revisao]
+      operationId: consultarEvidencias
+      summary: Evidência e descrição da origem de um cartão (US3, RF-018)
+      description: |
+        Para cartões aguardando revisão, ativos ou suspensos. Cartão recusado responde `404`.
+        Um cartão criado pelo estudante devolve `evidencias` vazia (a referência dele está no
+        esquema `Cartao` da spec 003). Depois da exclusão da fonte, `trecho` é nulo e
+        `fonteApagada` é verdadeiro.
+      responses:
+        '200':
+          description: Evidências
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenciasCartao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax (spec 001)
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Mesmo valor do cookie __Host-csrf (double submit assinado, DTEC 023)
+  parameters:
+    FonteId:
+      name: fonteId
+      in: path
+      required: true
+      description: '`public_id` da fonte'
+      schema:
+        type: string
+        format: uuid
+    MateriaId:
+      name: materiaId
+      in: path
+      required: true
+      description: '`public_id` da matéria'
+      schema:
+        type: string
+        format: uuid
+    GeracaoId:
+      name: geracaoId
+      in: path
+      required: true
+      description: '`public_id` da geração'
+      schema:
+        type: string
+        format: uuid
+    CartaoId:
+      name: cartaoId
+      in: path
+      required: true
+      description: '`public_id` do cartão'
+      schema:
+        type: string
+        format: uuid
+  headers:
+    SemCache:
+      description: '`no-store`; o estado muda no worker e em outras abas'
+      schema:
+        type: string
+        const: no-store
+  responses:
+    RequisicaoMalformada:
+      description: Corpo que não é JSON válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    DadosInvalidos:
+      description: Um ou mais campos fora das regras; os erros vêm por campo e nada é alterado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: dados_invalidos
+            mensagem: Alguns campos precisam de correção.
+            campos:
+              - campo: frente
+                mensagem: Use de 1 a 1.000 caracteres.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    NaoAutenticado:
+      description: Sem sessão válida; os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ProtecaoCsrf:
+      description: Token anti-CSRF ausente ou inválido (`csrf_invalido`) ou origem não permitida (`origem_nao_permitida`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Recurso inexistente, de outro estudante ou fora das situações aceitas pela rota, com corpo idêntico (DTEC 019)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: recurso_nao_encontrado
+            mensagem: Não encontramos o que você procurava.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    CartaoJaDecidido:
+      description: O cartão já foi aceito ou recusado de forma oposta (`cartao_ja_decidido`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: cartao_ja_decidido
+            mensagem: Este cartão já foi revisado.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  schemas:
+    AvisoIa:
+      type: object
+      required: [versao, provedor, paragrafos, cienciaRegistrada]
+      properties:
+        versao:
+          type: string
+          maxLength: 50
+          example: gemini-v1
+        provedor:
+          type: string
+          description: Nome do provedor configurado, para exibição
+          example: Google Gemini
+        paragrafos:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: Texto do aviso (finalidade, uso que o provedor pode fazer do conteúdo, recomendação sobre dados pessoais)
+        cienciaRegistrada:
+          type: boolean
+          description: Verdadeiro se o estudante já tem ciência desta versão
+    CienciaAvisoEntrada:
+      type: object
+      additionalProperties: false
+      required: [versao]
+      properties:
+        versao:
+          type: string
+          maxLength: 50
+    UsoGeracoes:
+      type: object
+      required: [limiteDia, usadasHoje, voltaEm, orcamentoDisponivel]
+      properties:
+        limiteDia:
+          type: integer
+          minimum: 1
+          example: 20
+        usadasHoje:
+          type: integer
+          minimum: 0
+          description: Gerações do dia de estudo que não terminaram em `falhou` (D-010)
+        voltaEm:
+          type: string
+          format: date-time
+          description: Próxima virada das 4h no fuso do estudante
+        orcamentoDisponivel:
+          type: boolean
+          description: Falso quando o orçamento diário de IA do estudante se esgotou
+    PedidoGeracaoEntrada:
+      type: object
+      additionalProperties: false
+      required: [chaveIdempotencia]
+      properties:
+        chaveIdempotencia:
+          type: string
+          format: uuid
+          description: Gerada no cliente a cada intenção de gerar; reenviada igual no clique duplo e na nova tentativa de rede (RF-004)
+    EstadoGeracao:
+      type: string
+      enum: [pendente, processando, concluida, falhou]
+    ResumoGeracao:
+      type: object
+      required: [geradosPublicados, aceitos, recusados, aguardandoRevisao]
+      properties:
+        geradosPublicados:
+          type: integer
+          minimum: 0
+          maximum: 10
+          description: Cartões que passaram nas validações e foram mostrados ao estudante
+        aceitos:
+          type: integer
+          minimum: 0
+          description: Inclui os editados e aceitos
+        recusados:
+          type: integer
+          minimum: 0
+        aguardandoRevisao:
+          type: integer
+          minimum: 0
+          description: Zero quando a revisão terminou (RF-012)
+    Geracao:
+      type: object
+      required: [id, materiaId, fonte, estado, mensagemFalha, semCartoesSustentados, resumo, criadoEm, concluidaEm]
+      properties:
+        id:
+          type: string
+          format: uuid
+        materiaId:
+          type: string
+          format: uuid
+        fonte:
+          type: object
+          required: [fonteId, titulo]
+          properties:
+            fonteId:
+              type: string
+              format: uuid
+            titulo:
+              type: string
+              description: Título atual da fonte
+        estado:
+          $ref: '#/components/schemas/EstadoGeracao'
+        mensagemFalha:
+          type: [string, 'null']
+          description: Só em `falhou`; mensagem do catálogo da aplicação, sem detalhes do provedor (RQ-005)
+        semCartoesSustentados:
+          type: boolean
+          description: Verdadeiro em `concluida` sem nenhum cartão publicado (US4-6), distinto de uma falha técnica
+        resumo:
+          $ref: '#/components/schemas/ResumoGeracao'
+        criadoEm:
+          type: string
+          format: date-time
+        concluidaEm:
+          type: [string, 'null']
+          format: date-time
+    ListaGeracoes:
+      type: object
+      required: [itens]
+      properties:
+        itens:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Geracao'
+    Trecho:
+      type: object
+      required: [texto, citacaoInicio, citacaoFim]
+      properties:
+        texto:
+          type: string
+          description: Texto do trecho, exibido sempre como texto puro
+        citacaoInicio:
+          type: integer
+          minimum: 0
+          description: Início da citação literal no texto, em code points, para o destaque
+        citacaoFim:
+          type: integer
+          minimum: 1
+    Evidencia:
+      type: object
+      required: [fonteId, fonteTitulo, fonteNomeArquivo, fonteEnviadaEm, pagina, trecho]
+      properties:
+        fonteId:
+          type: [string, 'null']
+          format: uuid
+          description: Nulo depois da exclusão da fonte
+        fonteTitulo:
+          type: string
+          description: Cópia feita na publicação (RN-05)
+        fonteNomeArquivo:
+          type: string
+        fonteEnviadaEm:
+          type: string
+          format: date-time
+        pagina:
+          type: [integer, 'null']
+          minimum: 1
+          description: Só quando conhecida; nunca inventada (RN-05)
+        trecho:
+          description: Nulo depois da exclusão da fonte ("Fonte apagada", sem o trecho)
+          oneOf:
+            - $ref: '#/components/schemas/Trecho'
+            - type: 'null'
+    EvidenciasCartao:
+      type: object
+      required: [cartaoId, fonteApagada, evidencias]
+      properties:
+        cartaoId:
+          type: string
+          format: uuid
+        fonteApagada:
+          type: boolean
+        evidencias:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidencia'
+    CartaoEmRevisao:
+      type: object
+      required: [id, frente, verso, explicacao, evidencias]
+      properties:
+        id:
+          type: string
+          format: uuid
+        frente:
+          type: string
+        verso:
+          type: string
+        explicacao:
+          type: string
+          description: Obrigatória nos cartões gerados (RF-008)
+        evidencias:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Evidencia'
+    ListaCartoesEmRevisao:
+      type: object
+      required: [itens]
+      properties:
+        itens:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/CartaoEmRevisao'
+    AceitacaoCartaoEntrada:
+      type: object
+      additionalProperties: false
+      description: Vazio = aceitar como está; com campos = editar e aceitar (limites da spec 003)
+      properties:
+        frente:
+          type: string
+          maxLength: 4000
+        verso:
+          type: string
+          maxLength: 8000
+        explicacao:
+          type: [string, 'null']
+          maxLength: 4000
+          description: '`null` ou vazia remove a explicação (o cartão passa a "Editado por você")'
+    MotivoRecusa:
+      type: string
+      enum: [incorreto, irrelevante, repetido, mal_escrito]
+      description: Motivo opcional (D-007)
+    RecusaCartaoEntrada:
+      type: object
+      additionalProperties: false
+      properties:
+        motivo:
+          oneOf:
+            - $ref: '#/components/schemas/MotivoRecusa'
+            - type: 'null'
+    ResultadoRecusa:
+      type: object
+      required: [id, geracaoId, motivo]
+      properties:
+        id:
+          type: string
+          format: uuid
+        geracaoId:
+          type: string
+          format: uuid
+        motivo:
+          oneOf:
+            - $ref: '#/components/schemas/MotivoRecusa'
+            - type: 'null'
+    OrigemCartao:
+      type: string
+      enum: [gerado_verificado, editado, criado]
+      description: '"Gerado e verificado", "Editado por você" ou "Criado por você" (spec 003)'
+    SituacaoCartao:
+      type: string
+      enum: [ativo, suspenso]
+      description: Situações visíveis no esquema Cartao; aguardando revisão e recusado aparecem só nas rotas de revisão
+    ReferenciaFonte:
+      type: object
+      description: Referência de um cartão criado pelo estudante (spec 003, sem mudança)
+      required: [fonteId, titulo, nomeArquivo, enviadaEm, fonteApagada]
+      properties:
+        fonteId:
+          type: [string, 'null']
+          format: uuid
+        titulo:
+          type: string
+        nomeArquivo:
+          type: string
+        enviadaEm:
+          type: string
+          format: date-time
+        fonteApagada:
+          type: boolean
+    OrigemGeracao:
+      type: object
+      description: Origem de um cartão gerado (spec 004); a evidência completa fica em `/cartoes/{id}/evidencias`
+      required: [geracaoId, fonteTitulo, fonteApagada]
+      properties:
+        geracaoId:
+          type: string
+          format: uuid
+        fonteTitulo:
+          type: string
+          description: Cópia da descrição da origem (RN-05)
+        fonteApagada:
+          type: boolean
+    Cartao:
+      type: object
+      description: |
+        Esquema da spec 003 com o campo `geracao` acrescentado pela 004 (mudança aditiva).
+        `verificado` é verdadeiro só com origem `gerado_verificado` e fonte não apagada (DTEC 045).
+      required: [id, materiaId, frente, verso, explicacao, origem, verificado, situacao, referencia, geracao, criadoEm, atualizadoEm]
+      properties:
+        id:
+          type: string
+          format: uuid
+        materiaId:
+          type: string
+          format: uuid
+        frente:
+          type: string
+        verso:
+          type: string
+        explicacao:
+          type: [string, 'null']
+        origem:
+          $ref: '#/components/schemas/OrigemCartao'
+        verificado:
+          type: boolean
+        situacao:
+          $ref: '#/components/schemas/SituacaoCartao'
+        referencia:
+          oneOf:
+            - $ref: '#/components/schemas/ReferenciaFonte'
+            - type: 'null'
+        geracao:
+          description: Só em cartões gerados
+          oneOf:
+            - $ref: '#/components/schemas/OrigemGeracao'
+            - type: 'null'
+        criadoEm:
+          type: string
+          format: date-time
+        atualizadoEm:
+          type: string
+          format: date-time
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            # spec 001
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+            # spec 002
+            - materia_nome_em_uso
+            - cota_materias_excedida
+            - cota_fontes_excedida
+            - cota_armazenamento_excedida
+            - fonte_duplicada
+            - arquivo_muito_grande
+            - formato_nao_aceito
+            - tipo_divergente
+            - arquivo_vazio
+            - arquivo_corrompido
+            - pdf_protegido
+            - pdf_paginas_excedidas
+            - codificacao_invalida
+            - confirmacao_invalida
+            - impacto_alterado
+            - reprocessamento_indisponivel
+            # spec 003
+            - cursor_invalido
+            # spec 004
+            - ciencia_aviso_pendente
+            - aviso_desatualizado
+            - fonte_nao_concluida
+            - idempotencia_divergente
+            - sem_conteudo_novo
+            - limite_geracoes_excedido
+            - orcamento_ia_esgotado
+            - cartao_ja_decidido
+          description: Estável e legível por máquina; as specs acrescentam códigos, sem renomear nem remover
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos nem do provedor
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+security:
+  - sessao: []
