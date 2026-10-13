@@ -23,7 +23,7 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | [006](../specs/006-xp-meta-sequencia/plan.md) XP, meta e sequência | Tarefas aprovadas | `0007_gamificacao` | `gamificacao`; `nucleo/disponibilidade.py`; provedor em `revisao/disponibilidade.py` |
 | [007](../specs/007-evolucao/plan.md) evolução mínima | Tarefas aprovadas | nenhuma (leitura sobre índices existentes, DTEC 066) | `evolucao` (sem persistência); `transacao_leitura_consistente` em `nucleo/banco.py` |
 
-A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A documentação das specs do MVP (001 a 007) ficou completa em 13/10/2026, e a implementação está liberada, na ordem e na divisão de `docs/specs/divisao-implementacao-mvp.md`; a 007 foi designada a William Johnson.
+A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A documentação das specs do MVP (001 a 007) ficou completa em 13/10/2026, e a implementação está liberada, na ordem e na divisão de `docs/specs/divisao-implementacao-mvp.md`; a 007 foi designada a William Johnson. A implementação da 001 começou na `develop` em 13/10/2026, em paralelo ao plano da 007, por revisão da decisão anterior feita por Artur Lins ([registro](../prompts/2026-10-13-001-conta-acesso-implementacao.md)).
 
 ## Convenções da API
 
