@@ -45,11 +45,18 @@ Q19:"a", na versão final acadêmica, pois é uma funcionalidade essencial, se e
 XP e meta contam cartões distintos por dia. Sobre o R2, no caso do mvp, como poderíamos pensar numa estratégia de que ele rode localmente? seria viável criarmos um temp local, que depois de processado, é apagado?
 ```
 
+### Resposta a esclarecimento 3
+
+```text
+O agente desaconselhou usar só o arquivo temporário (perde o original, o acervo, o reprocessamento e a indexação) e propôs (a) interface de armazenamento com adaptador de disco local no MVP e R2 no final, (b) emulador S3 local ou (c) só temporário, recomendando (a). ->
+confirmo
+```
+
 ## Decisões consolidadas
 
 | Tema | Decisão |
 |---|---|
-| Armazenamento | Fontes e imagens no Cloudflare R2 desde o MVP (DTEC 010 revisada). O banco guarda a **chave do objeto** (`varchar`); a API gera URL assinada de curta duração |
+| Armazenamento | Interface de armazenamento com adaptador por ambiente (DTEC 010 revisada duas vezes): disco local no MVP, Cloudflare R2 no final acadêmico, em memória nos testes unitários. O banco guarda a **chave do objeto** (`varchar`), igual nos dois |
 | Identificadores | PK `bigint generated always as identity` (PostgreSQL 10+). `public_id uuid` v4 só nas tabelas expostas em rotas |
 | Papel | Enum `papel` (`estudante`, `admin`) em `usuarios`, padrão `estudante`. Painel administrativo simples no **final acadêmico** (F-17), a validar com o PO |
 | Deck | Sem tabela: o deck é o conjunto de `cartoes` do usuário, filtrável por matéria |
@@ -96,5 +103,5 @@ Pendente de revisão: o autor vai conferir o diagrama no dbdiagram.io.
 
 - Aplicar o SQL num PostgreSQL com pgvector para validar a extensão `vector` e os índices (primeiro `plan.md` ou primeira migração).
 - QA-32 e PO-06: escopo do painel administrativo e validação com o PO.
-- DTEC 010: definir no primeiro `plan.md` como testar a integração com o R2.
+- Criar o `.env.example` com as variáveis de armazenamento previstas na DTEC 010 quando a estrutura do backend for criada.
 - Exportar o diagrama do dbdiagram como imagem para a documentação, se a equipe quiser.

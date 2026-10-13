@@ -20,7 +20,7 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 007](#decisão-dtec-007-llm-e-framework-de-agentes) | LLM e framework de agentes | Aprovada em 12/10/2026; framework do final acadêmico em reavaliação (QA-31) |
 | [DTEC 008](#decisão-dtec-008-embeddings-e-reranking) | Embeddings e reranking | Aprovada em 12/10/2026; com DTEC 007, encerra QA-22 |
 | [DTEC 009](#decisão-dtec-009-extração-de-texto) | Extração de texto | Aprovada em 12/10/2026 |
-| [DTEC 010](#decisão-dtec-010-armazenamento-de-arquivos) | Armazenamento de arquivos | Aprovada em 12/10/2026; revisada no mesmo dia (tudo no R2) |
+| [DTEC 010](#decisão-dtec-010-armazenamento-de-arquivos) | Armazenamento de arquivos | Aprovada em 12/10/2026; revisada no mesmo dia (adaptador por ambiente: disco local no MVP, R2 no final) |
 | [DTEC 011](#decisão-dtec-011-observabilidade-e-avaliação-da-ia) | Observabilidade e avaliação da IA | Aprovada em 12/10/2026 |
 | [DTEC 012](#decisão-dtec-012-algoritmo-de-repetição-espaçada) | Algoritmo de repetição espaçada | Aprovada em 12/10/2026 |
 | [DTEC 013](#decisão-dtec-013-hospedagem-e-operação) | Hospedagem e operação | Aprovada em 12/10/2026; VPS e domínio pendentes (QA-11) |
@@ -186,18 +186,32 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 1. **Volume Docker** para tudo: simples, mas imagens servidas pela API consomem banda e memória da VPS.
 2. **Cloudflare R2** para tudo: camada gratuita de 10 GB, 1 milhão de escritas e 10 milhões de leituras por mês, saída sem custo; exige conta e rede.
 3. **Volume para as fontes e R2 para as imagens.**
+4. **Interface de armazenamento com adaptador por ambiente:** disco local (pasta montada no contêiner) no MVP e no desenvolvimento; R2 no final acadêmico. A mesma chave de objeto vale nos dois.
+5. **Emulador do protocolo S3 num contêiner local (ex.: MinIO) no MVP:** mesmo código do R2 em todo ambiente, mas mais um serviço no Compose e tecnologia fora da stack.
+6. **Só arquivo temporário, apagado após o processamento:** descartada, porque perde o original e impede o acervo (RN-14), o reprocessamento (RN-03) e a indexação do final acadêmico.
 
-**Decisão (revisada em 12/10/2026, [registro](prompts/2026-10-12-esquema-inicial-banco.md)):** alternativa 2. **Fontes e imagens dos cartões no R2**, desde o MVP. Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-02. O backend valida o tipo real antes de gravar. O banco guarda a **chave do objeto**, nunca a URL, e a leitura pelo navegador usa URL assinada de curta duração. Buckets separados por ambiente (desenvolvimento, teste e produção) e um bucket próprio para os backups.  
-*Decisão anterior (12/10/2026):* alternativa 3, fontes no volume e imagens no R2.  
-**Justificativa:** as fontes crescem sem limite com o uso e lotariam o disco do contêiner e da VPS. Com tudo no R2, API e worker ficam sem estado, o backup da VPS se reduz ao banco e a camada gratuita cobre o volume acadêmico sem custo de saída.  
+**Decisão (revisada em 12/10/2026, [registro](prompts/2026-10-12-esquema-inicial-banco.md)):** alternativa 4. Fontes e imagens dos cartões ficam atrás de uma **interface própria de armazenamento**, com o adaptador escolhido por variável de ambiente:
+
+| Ambiente | Adaptador |
+|---|---|
+| MVP e desenvolvimento local | **Disco local**: pasta montada no contêiner (volume), sem rede nem conta externa |
+| Final acadêmico (VPS) | **Cloudflare R2**, via API compatível com S3, com buckets separados por ambiente e um bucket próprio para os backups |
+| Testes unitários | **Em memória** |
+| Testes de integração | **Disco local**, numa pasta temporária por execução |
+
+Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-02. O backend valida o tipo real antes de gravar. O banco guarda a **chave do objeto**, nunca a URL ou o caminho absoluto.  
+*Decisões anteriores (12/10/2026):* alternativa 3 (fontes no volume, imagens no R2) e, em seguida, alternativa 2 (tudo no R2 desde o MVP).  
+**Justificativa:** o MVP roda sem rede e sem conta externa, e os testes não dependem do R2. Na VPS, as fontes crescem sem limite com o uso e lotariam o disco: com o R2, API e worker ficam sem estado, o backup da VPS se reduz ao banco e a camada gratuita cobre o volume acadêmico sem custo de saída. Como a chave é a mesma, trocar de adaptador não muda o banco nem o domínio.  
 **Consequências:**
 
-- Nomes internos (UUID) para tudo; o nome enviado pelo usuário nunca compõe a chave. Exclusão de cartão ou de fonte remove os objetos correspondentes, e a aplicação exclui os objetos antes das linhas.
-- O worker baixa a fonte do R2 para um arquivo temporário antes da extração e o apaga em seguida.
-- O MVP local passa a depender de rede e de uma conta da Cloudflare; as chaves ficam no `.env` (regra 9).
-- O acesso ao R2 fica atrás de uma interface própria de armazenamento. Os testes usam um adaptador em memória; a forma de testar a integração com o R2 é decidida no primeiro `plan.md`.
+- Nomes internos (UUID) para tudo; o nome enviado pelo usuário nunca compõe a chave. O adaptador de disco resolve a chave dentro da pasta raiz e recusa qualquer chave que escape dela (*path traversal*).
+- Exclusão de cartão ou de fonte remove os objetos correspondentes; a aplicação exclui os objetos antes das linhas.
+- O worker lê a fonte para um arquivo temporário antes da extração e o apaga em seguida, com qualquer adaptador.
+- Leitura pelo navegador: no R2, URL assinada de curta duração; no disco local, uma rota autenticada da API que verifica o dono antes de entregar o arquivo. No MVP, o navegador não lê arquivos: a evidência mostra o texto do trecho, que está no banco, e imagens só existem no final acadêmico.
+- Uma suíte de contrato roda os mesmos testes contra os adaptadores em memória e de disco e, opcionalmente, contra um bucket de teste do R2 antes do deploy.
+- Variáveis previstas para o `.env.example` (sem valores): `ARMAZENAMENTO_ADAPTADOR` (`local` ou `r2`), `ARMAZENAMENTO_DIRETORIO`, `ARMAZENAMENTO_URL_ASSINADA_SEGUNDOS`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` e `R2_BUCKET_BACKUP`.
 
-**Condição para revisão:** uso acima da camada gratuita ou exigência de funcionar sem rede.
+**Condição para revisão:** uso acima da camada gratuita do R2.
 
 ## Decisão DTEC 011 Observabilidade e avaliação da IA
 

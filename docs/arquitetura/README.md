@@ -23,8 +23,8 @@ flowchart LR
     Web[Frontend React<br/>Vite dev server] -->|HTTP + cookie de sessão| API[API FastAPI]
     API --> PG[(PostgreSQL<br/>dados + fila)]
     Worker[Worker<br/>Procrastinate] --> PG
-    API -->|fontes| R2[(Cloudflare R2<br/>bucket de desenvolvimento)]
-    Worker -->|leitura para extração| R2
+    API -->|fontes| Arq[(Disco local<br/>volume de arquivos)]
+    Worker -->|leitura para extração| Arq
     Worker -->|geração de cartões| LLM[LLM<br/>Gemini / Groq]
 ```
 
@@ -60,7 +60,7 @@ flowchart LR
 | Agentes e LLM | PydanticAI; Gemini (camada gratuita), Groq como alternativa | + agentes do chat e do tira-dúvidas, busca como ferramenta; LangGraph em reavaliação | [007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) |
 | Embeddings e reranking | Não há | bge-m3 (1024) e reranker no Workers AI da Cloudflare | [008](../research.md#decisão-dtec-008-embeddings-e-reranking) |
 | Extração | PyMuPDF (PDF com texto), leitura direta de TXT e MD | + SRT, VTT, DOCX | [009](../research.md#decisão-dtec-009-extração-de-texto) |
-| Arquivos | Cloudflare R2 (fontes) | Cloudflare R2 (fontes e imagens dos cartões, até 3 MB) | [010](../research.md#decisão-dtec-010-armazenamento-de-arquivos) |
+| Arquivos | Interface de armazenamento com adaptador de disco local (fontes) | Mesma interface com adaptador Cloudflare R2 (fontes e imagens dos cartões, até 3 MB) | [010](../research.md#decisão-dtec-010-armazenamento-de-arquivos) |
 | Observabilidade | Logs JSON com id de correlação, `/health`, tabela de consumo da IA | + Langfuse Cloud sem conteúdo dos materiais; avaliações com pydantic-evals | [011](../research.md#decisão-dtec-011-observabilidade-e-avaliação-da-ia) |
 | Repetição espaçada | Biblioteca `fsrs` (implementação oficial em Python do FSRS) | igual | [012](../research.md#decisão-dtec-012-algoritmo-de-repetição-espaçada) |
 | Hospedagem | Docker Compose local | VPS (provável Hetzner) + Docker Compose + Caddy | [013](../research.md#decisão-dtec-013-hospedagem-e-operação) |
@@ -147,8 +147,9 @@ trechos por estrutura (página/seção, com sobreposição)
 
 ### 5.6 Arquivos
 
-- **Fontes:** Cloudflare R2 desde o MVP, com nome interno (UUID) e metadados no banco, que guarda a chave do objeto, nunca a URL. O nome enviado pelo usuário nunca compõe a chave. O worker baixa a fonte para um arquivo temporário durante a extração.
-- **Imagens dos cartões (final):** Cloudflare R2 via API compatível com S3. O backend valida o tipo real (JPEG, PNG ou WebP) e o tamanho (até 3 MB) antes de gravar. A leitura usa URLs assinadas de curta duração, porque as imagens são privadas. Camada gratuita: 10 GB armazenados, 1 milhão de escritas e 10 milhões de leituras por mês, sem custo de saída.
+- **Interface de armazenamento** com adaptador escolhido por ambiente ([DTEC 010](../research.md#decisão-dtec-010-armazenamento-de-arquivos)): **disco local** no MVP e no desenvolvimento, **Cloudflare R2** no final acadêmico, **em memória** nos testes unitários. O banco guarda só a chave do objeto, igual nos dois adaptadores; trocar de adaptador não muda banco nem domínio.
+- **Fontes:** nome interno (UUID) e metadados no banco. O nome enviado pelo usuário nunca compõe a chave, e o adaptador de disco recusa chaves que escapem da pasta raiz. O worker lê a fonte para um arquivo temporário durante a extração e o apaga em seguida.
+- **Imagens dos cartões (final):** Cloudflare R2 via API compatível com S3 (no desenvolvimento local, o adaptador de disco, servido por rota autenticada da API). O backend valida o tipo real (JPEG, PNG ou WebP) e o tamanho (até 3 MB) antes de gravar. A leitura usa URLs assinadas de curta duração, porque as imagens são privadas. Camada gratuita: 10 GB armazenados, 1 milhão de escritas e 10 milhões de leituras por mês, sem custo de saída.
 
 ## 6. Frontend
 

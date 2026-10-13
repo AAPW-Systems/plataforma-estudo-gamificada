@@ -20,8 +20,9 @@ Project plataforma_estudo_gamificada {
     não têm `public_id`.
   - Instantes em `timestamptz` (UTC). Dias de estudo em `date`, já no fuso do estudante, com
     virada às 4h (RN-15).
-  - Arquivos (fontes e imagens) ficam no Cloudflare R2 (DTEC 010). O banco guarda a **chave do
-    objeto**, nunca a URL: a API gera uma URL assinada de curta duração a cada leitura.
+  - Arquivos (fontes e imagens) ficam atrás de uma interface de armazenamento (DTEC 010): disco
+    local no MVP, Cloudflare R2 no final acadêmico. O banco guarda a **chave do objeto**, igual
+    nos dois, nunca a URL ou o caminho absoluto.
   - Exclusão física (RN-14). FKs para tabelas com objetos no R2 usam `restrict`: a aplicação
     exclui os objetos e depois as linhas, na ordem certa.
   - O FSRS é soberano (DTEC 012): os campos de estado do cartão espelham o `Card` da
@@ -191,7 +192,7 @@ Table fontes {
   materia_id bigint [not null]
   titulo varchar(200) [not null]
   nome_arquivo varchar(255) [not null, note: 'Nome enviado; só exibido, nunca usado como caminho']
-  chave_objeto varchar(512) [not null, unique, note: 'Chave no R2, com nome interno (UUID)']
+  chave_objeto varchar(512) [not null, unique, note: 'Chave do objeto (disco local ou R2), com nome interno (UUID)']
   tipo_midia varchar(100) [not null, note: 'Tipo real detectado pelo conteúdo (RN-02)']
   tamanho_bytes integer [not null]
   hash_sha256 bytea [not null, note: 'Integridade do arquivo']
@@ -255,7 +256,7 @@ Table cartoes {
   materia_id bigint [not null]
   geracao_id bigint [note: 'Nula em cartões criados manualmente']
   frente text [not null, note: 'Pergunta']
-  chave_imagem varchar(512) [note: 'Imagem opcional da frente no R2 (final acadêmico, RF-27)']
+  chave_imagem varchar(512) [note: 'Chave da imagem opcional da frente (final acadêmico, RF-27)']
   verso text [not null, note: 'Resposta']
   explicacao text [note: 'Explicação curta exibida ao marcar Errei (RN-16). Obrigatória nos gerados, validada na aplicação']
   origem origem_cartao [not null]
