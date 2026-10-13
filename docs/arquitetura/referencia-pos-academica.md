@@ -53,7 +53,7 @@ flowchart LR
 A referência mantém as escolhas que já são as melhores disponíveis para o problema, independentemente da escala:
 
 - PostgreSQL como banco único com pgvector (HNSW, `vector_cosine_ops`) e busca híbrida com `tsvector` e RRF.
-- FastAPI, SQLAlchemy 2 assíncrono, asyncpg, Alembic, Pydantic, pydantic-settings e uv.
+- FastAPI, SQLAlchemy 2 assíncrono, psycopg 3 (emenda da DTEC 002), Alembic, Pydantic, pydantic-settings e uv.
 - React, TypeScript (strict), Vite, Tailwind CSS, `openapi-typescript`, Zod e React Hook Form.
 - FSRS como algoritmo de repetição espaçada.
 - Ruff, mypy, pytest, pytest-asyncio e httpx no backend; Vitest, Testing Library, MSW, Playwright, ESLint (com `jsx-a11y`) e Prettier no frontend.

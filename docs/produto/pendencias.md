@@ -30,7 +30,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Aberta (UI-01 a UI-03 do [design](../base-specs/design.md#12-pendências-de-design)) |
 | [QA-26](#qa-26-níveis-de-dificuldade) | Níveis de dificuldade (EX-05) | Produto | Spec de F-04 e F-05 | Professor | Em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
 | [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 | Equipe e professor | Depende de [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) |
-| [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Aberta |
+| [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Aberta; integração contínua decidida na DTEC 017 (plano da [001](../specs/001-conta-acesso/plan.md), 12/10/2026) |
 | [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição (v0.4) | Processo | Aprovação da primeira spec | Equipe | Aberta |
 | [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Aberta |
 | [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO | Processo | Aprovações entre as reviews | Equipe | Aberta |
@@ -247,7 +247,7 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 **Pendente:**
 
 - **Criar a branch `develop`** a partir da `main` e publicá-la no GitHub, antes da primeira implementação.
-- **Integração contínua:** executar a suíte completa em todo pull request para a `main`, dentro dos mesmos contêineres do ambiente local (regra 11). Sem isso, a regra de testes passando depende apenas da disciplina de cada integrante.
+- **Integração contínua:** executar a suíte completa em todo pull request para a `main`, dentro dos mesmos contêineres do ambiente local (regra 11). Sem isso, a regra de testes passando depende apenas da disciplina de cada integrante. *Proposta em 12/10/2026 na [DTEC 017](../research.md#decisão-dtec-017-integração-contínua-e-verificação-local) (GitHub Actions a cada push na `develop` e em todo pull request para a `main`), aprovada em 12/10/2026 com o plano da spec 001.*
 - **Proteção da `main` no GitHub:** exigir pull request e a verificação da integração contínua aprovada antes do merge, e bloquear `push --force`. Definir se o pull request exige revisão de outro integrante.
 - **Merge direto:** a regra 14 aceita "pull request ou merge". Com a proteção ativa, o merge direto na `main` fica bloqueado. A equipe precisa decidir se aceita só pull request, que deixa a verificação registrada e visível na avaliação.
 - **Documentação:** com a `main` protegida, decidir se as alterações de documentação (specs, planos, registros de prompts) também passam pela `develop` ou continuam indo direto para a `main`. As regras 14 a 17 tratam apenas da fase de desenvolvimento.

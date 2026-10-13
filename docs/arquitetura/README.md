@@ -52,9 +52,13 @@ flowchart LR
 |---|---|---|---|
 | Linguagem e pacotes do backend | Python, uv | igual | [002](../research.md#decisão-dtec-002-framework-do-backend) |
 | Framework | FastAPI, Pydantic, pydantic-settings | igual + streaming (SSE) no chat | 002 |
-| ORM e migrações | SQLAlchemy 2 (assíncrono) + asyncpg + Alembic | igual | 002 |
+| ORM e migrações | SQLAlchemy 2 (assíncrono) + psycopg 3 + Alembic | igual | 002 (emenda de 12/10/2026: psycopg 3 no lugar do asyncpg) |
 | Autenticação | Própria: Argon2id + sessão opaca no Postgres em cookie HttpOnly | + recuperação de senha por e-mail | [003](../research.md#decisão-dtec-003-autenticação) |
 | Frontend | React + TypeScript (strict) + Vite + Tailwind CSS + openapi-typescript | igual | [004](../research.md#decisão-dtec-004-frontend) |
+| Rotas e estado do servidor | TanStack Router + TanStack Query + openapi-fetch | igual | [015](../research.md#decisão-dtec-015-roteamento-e-estado-do-servidor-no-frontend) |
+| Primitivas acessíveis | React Aria Components, encapsuladas em `componentes/ui/` | igual | [016](../research.md#decisão-dtec-016-primitivas-acessíveis-da-interface) |
+| Camadas do backend | DTO, mapeador, serviço, domínio, repositório e exceções por domínio | igual | [018](../research.md#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções) |
+| Integração contínua | GitHub Actions com os contêineres `dev`; pre-commit opcional | igual + publicação das imagens | [017](../research.md#decisão-dtec-017-integração-contínua-e-verificação-local) |
 | Banco | PostgreSQL com a imagem `pgvector/pgvector` desde o início | + pgvector (HNSW, cosseno) e `tsvector` em português | [005](../research.md#decisão-dtec-005-banco-de-dados-único) |
 | Fila e worker | Procrastinate (fila no Postgres), um contêiner de worker | igual | [006](../research.md#decisão-dtec-006-fila-e-processamento-assíncrono) |
 | Agentes e LLM | PydanticAI; Gemini (camada gratuita), Groq como alternativa | + agentes do chat e do tira-dúvidas, busca como ferramenta; LangGraph em reavaliação | [007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) |
@@ -103,11 +107,11 @@ O backend é um monólito modular, organizado por domínio, com as camadas MVC i
 
 Mapeamento MVC: **Model** = entidades SQLAlchemy, regras de domínio, serviços e repositórios; **Controller** = routers do FastAPI (finos, sem regra de negócio); **View** = o frontend React.
 
-**Backend e frontend separados (12/10/2026, [registro](../prompts/2026-10-12-specs-funcionalidades.md)).** Os dois são desenvolvidos como projetos independentes no mesmo repositório, cada um em sua pasta na raiz: `backend/` (API, worker, migrações e testes pytest) e `frontend/` (aplicação React e seus testes). Cada pasta tem as próprias dependências, ferramentas de qualidade, testes e Dockerfile. A única fronteira entre eles é o contrato da API em OpenAPI (`contracts/openapi.yaml` de cada spec): o frontend não importa código do backend, e o backend não conhece a estrutura do frontend. O `compose.yaml` da raiz sobe os dois. A estrutura interna de cada pasta é registrada no primeiro `plan.md`.
+**Backend e frontend separados (12/10/2026, [registro](../prompts/2026-10-12-specs-funcionalidades.md)).** Os dois são desenvolvidos como projetos independentes no mesmo repositório, cada um em sua pasta na raiz: `backend/` (API, worker, migrações e testes pytest) e `frontend/` (aplicação React e seus testes). Cada pasta tem as próprias dependências, ferramentas de qualidade, testes e Dockerfile. A única fronteira entre eles é o contrato da API em OpenAPI (`contracts/openapi.yaml` de cada spec): o frontend não importa código do backend, e o backend não conhece a estrutura do frontend. O `compose.yaml` da raiz sobe os dois. A estrutura interna de cada pasta e as camadas de cada domínio (DTO, mapeador, serviço, domínio, repositório e exceções, [DTEC 018](../research.md#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções)) estão no [plano da spec 001](../specs/001-conta-acesso/plan.md#estrutura-do-repositório).
 
 ### 5.2 Autenticação e sessão
 
-- Senha com **Argon2id**; mensagens de erro de login que não revelam se o e-mail existe; limite de tentativas por IP e por conta.
+- Senha com **Argon2id**; mensagens de erro de login que não revelam se o e-mail existe; limite de tentativas por IP e por conta, persistido na tabela `tentativas_acesso` do Postgres. Os parâmetros concretos (token, expiração, CSRF assinado, perfil do Argon2) estão nas DTEC 020 e 023 do [`research.md` da spec 001](../specs/001-conta-acesso/research.md).
 - Sessão **opaca** (identificador aleatório, armazenado com hash no Postgres) em cookie `HttpOnly`, `Secure` e `SameSite=Lax`. Nenhum token fica acessível ao JavaScript, o que encerra a [QA-25](../produto/pendencias.md#qa-25-sessão-no-navegador-migração-para-bff).
 - Requisições que alteram estado exigem um cabeçalho anti-CSRF (*double submit*). Logout e expiração revogam a sessão no servidor.
 - Frontend e API ficam na mesma origem (Caddy encaminha `/api`), o que dispensa CORS.
@@ -150,6 +154,7 @@ trechos por estrutura (página/seção, com sobreposição)
 ### 5.6 Arquivos
 
 - **Interface de armazenamento** com adaptador escolhido por ambiente ([DTEC 010](../research.md#decisão-dtec-010-armazenamento-de-arquivos)): **disco local** no MVP e no desenvolvimento, **Cloudflare R2** no final acadêmico, **em memória** nos testes unitários. O banco guarda só a chave do objeto, igual nos dois adaptadores; trocar de adaptador não muda banco nem domínio.
+- **Chaves por usuário:** toda chave de objeto começa por `usuarios/{public_id_usuario}/` (ex.: `usuarios/{id}/fontes/{uuid}`), o que permite apagar todos os arquivos de uma conta excluída por prefixo, numa tarefa idempotente ([DTEC 021](../specs/001-conta-acesso/research.md#decisão-dtec-021-exclusão-da-conta-e-chaves-de-armazenamento-por-usuário)).
 - **Fontes:** nome interno (UUID) e metadados no banco. O nome enviado pelo usuário nunca compõe a chave, e o adaptador de disco recusa chaves que escapem da pasta raiz. O worker lê a fonte para um arquivo temporário durante a extração e o apaga em seguida.
 - **Imagens dos cartões (final):** Cloudflare R2 via API compatível com S3 (no desenvolvimento local, o adaptador de disco, servido por rota autenticada da API). O backend valida o tipo real (JPEG, PNG ou WebP) e o tamanho (até 3 MB) antes de gravar. A leitura usa URLs assinadas de curta duração, porque as imagens são privadas. Camada gratuita: 10 GB armazenados, 1 milhão de escritas e 10 milhões de leituras por mês, sem custo de saída.
 

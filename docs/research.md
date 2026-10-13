@@ -12,7 +12,7 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | Decisão | Título | Status |
 |---|---|---|
 | [DTEC 001](#decisão-dtec-001-ferramenta-de-testes-do-backend) | Ferramenta de testes do backend | Decidida por Artur Lins em 29/09/2026; aprovação da equipe pendente ([VAL-05](produto/pendencias.md#val-05-aprovação-das-regras-de-git-e-testes)) |
-| [DTEC 002](#decisão-dtec-002-framework-do-backend) | Framework do backend | Aprovada em 12/10/2026; encerra QA-18 ([VAL-06](produto/pendencias.md#val-06-aprovação-da-arquitetura-e-das-dtec-002-a-014)) |
+| [DTEC 002](#decisão-dtec-002-framework-do-backend) | Framework do backend | Aprovada em 12/10/2026; encerra QA-18 ([VAL-06](produto/pendencias.md#val-06-aprovação-da-arquitetura-e-das-dtec-002-a-014)); emenda do driver (psycopg 3) aprovada em 12/10/2026 com o plano da 001 |
 | [DTEC 003](#decisão-dtec-003-autenticação) | Autenticação | Aprovada em 12/10/2026; substitui a direção anterior (Keycloak) e encerra QA-25 |
 | [DTEC 004](#decisão-dtec-004-frontend) | Frontend | Aprovada em 12/10/2026; encerra QA-29 |
 | [DTEC 005](#decisão-dtec-005-banco-de-dados-único) | Banco de dados único | Aprovada em 12/10/2026 |
@@ -25,6 +25,12 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 012](#decisão-dtec-012-algoritmo-de-repetição-espaçada) | Algoritmo de repetição espaçada | Aprovada em 12/10/2026 |
 | [DTEC 013](#decisão-dtec-013-hospedagem-e-operação) | Hospedagem e operação | Aprovada em 12/10/2026; VPS e domínio pendentes (QA-11) |
 | [DTEC 014](#decisão-dtec-014-complementos-de-teste) | Complementos de teste | Aprovada em 12/10/2026; encerra QA-28 |
+| [DTEC 015](#decisão-dtec-015-roteamento-e-estado-do-servidor-no-frontend) | Roteamento e estado do servidor no frontend | Aprovada em 12/10/2026 com o plano da 001 |
+| [DTEC 016](#decisão-dtec-016-primitivas-acessíveis-da-interface) | Primitivas acessíveis da interface | Aprovada em 12/10/2026 com o plano da 001 |
+| [DTEC 017](#decisão-dtec-017-integração-contínua-e-verificação-local) | Integração contínua e verificação local | Aprovada em 12/10/2026 com o plano da 001 |
+| [DTEC 018](#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções) | Camadas do backend: DTO, mapper, repositório e exceções | Aprovada em 12/10/2026 com o plano da 001 |
+
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -62,6 +68,13 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 **Justificativa:** é a única que atende, sem adaptações, ao OpenAPI exigido, ao chat em streaming e às chamadas assíncronas de IA, e compartilha o Pydantic com a camada de agentes. A mesma escolha vale para a referência pós-acadêmica.  
 **Consequências:** Ruff e mypy como qualidade estática; routers finos, regras em serviços e no domínio; migrações revisadas manualmente (índices HNSW, DTEC 005).  
 **Condição para revisão:** a equipe não conseguir produzir no prazo com o par SQLAlchemy e Alembic.
+
+**Emenda de 12/10/2026: driver psycopg 3 no lugar do asyncpg** ([registro](prompts/2026-10-12-001-conta-acesso-plano.md)). No planejamento da [spec 001](specs/001-conta-acesso/plan.md), a documentação do Procrastinate (DTEC 006) mostrou que ele não tem conector para asyncpg. Ele oferece `PsycopgConnector` (psycopg 3, assíncrono), `AiopgConnector` e conectores síncronos. Para enfileirar uma tarefa **na mesma transação** que grava o registro de processamento, como exige a DTEC 006, a tarefa precisa ser criada com `configure(connection=...)` numa `psycopg.AsyncConnection`.
+
+- **Alternativas:** (1) psycopg 3 como driver único: o SQLAlchemy usa `postgresql+psycopg` assíncrono, e a conexão bruta da transação do ORM é entregue ao Procrastinate; (2) asyncpg no ORM e psycopg 3 só na fila: dois drivers e dois *pools*, sem atomicidade entre o registro e a tarefa; (3) asyncpg e enfileiramento depois do commit: janela em que o registro existe sem a tarefa, contrária à RN-03.
+- **Decisão:** alternativa 1. O asyncpg sai da stack.
+- **Consequências:** um único driver e um único *pool*; o enfileiramento e a gravação do registro são atômicos; a URL do banco usa o esquema `postgresql+psycopg://`.
+- **Condição para revisão:** o Procrastinate passar a oferecer conector asyncpg com conexão externa, sem ganho comprovado que justifique a troca.
 
 ## Decisão DTEC 003 Autenticação
 
@@ -280,6 +293,76 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 **Consequências:** a cobertura é medida, mas sem mínimo obrigatório no MVP; os testes do frontend também bloqueiam o merge na `main`.  
 **Condição para revisão:** testes interferindo entre si ou suíte lenta demais para rodar antes de cada merge.
 
+## Decisão DTEC 015 Roteamento e estado do servidor no frontend
+
+**Data:** 12/10/2026 ([registro](prompts/2026-10-12-001-conta-acesso-plano.md))  
+**Questão:** como o frontend organiza as rotas (inclusive as protegidas por sessão), consulta a API e mantém o estado vindo do servidor, já que a DTEC 004 não decide isso?  
+**Critérios:** tipagem de ponta a ponta com o contrato OpenAPI; proteção de rota antes da renderização; cache e invalidação do estado do servidor sem código manual; Princípio IV (o frontend só exibe o que o servidor confirma); maturidade.  
+**Alternativas consideradas:**
+
+1. **TanStack Router + TanStack Query + `openapi-fetch`:** rotas e parâmetros tipados, proteção de rota em `beforeLoad` integrada ao cache do Query, invalidação declarativa após mutações; o `openapi-fetch` usa diretamente os tipos do `openapi-typescript` (DTEC 004), sem gerar código de cliente.
+2. **React Router + TanStack Query:** roteador mais conhecido, com rotas e parâmetros menos tipados.
+3. **React Router + `fetch` manual e estado em contexto:** menos dependências, mas cache, repetição, invalidação e estados de carregamento seriam reescritos pela equipe.
+
+**Decisão:** alternativa 1.  
+**Justificativa:** é a única que mantém o tipo do contrato da rota até o componente, o que evita divergência entre front e back (critério da DTEC 004). Proteger a rota antes de renderizar evita piscar conteúdo de área autenticada.  
+**Consequências:** o estado do servidor vive só no cache do TanStack Query; não há biblioteca de estado global. Um *middleware* do `openapi-fetch` envia o cabeçalho anti-CSRF e converte o corpo de erro padronizado. As rotas usam o roteamento por arquivos do plugin do TanStack Router para o Vite.  
+**Condição para revisão:** o roteador atrasar a equipe a ponto de comprometer o prazo do MVP.
+
+## Decisão DTEC 016 Primitivas acessíveis da interface
+
+**Data:** 12/10/2026 ([registro](prompts/2026-10-12-001-conta-acesso-plano.md))  
+**Questão:** de onde vêm os componentes com comportamento de acessibilidade difícil (diálogo, campos com erro, menus, controles deslizantes), que a DTEC 004 manda escrever com cuidado ou tirar de primitivas sem estilo?  
+**Critérios:** WCAG 2.2 AA (RQ-06 da base), com foco, teclado e anúncio a leitores de tela; nenhuma aparência imposta; manutenção; integração com Tailwind.  
+**Alternativas consideradas:**
+
+1. **React Aria Components:** primitivas sem estilo, com comportamento de acessibilidade testado em leitores de tela, internacionalização e estilização por atributos de estado que combinam com o Tailwind.
+2. **Radix Primitives:** primitivas sem estilo e populares, com cobertura menor de campos de formulário e validação.
+3. **Elementos nativos (`<dialog>`) e componentes escritos à mão:** sem dependência, mas com o risco de errar foco, anúncios e teclado em cada componente.
+
+**Decisão:** alternativa 1, encapsulada em `frontend/src/componentes/ui/`. As telas não importam o React Aria diretamente.  
+**Justificativa:** é a opção com o comportamento de acessibilidade mais completo sem impor aparência, o que preserva a identidade própria da trilha (DTEC 004).  
+**Consequências:** os componentes de `ui/` aplicam os tokens de design e são o único ponto de troca da biblioteca; os testes de acessibilidade (axe, DTEC 014) rodam sobre eles.  
+**Condição para revisão:** limitação que impeça um componente exigido pelo design.
+
+## Decisão DTEC 017 Integração contínua e verificação local
+
+**Data:** 12/10/2026 ([registro](prompts/2026-10-12-001-conta-acesso-plano.md)); atende à parte técnica da [QA-30](produto/pendencias.md#qa-30-branch-develop-e-verificação-automática-antes-do-merge)  
+**Questão:** como garantir, sem depender da disciplina de cada integrante, que nenhum merge na `main` aconteça sem lint, checagem de tipos e as suítes completas passando (regra 17)?  
+**Critérios:** execução nos mesmos contêineres do ambiente local (regra 11 e DTEC 001); custo zero; visibilidade da verificação na avaliação.  
+**Alternativas consideradas:**
+
+1. **GitHub Actions + pre-commit opcional:** o repositório já está no GitHub; a camada gratuita cobre o uso acadêmico. O fluxo constrói as imagens `dev` e roda tudo pelo Compose. O pre-commit local antecipa as falhas de formatação e lint.
+2. **Só verificação local:** sem custo nem configuração, mas depende de cada pessoa.
+3. **Serviço de integração contínua externo ao GitHub:** mais um terceiro, sem ganho.
+
+**Decisão:** alternativa 1. O fluxo `.github/workflows/ci.yml` roda a cada push na `develop` e em todo pull request para a `main`: lint, formatação, checagem de tipos, migrações, as duas suítes, a comparação do OpenAPI gerado com o versionado e a construção das imagens.  
+**Justificativa:** torna a regra 17 verificável e deixa a evidência registrada em cada pull request.  
+**Consequências:** a proteção da `main` (exigir a verificação aprovada) é configurada por quem administra o repositório; as decisões de processo da QA-30 (revisão obrigatória, documentação pela `develop`) continuam com a equipe. O pre-commit exige Python no computador e é opcional: a integração contínua é a verificação que vale.  
+**Condição para revisão:** limite de minutos da camada gratuita ou tempo de execução que atrase os merges.
+
+## Decisão DTEC 018 Camadas do backend: DTO, mapper, repositório e exceções
+
+**Data:** 12/10/2026 ([registro](prompts/2026-10-12-001-conta-acesso-plano.md)), por pedido de Artur Lins  
+**Questão:** como cada domínio do backend separa transporte, conversão, regras, acesso a dados e erros, de modo que o MVC fique identificável (constituição) e nenhuma entidade do banco vaze pela API?  
+**Critérios:** routers finos (DTEC 002); contrato OpenAPI estável e independente do esquema do banco; regras testáveis sem HTTP nem banco; isolamento por estudante num único ponto (RN-01); corpo de erro uniforme (`padroes-implementacao.md`).  
+**Alternativas consideradas:**
+
+1. **Camadas explícitas por domínio:** DTOs Pydantic de entrada e saída, mapeadores como funções puras, serviços de caso de uso, regras puras de domínio, repositórios SQLAlchemy sempre filtrados pelo dono, entidades do ORM e uma hierarquia única de exceções da aplicação convertida em HTTP num único ponto.
+2. **Router acessando o ORM e devolvendo a entidade com `from_attributes`:** menos arquivos, mas acopla o contrato ao esquema do banco e espalha regras e filtros de dono pelos routers.
+3. **Arquitetura hexagonal completa (portas e adaptadores para tudo):** isola mais, porém com abstrações sem uso concreto no prazo do MVP (contrário a `padroes-implementacao.md`).
+
+**Decisão:** alternativa 1, com a estrutura de arquivos definida no [plano da spec 001](specs/001-conta-acesso/plan.md#camadas-do-backend) e reproduzida em [`skills/padroes-implementacao.md`](skills/padroes-implementacao.md). Portas e adaptadores ficam restritos ao que já tem mais de uma implementação (armazenamento, DTEC 010, e provedores de IA, DTEC 007).  
+**Justificativa:** o contrato muda só quando o DTO muda; o filtro de dono fica num único lugar; as regras são testadas como funções puras; e o tratamento de erros é central e verificável.  
+**Consequências:**
+
+- **Model:** entidades SQLAlchemy, regras de domínio, serviços e repositórios. **Controller:** routers. **View:** o frontend.
+- Serviços e domínio não importam FastAPI; routers não importam o ORM nem repositórios.
+- Domínio e serviços lançam apenas subclasses de `ErroAplicacao`; o repositório converte erros do banco (ex.: violação de unicidade) em `Conflito`; nenhum `except` engole erro sem convertê-lo ou registrá-lo.
+- Um teste de arquitetura verifica as dependências proibidas entre camadas.
+
+**Condição para revisão:** camadas que só repassam dados sem acrescentar regra em mais da metade dos casos de uso, o que indicaria abstração em excesso.
+
 ## Fontes consultadas
 
 - Documentação oficial do pytest (fixtures, parametrização, marcadores e plugins).
@@ -289,4 +372,5 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - Página de preços do Workers AI da Cloudflare (`developers.cloudflare.com/workers-ai/platform/pricing/`) e página do modelo `bge-reranker-base`, consultadas em 12/10/2026.
 - Página de preços do R2 da Cloudflare (`developers.cloudflare.com/r2/pricing/`), consultada em 12/10/2026.
 - Página de limites da API do Gemini (`ai.google.dev/gemini-api/docs/rate-limits`) e fontes secundárias sobre a camada gratuita, consultadas em 12/10/2026 (os limites gratuitos são exibidos por projeto no painel do provedor).
+- Documentação do Procrastinate (`procrastinate.readthedocs.io`, páginas "Instantiate your connector" e "Using an external database connection"), consultada em 12/10/2026 para a emenda da DTEC 002.
 - Esboço de arquitetura de 12/10/2026, hoje [`arquitetura/referencia-pos-academica.md`](arquitetura/referencia-pos-academica.md).

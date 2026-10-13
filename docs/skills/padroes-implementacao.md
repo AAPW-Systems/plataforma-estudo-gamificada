@@ -1,7 +1,7 @@
 # Guia: padrões de implementação
 
 **Origem:** seções agnósticas de stack do brainstorming inicial (`docs/init/SKILL.md`, hoje [`../base-specs/`](../base-specs/README.md)), migradas em 29/09/2026; revisto em 12/10/2026.
-**Stack:** [arquitetura](../arquitetura/README.md) e DTEC 002 a 014 do [`research.md`](../research.md), aprovadas em 12/10/2026. Comandos, estrutura de pastas e endereços do OpenAPI e do Swagger UI são acrescentados aqui quando a estrutura base do código for criada.
+**Stack:** [arquitetura](../arquitetura/README.md) e DTEC 002 a 014 do [`research.md`](../research.md), aprovadas em 12/10/2026, mais as DTEC 015 a 018, propostas no [plano da spec 001](../specs/001-conta-acesso/plan.md). A estrutura de pastas está planejada nesse plano. Os comandos e os endereços do OpenAPI e do Swagger UI são acrescentados aqui quando a estrutura base do código for criada; até lá, valem os do [quickstart da 001](../specs/001-conta-acesso/quickstart.md).
 
 ## Arquitetura MVC
 
@@ -15,6 +15,28 @@
 - Serviços e repositórios são permitidos quando reduzem acoplamento. Eles complementam o MVC, não o substituem.
 - Com front e backend separados, o frontend é a View. Não crie páginas de servidor só para cumprir o MVC.
 - Registre no `plan.md` o mapeamento das camadas para diretórios reais.
+
+### Camadas de cada domínio do backend ([DTEC 018](../research.md#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções))
+
+A estrutura de pastas completa está no [plano da spec 001](../specs/001-conta-acesso/plan.md#estrutura-do-repositório). Cada domínio em `backend/src/app/<dominio>/` usa os mesmos arquivos:
+
+| Arquivo | Camada MVC | Responsabilidade | Não pode importar |
+|---|---|---|---|
+| `rotas.py` | Controller | Router fino: recebe o DTO, chama um serviço e devolve o DTO | `modelos`, `repositorios`, SQLAlchemy |
+| `dtos.py` | (transporte) | DTOs Pydantic de entrada e saída, camelCase no JSON, `extra="forbid"` na entrada | `modelos`, FastAPI |
+| `mapeadores.py` | (conversão) | Funções puras: DTO → comando de domínio; entidade → DTO | FastAPI, sessão do banco |
+| `servicos.py` | Model | Casos de uso; controlam a transação e o enfileiramento | FastAPI, `dtos` |
+| `dominio.py` | Model | Regras puras, testáveis sem banco e sem HTTP | SQLAlchemy, FastAPI |
+| `repositorios.py` | Model | Consultas; todo método de recurso de estudante exige `usuario_id` | FastAPI, `dtos` |
+| `modelos.py` | Model | Entidades SQLAlchemy | todo o resto |
+| `excecoes.py` | (erros) | Exceções do domínio, subclasses de `ErroAplicacao` | — |
+
+- Nenhuma entidade do ORM sai pela API: a resposta é sempre um DTO produzido por um mapeador.
+- Um recurso de outro estudante é buscado com o dono na própria consulta e, se não existir, vira `RecursoNaoEncontrado` (404 idêntico ao de inexistente, [DTEC 019](../specs/001-conta-acesso/research.md#decisão-dtec-019-garantia-do-isolamento-entre-estudantes)).
+- Toda rota com identificador no caminho entra na tabela do teste de isolamento (`tests/security/test_isolamento_rotas.py`); sem isso, a integração contínua falha.
+- Todo domínio com dados de estudante registra sua função `apagar_dados_usuario` no registro de exclusão do núcleo ([DTEC 021](../specs/001-conta-acesso/research.md#decisão-dtec-021-exclusão-da-conta-e-chaves-de-armazenamento-por-usuário)).
+- Toda chave de objeto no armazenamento começa por `usuarios/{public_id_usuario}/`.
+- Um teste de arquitetura (`tests/arquitetura/`) verifica as importações proibidas.
 
 ## Nomenclatura e código
 
@@ -49,6 +71,11 @@
 - Converta as exceções em respostas HTTP em um ponto central. O corpo de erro é consistente: `codigo`, `mensagem`, `campos` (quando aplicável) e `idRequisicao`.
 - Os códigos seguem a semântica HTTP: 400 (requisição malformada), 401 (não autenticado), 403 (acesso negado), 404 (não encontrado), 409 (conflito, incluindo idempotência divergente), 422 (entrada semanticamente inválida) e 500 (falha inesperada).
 - Nunca retorne stack trace, credenciais ou detalhes internos. Nunca esconda uma falha retornando sucesso vazio.
+- **Hierarquia única** em `backend/src/app/nucleo/erros.py` ([DTEC 018](../research.md#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções)): `ErroAplicacao(codigo, mensagem, status, campos)` e as subclasses `RequisicaoMalformada` (400), `NaoAutenticado` (401), `AcessoNegado` (403), `RecursoNaoEncontrado` (404), `Conflito` (409), `EntradaInvalida` (422) e `LimiteExcedido` (429, com `Retry-After`).
+- **Quem lança o quê:** domínio e serviços lançam só essas exceções. O repositório converte os erros do banco (ex.: violação de unicidade) em `Conflito`. Os handlers centrais convertem `ErroAplicacao`, erros de validação do Pydantic e exceções inesperadas (500, com a pilha só no log) no corpo padrão.
+- **Códigos estáveis:** o `codigo` é estável e em snake_case (ex.: `email_em_uso`). As specs acrescentam códigos, mas não renomeiam nem removem os existentes.
+- **Sem `except` vazio:** toda exceção capturada é convertida ou registrada e relançada.
+- **JSON em camelCase** (`idRequisicao`, `metaDiaria`); o Python continua em snake_case, e a conversão fica nos DTOs.
 
 ## IA: geração e chat
 
