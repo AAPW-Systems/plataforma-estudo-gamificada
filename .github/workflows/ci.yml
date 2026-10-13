@@ -1,0 +1,68 @@
+# Integração contínua (DTEC 017; plano da 001, "Integração contínua e qualidade").
+# Tudo roda nas imagens dev, pelo Compose, como no ambiente local (DTEC 001).
+name: ci
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Preparar o .env do CI (valores efêmeros, nunca versionados)
+        run: |
+          cp .env.example .env
+          sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 16)|" .env
+          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -base64 48 | tr -d '\n')|" .env
+      - name: Construir a imagem dev
+        run: docker compose build api
+      - name: Subir o banco
+        run: docker compose up -d --wait db
+      - name: Formatação
+        run: docker compose run --rm --no-deps api uv run --frozen ruff format --check .
+      - name: Lint
+        run: docker compose run --rm --no-deps api uv run --frozen ruff check .
+      - name: Tipos
+        run: docker compose run --rm --no-deps api uv run --frozen mypy
+      - name: Testes (com migrações que sobem e descem)
+        run: docker compose run --rm --no-deps api uv run --frozen pytest --cov --cov-report=term
+      - name: Contrato OpenAPI atualizado
+        run: |
+          docker compose run --rm --no-deps api uv run --frozen python -m app.exportar_openapi
+          git diff --exit-code backend/openapi.json
+      - name: Imagem prod
+        run: docker build --target prod -t plataforma-api:prod backend
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Construir a imagem dev
+        run: docker compose build web
+      - name: Formatação
+        run: docker compose run --rm --no-deps web npm run format:check
+      - name: Lint
+        run: docker compose run --rm --no-deps web npm run lint
+      - name: Tipos
+        run: docker compose run --rm --no-deps web npm run typecheck
+      - name: Testes
+        run: docker compose run --rm --no-deps web npm run test:cobertura
+      - name: Tipos da API atualizados
+        run: |
+          docker compose run --rm --no-deps web npm run gerar:api
+          git diff --exit-code frontend/src/api/
+      - name: Imagem prod (inclui vite build)
+        run: docker build --target prod -t plataforma-web:prod frontend
