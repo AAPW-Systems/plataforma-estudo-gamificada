@@ -1,0 +1,571 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - cartões criados pelo estudante (spec 003)
+  version: 0.1.0
+  description: |
+    Contrato da spec 003-cartoes-manuais. É a referência de projeto: o OpenAPI gerado pela
+    aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de resposta e
+    esquemas daqui, e um teste de contrato verifica isso.
+
+    Convenções herdadas das specs 001 e 002 (não redefinidas aqui):
+    - Frontend e API na mesma origem; API sob `/api/v1`; JSON em camelCase; instantes em
+      ISO 8601 UTC.
+    - Sessão no cookie `__Host-sessao`; toda requisição POST, PATCH, PUT ou DELETE exige
+      `X-CSRF-Token` (double submit assinado, DTEC 023), `Origin` permitida e
+      `Sec-Fetch-Site: same-origin`.
+    - Erros sempre no esquema `Erro`; o enum `codigo` é cumulativo. Sem sessão válida,
+      `401 nao_autenticado`.
+
+    Regras desta spec:
+    - Toda rota opera só sobre recursos do estudante da sessão. Um `{materiaId}` ou
+      `{cartaoId}` de outro estudante, inexistente, ou de um cartão aguardando revisão ou
+      recusado (spec 004) responde `404 recurso_nao_encontrado`, com corpo idêntico
+      (RQ-002, DTEC 019, DTEC 038).
+    - Frente, verso e explicação são texto puro com quebras de linha (D-003). O servidor
+      normaliza (NFC, quebras de linha `\n`, sem caracteres de controle, sem espaços nas
+      extremidades) e conta os caracteres em code points depois disso (DTEC 036).
+    - Os limites de texto são configuráveis por ambiente (D-004) e vêm de
+      `GET /api/v1/cartoes/limites`. Os `maxLength` dos esquemas são só tetos absolutos.
+    - A listagem é paginada por cursor opaco (DTEC 034).
+    - Nenhuma rota desta spec expõe ou altera o estado de agendamento do FSRS (RF-005, RN-26).
+    - Listagens e consultas têm `Cache-Control: no-store`.
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: cartoes
+    description: Criação, listagem, busca, edição, suspensão, reativação e exclusão de cartões (US1 a US4)
+paths:
+  /api/v1/cartoes/limites:
+    get:
+      tags: [cartoes]
+      operationId: consultarLimitesCartao
+      summary: Limites de texto vigentes no ambiente (RF-001, D-004)
+      responses:
+        '200':
+          description: Limites vigentes
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitesCartao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /api/v1/materias/{materiaId}/cartoes:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    get:
+      tags: [cartoes]
+      operationId: listarCartoes
+      summary: Lista, busca e filtra os cartões ativos e suspensos da matéria (RF-004, RF-010)
+      description: |
+        Do mais recente para o mais antigo (`criadoEm` desc, desempate interno). Os filtros
+        se combinam (E lógico). `total` conta todos os cartões que atendem aos filtros, não
+        só os da página: com filtros e `total = 0`, a interface mostra "nenhum cartão
+        corresponde à busca"; sem filtros e `total = 0`, mostra o estado de matéria sem
+        cartões (US4 cenário 3).
+      parameters:
+        - name: busca
+          in: query
+          required: false
+          description: |
+            Texto procurado na frente ou no verso, sem diferenciar maiúsculas, minúsculas e
+            acentos (DTEC 033). Normalizado em NFC e sem espaços nas extremidades; `%` e `_`
+            são literais. Vazio depois da normalização equivale a ausente.
+          schema:
+            type: string
+            maxLength: 100
+        - name: situacao
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SituacaoCartao'
+        - name: origem
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OrigemCartao'
+        - name: cursor
+          in: query
+          required: false
+          description: '`proximoCursor` da página anterior, com os mesmos filtros'
+          schema:
+            type: string
+            maxLength: 512
+        - name: limite
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Página de cartões
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaCartoes'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: Parâmetro inválido (`dados_invalidos`) ou cursor malformado ou de outros filtros (`cursor_invalido`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+    post:
+      tags: [cartoes]
+      operationId: criarCartao
+      summary: Cria um cartão manual na matéria (US1, RF-001 a RF-003)
+      description: |
+        O cartão nasce ativo, com a origem "Criado por você", como cartão novo do FSRS, e
+        entra entre os novos na ordem de criação (RF-003). Com `fonteId`, copia o título, o
+        nome do arquivo e a data do envio da fonte, sem selo de verificado (RF-002, DTEC 035).
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriacaoCartaoEntrada'
+      responses:
+        '201':
+          description: Cartão criado
+          headers:
+            Location:
+              description: '`/api/v1/cartoes/{cartaoId}`'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/cartoes/{cartaoId}:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    get:
+      tags: [cartoes]
+      operationId: consultarCartao
+      summary: Dados de um cartão ativo ou suspenso
+      responses:
+        '200':
+          description: Cartão
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+    patch:
+      tags: [cartoes]
+      operationId: editarCartao
+      summary: Edita frente, verso ou explicação (US2, RF-005, RF-006)
+      description: |
+        Campos ausentes não mudam; `explicacao` nula ou vazia remove a explicação. Sem
+        mudança efetiva depois da normalização, nada é gravado e a origem não muda (US2
+        cenário 3). Com mudança, um cartão "Gerado e verificado" passa a "Editado por você"
+        (RF-006). O estado de agendamento nunca muda (RF-005). Vale a última gravação.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdicaoCartaoEntrada'
+      responses:
+        '200':
+          description: Cartão depois da edição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+    delete:
+      tags: [cartoes]
+      operationId: excluirCartao
+      summary: Exclui o cartão definitivamente (US3 cenário 3, RF-008)
+      description: |
+        A confirmação é feita na interface, num diálogo que avisa que a exclusão é
+        definitiva. As revisões e o XP já registrados permanecem (specs 005 e 006). Um
+        segundo pedido responde `404`.
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '204':
+          description: Cartão excluído
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/cartoes/{cartaoId}/suspensao:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    post:
+      tags: [cartoes]
+      operationId: suspenderCartao
+      summary: Tira o cartão das lições, preservando o agendamento (US3 cenário 1, RF-007)
+      description: Idempotente; num cartão já suspenso, responde `200` sem alterar nada.
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '200':
+          description: Cartão suspenso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/cartoes/{cartaoId}/reativacao:
+    parameters:
+      - $ref: '#/components/parameters/CartaoId'
+    post:
+      tags: [cartoes]
+      operationId: reativarCartao
+      summary: Devolve o cartão às lições com o vencimento anterior (US3 cenário 2, RF-007)
+      description: Idempotente; num cartão já ativo, responde `200` sem alterar nada.
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '200':
+          description: Cartão ativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cartao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax (spec 001)
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Mesmo valor do cookie __Host-csrf (double submit assinado, DTEC 023)
+  parameters:
+    MateriaId:
+      name: materiaId
+      in: path
+      required: true
+      description: '`public_id` da matéria'
+      schema:
+        type: string
+        format: uuid
+    CartaoId:
+      name: cartaoId
+      in: path
+      required: true
+      description: '`public_id` do cartão'
+      schema:
+        type: string
+        format: uuid
+  headers:
+    SemCache:
+      description: '`no-store`; os dados mudam com edições em outras abas'
+      schema:
+        type: string
+        const: no-store
+  responses:
+    RequisicaoMalformada:
+      description: Corpo que não é JSON válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    DadosInvalidos:
+      description: Um ou mais campos fora das regras; os erros vêm por campo e nada é alterado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            limite:
+              summary: Frente acima do limite vigente
+              value:
+                codigo: dados_invalidos
+                mensagem: Alguns campos precisam de correção.
+                campos:
+                  - campo: frente
+                    mensagem: Use de 1 a 1.000 caracteres.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+            fonte:
+              summary: Fonte de referência inexistente, de outra matéria ou de outro estudante
+              value:
+                codigo: dados_invalidos
+                mensagem: Alguns campos precisam de correção.
+                campos:
+                  - campo: fonteId
+                    mensagem: Escolha uma fonte desta matéria.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    NaoAutenticado:
+      description: Sem sessão válida; os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ProtecaoCsrf:
+      description: Token anti-CSRF ausente ou inválido (`csrf_invalido`) ou origem não permitida (`origem_nao_permitida`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Recurso inexistente, de outro estudante ou fora das situações visíveis, com corpo idêntico (DTEC 019)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: recurso_nao_encontrado
+            mensagem: Não encontramos o que você procurava.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  schemas:
+    OrigemCartao:
+      type: string
+      enum: [gerado_verificado, editado, criado]
+      description: '"Gerado e verificado", "Editado por você" ou "Criado por você" (RF-009)'
+    SituacaoCartao:
+      type: string
+      enum: [ativo, suspenso]
+      description: Situações visíveis nesta spec; aguardando revisão e recusado são da spec 004
+    CriacaoCartaoEntrada:
+      type: object
+      additionalProperties: false
+      required: [frente, verso]
+      properties:
+        frente:
+          type: string
+          maxLength: 4000
+          description: 1 a `frenteMax` caracteres depois da normalização; o teto absoluto é 4.000
+        verso:
+          type: string
+          maxLength: 8000
+          description: 1 a `versoMax` caracteres depois da normalização; o teto absoluto é 8.000
+        explicacao:
+          type: [string, 'null']
+          maxLength: 4000
+          description: Opcional; até `explicacaoMax` caracteres; vazia equivale a ausente
+        fonteId:
+          type: [string, 'null']
+          format: uuid
+          description: Fonte da mesma matéria, em qualquer estado, citada como referência (RF-002)
+    EdicaoCartaoEntrada:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        frente:
+          type: string
+          maxLength: 4000
+        verso:
+          type: string
+          maxLength: 8000
+        explicacao:
+          type: [string, 'null']
+          maxLength: 4000
+          description: '`null` ou vazia remove a explicação'
+    ReferenciaFonte:
+      type: object
+      description: Descrição da origem copiada na criação; não muda com a renomeação nem com a exclusão da fonte (RN-05)
+      required: [fonteId, titulo, nomeArquivo, enviadaEm, fonteApagada]
+      properties:
+        fonteId:
+          type: [string, 'null']
+          format: uuid
+          description: Nulo depois que a fonte foi excluída
+        titulo:
+          type: string
+        nomeArquivo:
+          type: string
+        enviadaEm:
+          type: string
+          format: date-time
+        fonteApagada:
+          type: boolean
+          description: Exibe "Fonte apagada" junto da descrição (RF-009, D-006)
+    Cartao:
+      type: object
+      required: [id, materiaId, frente, verso, explicacao, origem, verificado, situacao, referencia, criadoEm, atualizadoEm]
+      properties:
+        id:
+          type: string
+          format: uuid
+        materiaId:
+          type: string
+          format: uuid
+        frente:
+          type: string
+          description: Texto puro; quebras de linha como `\n`; exibido sempre como texto (RQ-001)
+        verso:
+          type: string
+        explicacao:
+          type: [string, 'null']
+        origem:
+          $ref: '#/components/schemas/OrigemCartao'
+        verificado:
+          type: boolean
+          description: Verdadeiro só com origem `gerado_verificado`; nunca em cartão criado pelo estudante (D-002)
+        situacao:
+          $ref: '#/components/schemas/SituacaoCartao'
+        referencia:
+          description: Só em cartões criados pelo estudante que citam uma fonte; a evidência dos gerados é da spec 004
+          oneOf:
+            - $ref: '#/components/schemas/ReferenciaFonte'
+            - type: 'null'
+        criadoEm:
+          type: string
+          format: date-time
+        atualizadoEm:
+          type: string
+          format: date-time
+    ListaCartoes:
+      type: object
+      required: [itens, proximoCursor, total]
+      properties:
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cartao'
+        proximoCursor:
+          type: [string, 'null']
+          description: Nulo na última página (DTEC 034)
+        total:
+          type: integer
+          minimum: 0
+          description: Cartões que atendem aos filtros, em todas as páginas
+    LimitesCartao:
+      type: object
+      required: [frenteMax, versoMax, explicacaoMax, buscaMax]
+      properties:
+        frenteMax:
+          type: integer
+          minimum: 1
+          maximum: 4000
+          example: 1000
+        versoMax:
+          type: integer
+          minimum: 1
+          maximum: 8000
+          example: 2000
+        explicacaoMax:
+          type: integer
+          minimum: 1
+          maximum: 4000
+          example: 1000
+        buscaMax:
+          type: integer
+          const: 100
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            # spec 001
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+            # spec 002
+            - materia_nome_em_uso
+            - cota_materias_excedida
+            - cota_fontes_excedida
+            - cota_armazenamento_excedida
+            - fonte_duplicada
+            - arquivo_muito_grande
+            - formato_nao_aceito
+            - tipo_divergente
+            - arquivo_vazio
+            - arquivo_corrompido
+            - pdf_protegido
+            - pdf_paginas_excedidas
+            - codificacao_invalida
+            - confirmacao_invalida
+            - impacto_alterado
+            - reprocessamento_indisponivel
+            # spec 003
+            - cursor_invalido
+          description: Estável e legível por máquina; as specs acrescentam códigos, sem renomear nem remover
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+security:
+  - sessao: []
