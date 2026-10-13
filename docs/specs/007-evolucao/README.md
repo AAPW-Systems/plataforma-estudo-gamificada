@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-12 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Plano aprovado |
+| Status | Tarefas aprovadas |
 | Depende de | [005](../005-licao-trilha/README.md), [006](../006-xp-meta-sequencia/README.md) |
 
 ## Ordem de leitura
@@ -19,8 +19,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da rota `GET /api/v1/evolucao`.
 7. [`quickstart.md`](quickstart.md): validação local e demonstração.
 
-8. [`tasks.md`](tasks.md): T001 a T026, por história. Em revisão (portão "Tarefas aprovadas").
-9. [`traceability.md`](traceability.md): matriz requisito, teste e tarefa, com a análise de consistência. Em revisão.
+8. [`tasks.md`](tasks.md): T001 a T026, por história. Aprovadas em 13/10/2026 por Artur Lins.
+9. [`traceability.md`](traceability.md): matriz requisito, teste e tarefa, com a análise de consistência. Aprovada em 13/10/2026 por Artur Lins.
 
 ## Histórico
 
@@ -33,3 +33,4 @@
 | 13/10/2026 | Plano, pesquisa (DTEC 064 a 067), modelo de dados, contrato e quickstart escritos para revisão ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 064 a 067; esclarecimento da T036 da 006 e contexto técnico atualizados ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
 | 13/10/2026 | Tarefas (T001 a T026) e rastreabilidade com análise de consistência escritas para revisão ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
+| 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; documentação do MVP completa ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |

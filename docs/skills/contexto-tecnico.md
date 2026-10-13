@@ -21,9 +21,9 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
 | [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
 | [006](../specs/006-xp-meta-sequencia/plan.md) XP, meta e sequência | Tarefas aprovadas | `0007_gamificacao` | `gamificacao`; `nucleo/disponibilidade.py`; provedor em `revisao/disponibilidade.py` |
-| [007](../specs/007-evolucao/plan.md) evolução mínima | Plano aprovado | nenhuma (leitura sobre índices existentes, DTEC 066) | `evolucao` (sem persistência); `transacao_leitura_consistente` em `nucleo/banco.py` |
+| [007](../specs/007-evolucao/plan.md) evolução mínima | Tarefas aprovadas | nenhuma (leitura sobre índices existentes, DTEC 066) | `evolucao` (sem persistência); `transacao_leitura_consistente` em `nucleo/banco.py` |
 
-A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). Nenhum código foi implementado ainda: a decisão de 13/10/2026 é documentar todas as specs do MVP antes de implementar.
+A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). Nenhum código foi implementado ainda. A documentação das specs do MVP (001 a 007) ficou completa em 13/10/2026, e a implementação está liberada.
 
 ## Convenções da API
 

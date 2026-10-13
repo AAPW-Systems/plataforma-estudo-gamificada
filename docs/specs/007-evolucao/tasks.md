@@ -3,7 +3,7 @@
 **Funcionalidade:** 007-evolucao (evolução mínima)  
 **Entrada:** [spec](spec.md), [plano](plan.md) (aprovado em 13/10/2026), [pesquisa](research.md), [modelo de dados](data-model.md), [contrato](contracts/openapi.yaml) e [quickstart](quickstart.md)  
 **Formato:** `[ID] [P?] [US?] ação com caminho exato e resultado verificável`  
-**Status:** em revisão (portão "Tarefas aprovadas"), junto com a [rastreabilidade](traceability.md)
+**Status:** aprovadas em 13/10/2026 por Artur Lins (equipe), junto com a [rastreabilidade](traceability.md)
 
 - `[P]` indica que a tarefa pode ser executada em paralelo, porque não altera os mesmos arquivos nem depende de outra tarefa pendente.
 - `[US1]` relaciona a tarefa à história de usuário única da spec.
