@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 002-materias-fontes (matérias, envio e processamento de fontes)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md))  
-**Status:** DTEC 028 a 032 propostas com o plano; aguardam o portão "Plano aprovado"
+**Status:** DTEC 028 a 032 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra apenas as dúvidas técnicas **novas** da spec 002. Não são reabertas as decisões já tomadas em [`../../research.md`](../../research.md): fila (DTEC 006), extração com PyMuPDF (DTEC 009), armazenamento (DTEC 010), camadas (DTEC 018). Também valem as DTEC transversais propostas neste planejamento: isolamento do processamento de arquivos (DTEC 024), consistência entre armazenamento e banco (DTEC 025), acompanhamento na interface (DTEC 026) e participantes da exclusão (DTEC 027). Da [spec 001](../001-conta-acesso/research.md) valem o isolamento (DTEC 019) e as chaves por usuário (DTEC 021). A numeração das DTEC é única no projeto.
 

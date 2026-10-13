@@ -4,7 +4,7 @@
 **Spec:** [spec.md](spec.md), aprovada em 12/10/2026  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md))  
 **Responsáveis:** Artur Lins (decisões técnicas); equipe na revisão  
-**Status:** em revisão; aguarda o portão "Plano aprovado"
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 024 a 032
 
 Este plano **reaproveita sem redefinir** a estrutura base do repositório, as camadas do backend, a hierarquia de erros, o formato de erro, o camelCase, o prefixo `/api/v1`, a sessão e o CSRF definidos no [plano da spec 001](../001-conta-acesso/plan.md) e nas DTEC 015 a 018. Aqui estão só o que a 002 acrescenta.
 

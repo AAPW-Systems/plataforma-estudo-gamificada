@@ -29,10 +29,10 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 016](#decisão-dtec-016-primitivas-acessíveis-da-interface) | Primitivas acessíveis da interface | Aprovada em 12/10/2026 com o plano da 001 |
 | [DTEC 017](#decisão-dtec-017-integração-contínua-e-verificação-local) | Integração contínua e verificação local | Aprovada em 12/10/2026 com o plano da 001 |
 | [DTEC 018](#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções) | Camadas do backend: DTO, mapper, repositório e exceções | Aprovada em 12/10/2026 com o plano da 001 |
-| [DTEC 024](#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis) | Execução isolada do processamento de arquivos não confiáveis | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
-| [DTEC 025](#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco) | Consistência entre o armazenamento de objetos e o banco | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
-| [DTEC 026](#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface) | Acompanhamento de processamentos assíncronos na interface | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
-| [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
+| [DTEC 024](#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis) | Execução isolada do processamento de arquivos não confiáveis | Aprovada em 13/10/2026 com o plano da 002 |
+| [DTEC 025](#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco) | Consistência entre o armazenamento de objetos e o banco | Aprovada em 13/10/2026 com o plano da 002 |
+| [DTEC 026](#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface) | Acompanhamento de processamentos assíncronos na interface | Aprovada em 13/10/2026 com o plano da 002 |
+| [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Aprovada em 13/10/2026 com o plano da 002 |
 
 A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), e as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
