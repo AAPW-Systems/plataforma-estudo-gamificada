@@ -14,6 +14,7 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
 
 - **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Esquema inicial do banco escrito em 12/10/2026 (`docs/arquitetura/esquema-inicial.dbml`, QA-21, [registro](../docs/prompts/2026-10-12-esquema-inicial-banco.md)). Próximo passo: specs das funcionalidades do MVP conforme as guidelines.
 - **Produto:** visão v0.3 em `docs/produto/visao.md`; recorte por estágio em `docs/produto/backlog.md`; regras globais (RN, RF, HU, CB) em `docs/base-specs/spec.md`. O novo recorte do MVP e as exigências EX-01 e EX-05 estão na pauta com o PO (`docs/produto/pauta-po.md`).
+- **FSRS soberano (12/10/2026):** o agendamento é calculado só pela biblioteca `fsrs`; lição, meta, XP e sequência se adaptam a ele (RN-26 em `docs/base-specs/spec.md`).
 - **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
 - **Exigências do PO:** `docs/produto/exigencias_po.md`. EX-01 a EX-05 estão no backlog; EX-01 e EX-05 aguardam resposta do PO.
 - **Stack:** **aprovada em 12/10/2026** em `docs/arquitetura/README.md` e nas DTEC 001 a 014 de `docs/research.md` (FastAPI, PostgreSQL com pgvector, Procrastinate, autenticação própria com sessão em cookie, React com TypeScript e Tailwind, PydanticAI, Gemini e Groq, bge-m3 na Cloudflare no final acadêmico, pytest).
