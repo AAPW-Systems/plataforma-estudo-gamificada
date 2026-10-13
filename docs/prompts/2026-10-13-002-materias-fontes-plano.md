@@ -86,6 +86,12 @@ revisado, caso tenha terminado, me passe o prompt do spec seguinte
 
 O agente tratou "revisado" como a aprovação do plano (portão "Plano aprovado"). Em seguida, escreveu as tarefas e a rastreabilidade (etapas 6 e 7), parou no portão "Tarefas aprovadas" e entregou o prompt da spec 003.
 
+### Prompt 3
+
+```text
+aprovo as tarefas da 002
+```
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -109,7 +115,7 @@ O agente tratou "revisado" como a aprovação do plano (portão "Plano aprovado"
 ## Alterações humanas
 
 - Plano aprovado por Artur Lins em 13/10/2026 sem alterações (prompt 2), com as DTEC 024 a 032.
-- Tarefas e rastreabilidade: pendentes do portão "Tarefas aprovadas".
+- Tarefas e rastreabilidade aprovadas por Artur Lins em 13/10/2026 sem alterações (prompt 3).
 
 ## Verificação
 
@@ -123,6 +129,5 @@ O agente tratou "revisado" como a aprovação do plano (portão "Plano aprovado"
 
 ## Pendências
 
-- Portão "Tarefas aprovadas" da 002 (tarefas e rastreabilidade).
 - Plano da 003 em nova sessão (prompt entregue ao usuário na resposta ao prompt 2). Ponto em aberto para o plano da 003: o esquema não tem onde guardar a fonte de referência de um cartão manual (`cartoes` não tem coluna de fonte, e `evidencias_cartoes` liga a trechos).
 - Obrigações registradas para as próximas specs: 003 (participante dos cartões criados à mão), 004 (participante dos cartões gerados e das gerações, `FOR SHARE` na fonte ao publicar) e 014 (participante dos índices e citações).
