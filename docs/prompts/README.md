@@ -73,3 +73,4 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 | 2026-10-12 | [Plano da spec 001 e estrutura base do repositório](2026-10-12-001-conta-acesso-plano.md) | Planejar | Artur Lins |
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 002](2026-10-13-002-materias-fontes-plano.md) | Planejar | Artur Lins |
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 003](2026-10-13-003-cartoes-manuais-plano.md) | Planejar | Artur Lins |
+| 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 004](2026-10-13-004-geracao-cartoes-plano.md) | Planejar | Artur Lins |
