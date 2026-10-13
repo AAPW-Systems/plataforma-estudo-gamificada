@@ -63,11 +63,14 @@ jobs:
         run: docker compose run --rm --no-deps web npm run lint
       - name: Tipos
         run: docker compose run --rm --no-deps web npm run typecheck
+      # As etapas que gravam arquivos rodam como root: no CI o diretório montado pertence ao
+      # usuário do runner (uid 1001), e o usuário node do contêiner (uid 1000) não consegue
+      # criar coverage/ nem sobrescrever src/api/.
       - name: Testes
-        run: docker compose run --rm --no-deps web npm run test:cobertura
+        run: docker compose run --rm --no-deps --user root web npm run test:cobertura
       - name: Tipos da API atualizados
         run: |
-          docker compose run --rm --no-deps web npm run gerar:api
+          docker compose run --rm --no-deps --user root web npm run gerar:api
           git diff --exit-code frontend/src/api/
       - name: Imagem prod (inclui vite build)
         run: docker build --target prod -t plataforma-web:prod frontend
