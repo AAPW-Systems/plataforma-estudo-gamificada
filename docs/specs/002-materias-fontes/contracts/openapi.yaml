@@ -1,0 +1,879 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - matérias e fontes (spec 002)
+  version: 0.1.0
+  description: |
+    Contrato da spec 002-materias-fontes. É a referência de projeto: o OpenAPI gerado pela
+    aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de resposta e
+    esquemas daqui, e um teste de contrato verifica isso.
+
+    Convenções herdadas da spec 001 (não redefinidas aqui):
+    - Frontend e API na mesma origem; API sob `/api/v1`; JSON em camelCase; instantes em
+      ISO 8601 UTC.
+    - Sessão no cookie `__Host-sessao`; toda requisição POST, PATCH, PUT ou DELETE exige
+      `X-CSRF-Token` (double submit assinado, DTEC 023), `Origin` permitida e
+      `Sec-Fetch-Site: same-origin`.
+    - Erros sempre no esquema `Erro`. Sem sessão válida, `401 nao_autenticado`.
+
+    Regras desta spec:
+    - Toda rota opera só sobre recursos do estudante da sessão. Um `{materiaId}` ou
+      `{fonteId}` de outro estudante responde `404 recurso_nao_encontrado`, com corpo
+      idêntico ao de um identificador inexistente (RQ-003, DTEC 019).
+    - Listagens e consultas de fonte têm `Cache-Control: no-store`, porque a interface
+      acompanha o estado do processamento por polling (DTEC 026).
+    - Limites estáticos (nome com até 60 caracteres, título com até 120) estão nos
+      esquemas. Limites configuráveis por ambiente (tamanho, páginas, cotas) vêm de
+      `GET /api/v1/acervo/uso` (RQ-005).
+    - Exclusões usam POST com corpo, como na spec 001, e exigem as contagens exibidas no
+      diálogo (`impactoConfirmado`); se mudaram, a resposta é `409 impacto_alterado`
+      (CS-004, DTEC 031).
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: materias
+    description: Matérias do estudante (US1, US3)
+  - name: fontes
+    description: Envio, processamento, consulta, renomeação e exclusão de fontes (US1, US2, US3)
+  - name: acervo
+    description: Limites vigentes e uso das cotas
+paths:
+  /api/v1/acervo/uso:
+    get:
+      tags: [acervo]
+      operationId: consultarUsoAcervo
+      summary: Limites vigentes e uso atual das cotas (RF-012, RQ-005)
+      responses:
+        '200':
+          description: Limites e uso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsoAcervo'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /api/v1/materias:
+    get:
+      tags: [materias]
+      operationId: listarMaterias
+      summary: Lista as matérias do estudante com as contagens (RF-001, RF-002)
+      description: Ordenadas por nome, sem diferenciar maiúsculas e minúsculas. Sem paginação, porque a cota é de 50 matérias.
+      responses:
+        '200':
+          description: Matérias do estudante
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaMaterias'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+    post:
+      tags: [materias]
+      operationId: criarMateria
+      summary: Cria uma matéria (US1 cenário 1, RF-001, RF-012)
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MateriaEntrada'
+      responses:
+        '201':
+          description: Matéria criada, vazia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Materia'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '409':
+          description: Nome já usado pelo estudante (`materia_nome_em_uso`) ou cota de matérias atingida (`cota_materias_excedida`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: materia_nome_em_uso
+                mensagem: Você já tem uma matéria com esse nome.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/materias/{materiaId}:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    get:
+      tags: [materias]
+      operationId: consultarMateria
+      summary: Consulta uma matéria com as contagens (RF-002)
+      responses:
+        '200':
+          description: Matéria
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Materia'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+    patch:
+      tags: [materias]
+      operationId: renomearMateria
+      summary: Renomeia uma matéria (US3 cenários 1 e 2, RF-001)
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MateriaEntrada'
+      responses:
+        '200':
+          description: Matéria renomeada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Materia'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: Nome já usado em outra matéria do estudante (`materia_nome_em_uso`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/materias/{materiaId}/impacto-exclusao:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    get:
+      tags: [materias]
+      operationId: consultarImpactoExclusaoMateria
+      summary: O que será apagado com a matéria (US3 cenário 3, RF-011)
+      responses:
+        '200':
+          description: Impacto atual
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpactoExclusaoMateria'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/materias/{materiaId}/exclusao:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    post:
+      tags: [materias]
+      operationId: excluirMateria
+      summary: Exclui a matéria em cascata, com confirmação pelo nome (US3 cenários 3 e 4, RF-011, D-002)
+      description: |
+        Apaga fontes (objetos antes das linhas), trechos, cartões e gerações da matéria numa
+        transação. Revisões, XP e sequência permanecem. Processamentos em andamento terminam
+        sem efeito (CB-16).
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExclusaoMateriaEntrada'
+      responses:
+        '204':
+          description: Matéria excluída
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          $ref: '#/components/responses/ImpactoAlterado'
+        '422':
+          description: Nome digitado não confere (`confirmacao_invalida`) ou corpo fora das regras (`dados_invalidos`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: confirmacao_invalida
+                mensagem: O nome digitado não confere com o nome da matéria.
+                campos:
+                  - campo: nomeConfirmacao
+                    mensagem: Digite o nome exatamente como aparece.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  /api/v1/materias/{materiaId}/fontes:
+    parameters:
+      - $ref: '#/components/parameters/MateriaId'
+    get:
+      tags: [fontes]
+      operationId: listarFontes
+      summary: Acervo da matéria (RF-009)
+      description: Da mais recente para a mais antiga. Sem paginação, porque a cota é de 30 fontes por matéria.
+      responses:
+        '200':
+          description: Fontes da matéria, com o estado de cada uma
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaFontes'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+    post:
+      tags: [fontes]
+      operationId: enviarFonte
+      summary: Envia uma fonte à matéria (US1 cenários 2, 4 e 7, RF-003, RF-004, RF-012, RF-014)
+      description: |
+        Um arquivo por envio: PDF com camada de texto, TXT ou Markdown (UTF-8), até o limite
+        de `UsoAcervo.tamanhoMaximoBytes`. A validação acontece antes de qualquer gravação
+        (DTEC 028); uma recusa não guarda nada. Aceita, a fonte nasce `pendente` e o
+        processamento é enfileirado na mesma transação.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EnvioFonteEntrada'
+            encoding:
+              arquivo:
+                contentType: application/pdf, text/plain, text/markdown, application/octet-stream
+      responses:
+        '201':
+          description: Fonte aceita, em `pendente`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fonte'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: |
+            Conteúdo idêntico já está na matéria (`fonte_duplicada`, com o título da fonte
+            existente na mensagem, D-004) ou cota atingida (`cota_fontes_excedida`,
+            `cota_armazenamento_excedida`, D-003, D-010)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: fonte_duplicada
+                mensagem: "Esta fonte já está nesta matéria: «Citologia»."
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '413':
+          description: Arquivo acima do tamanho máximo (`arquivo_muito_grande`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: arquivo_muito_grande
+                mensagem: O arquivo tem mais de 2 MB. Envie um arquivo menor.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '422':
+          description: |
+            Arquivo recusado com explicação específica: `formato_nao_aceito`,
+            `tipo_divergente`, `arquivo_vazio`, `arquivo_corrompido`, `pdf_protegido`,
+            `pdf_paginas_excedidas`, `codificacao_invalida`; ou `dados_invalidos` (título fora
+            dos limites, nenhum ou mais de um arquivo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: tipo_divergente
+                mensagem: O conteúdo deste arquivo não corresponde à extensão .pdf.
+                campos:
+                  - campo: arquivo
+                    mensagem: O conteúdo deste arquivo não corresponde à extensão .pdf.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  /api/v1/fontes/{fonteId}:
+    parameters:
+      - $ref: '#/components/parameters/FonteId'
+    get:
+      tags: [fontes]
+      operationId: consultarFonte
+      summary: Dados de uma fonte (US1 cenário 3, RF-009)
+      responses:
+        '200':
+          description: Fonte
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fonte'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+    patch:
+      tags: [fontes]
+      operationId: renomearFonte
+      summary: Renomeia o título da fonte (US3 cenário 5, RF-015, D-005)
+      description: A descrição da origem já copiada nos cartões não muda.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenomeacaoFonteEntrada'
+      responses:
+        '200':
+          description: Fonte renomeada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fonte'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/fontes/{fonteId}/reprocessamento:
+    parameters:
+      - $ref: '#/components/parameters/FonteId'
+    post:
+      tags: [fontes]
+      operationId: reprocessarFonte
+      summary: Nova tentativa após falha técnica (US1 cenário 6, RF-007, RF-008)
+      description: |
+        Só para fontes `falhou` com `codigoFalha = falha_tecnica`. A fonte volta a `pendente`
+        e o processamento é reenfileirado; um pedido repetido enquanto o job já está na fila
+        não cria outro (DTEC 030).
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '202':
+          description: Nova tentativa enfileirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fonte'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: A fonte não está em falha técnica (`reprocessamento_indisponivel`), por exemplo um PDF sem texto (CB-23)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/fontes/{fonteId}/impacto-exclusao:
+    parameters:
+      - $ref: '#/components/parameters/FonteId'
+    get:
+      tags: [fontes]
+      operationId: consultarImpactoExclusaoFonte
+      summary: O que a exclusão da fonte afeta (US2 cenários 1 e 5, RF-010)
+      responses:
+        '200':
+          description: Impacto atual
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpactoExclusaoFonte'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/fontes/{fonteId}/exclusao:
+    parameters:
+      - $ref: '#/components/parameters/FonteId'
+    post:
+      tags: [fontes]
+      operationId: excluirFonte
+      summary: Exclui a fonte definitivamente, com a escolha sobre os cartões (US2, RF-010, RF-013, RN-14)
+      description: |
+        Apaga o arquivo (antes das linhas) e os trechos; aplica `modoCartoes` aos cartões
+        gerados e aceitos da fonte; apaga sempre os aguardando revisão; mantém sempre os
+        criados pelo estudante que só a citam (D-009). Revisões, XP e sequência permanecem.
+        Um processamento em andamento termina sem deixar trechos (CB-16).
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExclusaoFonteEntrada'
+      responses:
+        '204':
+          description: Fonte excluída
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          $ref: '#/components/responses/ImpactoAlterado'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax (spec 001)
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Mesmo valor do cookie __Host-csrf (double submit assinado, DTEC 023)
+  parameters:
+    MateriaId:
+      name: materiaId
+      in: path
+      required: true
+      description: '`public_id` da matéria'
+      schema:
+        type: string
+        format: uuid
+    FonteId:
+      name: fonteId
+      in: path
+      required: true
+      description: '`public_id` da fonte'
+      schema:
+        type: string
+        format: uuid
+  headers:
+    SemCache:
+      description: '`no-store`; a interface acompanha o estado por polling (DTEC 026)'
+      schema:
+        type: string
+        const: no-store
+  responses:
+    RequisicaoMalformada:
+      description: Corpo que não é JSON (ou multipart) válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    DadosInvalidos:
+      description: Um ou mais campos fora das regras; os erros vêm por campo e nada é alterado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: dados_invalidos
+            mensagem: Alguns campos precisam de correção.
+            campos:
+              - campo: nome
+                mensagem: Use de 1 a 60 caracteres.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    NaoAutenticado:
+      description: Sem sessão válida; os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ProtecaoCsrf:
+      description: Token anti-CSRF ausente ou inválido (`csrf_invalido`) ou origem não permitida (`origem_nao_permitida`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Recurso inexistente ou de outro estudante, com corpo idêntico nos dois casos (DTEC 019)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: recurso_nao_encontrado
+            mensagem: Não encontramos o que você procurava.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    ImpactoAlterado:
+      description: |
+        As contagens mudaram desde que o diálogo foi aberto (`impacto_alterado`). Nada foi
+        apagado; a interface consulta o impacto de novo e pede nova confirmação (DTEC 031).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: impacto_alterado
+            mensagem: O conteúdo mudou desde que você abriu esta confirmação. Confira os números atualizados.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  schemas:
+    MateriaEntrada:
+      type: object
+      additionalProperties: false
+      required: [nome]
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 60
+          description: NFC e sem espaços nas extremidades depois da normalização; único por estudante sem diferenciar maiúsculas e minúsculas
+    Materia:
+      type: object
+      required: [id, nome, totalFontes, cartoesAtivos, cartoesAguardandoRevisao, criadoEm, atualizadoEm]
+      properties:
+        id:
+          type: string
+          format: uuid
+        nome:
+          type: string
+          example: Biologia
+        totalFontes:
+          type: integer
+          minimum: 0
+        cartoesAtivos:
+          type: integer
+          minimum: 0
+          description: Zero até a spec 003 (participantes da exclusão, DTEC 027)
+        cartoesAguardandoRevisao:
+          type: integer
+          minimum: 0
+          description: Zero até a spec 004
+        criadoEm:
+          type: string
+          format: date-time
+        atualizadoEm:
+          type: string
+          format: date-time
+    ListaMaterias:
+      type: object
+      required: [itens]
+      properties:
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Materia'
+    ImpactoExclusaoMateria:
+      type: object
+      required: [nome, contagens]
+      properties:
+        nome:
+          type: string
+          description: Nome que o estudante deve digitar para confirmar
+        contagens:
+          $ref: '#/components/schemas/ContagensExclusaoMateria'
+    ContagensExclusaoMateria:
+      type: object
+      additionalProperties: false
+      required: [fontes, cartoesAtivos, cartoesAguardandoRevisao]
+      properties:
+        fontes:
+          type: integer
+          minimum: 0
+        cartoesAtivos:
+          type: integer
+          minimum: 0
+          description: Cartões ativos e suspensos da matéria, que serão apagados
+        cartoesAguardandoRevisao:
+          type: integer
+          minimum: 0
+    ExclusaoMateriaEntrada:
+      type: object
+      additionalProperties: false
+      required: [nomeConfirmacao, impactoConfirmado]
+      properties:
+        nomeConfirmacao:
+          type: string
+          minLength: 1
+          maxLength: 60
+          description: Comparado com o nome depois de NFC e sem espaços nas extremidades, diferenciando maiúsculas e minúsculas
+        impactoConfirmado:
+          $ref: '#/components/schemas/ContagensExclusaoMateria'
+    EnvioFonteEntrada:
+      type: object
+      required: [arquivo]
+      properties:
+        arquivo:
+          type: string
+          format: binary
+          description: Um único arquivo .pdf, .txt, .md ou .markdown; o nome é só exibido (RQ-001)
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Opcional; sem ele, o nome do arquivo sem a extensão, truncado em 120 caracteres (RF-003)
+    RenomeacaoFonteEntrada:
+      type: object
+      additionalProperties: false
+      required: [titulo]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 120
+    EstadoFonte:
+      type: string
+      enum: [pendente, processando, concluido, falhou]
+      description: '`pendente` e `processando` não são finais; a interface consulta de novo enquanto houver algum (DTEC 026)'
+    CodigoFalhaFonte:
+      type: string
+      enum: [falha_tecnica, sem_texto, conteudo_invalido]
+    Fonte:
+      type: object
+      required:
+        - id
+        - materiaId
+        - titulo
+        - nomeArquivo
+        - tipoMidia
+        - tamanhoBytes
+        - estado
+        - codigoFalha
+        - mensagemFalha
+        - podeTentarNovamente
+        - totalPaginas
+        - totalTrechos
+        - enviadaEm
+        - processadaEm
+      properties:
+        id:
+          type: string
+          format: uuid
+        materiaId:
+          type: string
+          format: uuid
+        titulo:
+          type: string
+          example: Citologia
+        nomeArquivo:
+          type: string
+          example: citologia-cap1.pdf
+          description: Nome enviado, já sem caminho e sem caracteres de controle; exibir sempre como texto
+        tipoMidia:
+          type: string
+          enum: [application/pdf, text/plain, text/markdown]
+        tamanhoBytes:
+          type: integer
+          minimum: 1
+        estado:
+          $ref: '#/components/schemas/EstadoFonte'
+        codigoFalha:
+          oneOf:
+            - $ref: '#/components/schemas/CodigoFalhaFonte'
+            - type: 'null'
+        mensagemFalha:
+          type: [string, 'null']
+          description: Explicação ao estudante, do catálogo da aplicação; nula fora de `falhou` (RF-007)
+        podeTentarNovamente:
+          type: boolean
+          description: Verdadeiro somente em `falhou` com `falha_tecnica`
+        totalPaginas:
+          type: [integer, 'null']
+          minimum: 1
+          description: Só em PDF
+        totalTrechos:
+          type: [integer, 'null']
+          minimum: 0
+          description: Só em `concluido`
+        enviadaEm:
+          type: string
+          format: date-time
+        processadaEm:
+          type: [string, 'null']
+          format: date-time
+    ListaFontes:
+      type: object
+      required: [itens]
+      properties:
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fonte'
+    ContagensExclusaoFonte:
+      type: object
+      additionalProperties: false
+      required: [cartoesGeradosAceitos, cartoesAguardandoRevisao, cartoesReferencia]
+      properties:
+        cartoesGeradosAceitos:
+          type: integer
+          minimum: 0
+          description: Cartões gerados da fonte e já aceitos; seguem a escolha `modoCartoes`
+        cartoesAguardandoRevisao:
+          type: integer
+          minimum: 0
+          description: Sempre apagados
+        cartoesReferencia:
+          type: integer
+          minimum: 0
+          description: Criados pelo estudante citando a fonte; sempre mantidos com "Fonte apagada" (D-009)
+    ImpactoExclusaoFonte:
+      type: object
+      required: [titulo, estado, contagens]
+      properties:
+        titulo:
+          type: string
+        estado:
+          $ref: '#/components/schemas/EstadoFonte'
+        contagens:
+          $ref: '#/components/schemas/ContagensExclusaoFonte'
+    ExclusaoFonteEntrada:
+      type: object
+      additionalProperties: false
+      required: [modoCartoes, impactoConfirmado]
+      properties:
+        modoCartoes:
+          type: string
+          enum: [manter, excluir]
+          description: '"Manter os cartões" ou "Excluir os cartões junto" (RN-14)'
+        impactoConfirmado:
+          $ref: '#/components/schemas/ContagensExclusaoFonte'
+    UsoAcervo:
+      type: object
+      required:
+        - tamanhoMaximoBytes
+        - extensoesAceitas
+        - paginasMaximasPdf
+        - cotaMaterias
+        - totalMaterias
+        - cotaFontesPorMateria
+        - cotaArmazenamentoBytes
+        - usoArmazenamentoBytes
+      properties:
+        tamanhoMaximoBytes:
+          type: integer
+          example: 2097152
+        extensoesAceitas:
+          type: array
+          items:
+            type: string
+          example: [.pdf, .txt, .md, .markdown]
+        paginasMaximasPdf:
+          type: integer
+          example: 500
+        cotaMaterias:
+          type: integer
+          example: 50
+        totalMaterias:
+          type: integer
+          minimum: 0
+        cotaFontesPorMateria:
+          type: integer
+          example: 30
+        cotaArmazenamentoBytes:
+          type: integer
+          example: 104857600
+        usoArmazenamentoBytes:
+          type: integer
+          minimum: 0
+          description: Soma dos tamanhos de todas as fontes do estudante, inclusive as com `falhou` (D-010)
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            # spec 001
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+            # spec 002
+            - materia_nome_em_uso
+            - cota_materias_excedida
+            - cota_fontes_excedida
+            - cota_armazenamento_excedida
+            - fonte_duplicada
+            - arquivo_muito_grande
+            - formato_nao_aceito
+            - tipo_divergente
+            - arquivo_vazio
+            - arquivo_corrompido
+            - pdf_protegido
+            - pdf_paginas_excedidas
+            - codificacao_invalida
+            - confirmacao_invalida
+            - impacto_alterado
+            - reprocessamento_indisponivel
+          description: Estável e legível por máquina; as specs acrescentam códigos, sem renomear nem remover
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+security:
+  - sessao: []
