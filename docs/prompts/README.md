@@ -79,3 +79,4 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 007](2026-10-13-007-evolucao-plano.md) | Planejar | Artur Lins |
 | 2026-10-13 | [Implementação da spec 001 e estrutura base](2026-10-13-001-conta-acesso-implementacao.md) | Implementar | Artur Lins |
 | 2026-10-13 | [Divisão da implementação do MVP](2026-10-13-divisao-implementacao-mvp.md) | Implementar | Artur Lins |
+| 2026-10-13 | [Continuação da implementação da spec 001 até S1](2026-10-13-001-conta-acesso-implementacao-2.md) | Implementar | A confirmar |

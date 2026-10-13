@@ -73,7 +73,7 @@
   - **Argon2:** perfil da RFC 9106, semáforo, `check_needs_rehash` e hash fictício.
 
   Implementar `app/nucleo/seguranca/sessoes.py`, `csrf.py` e `senhas.py`, além da verificação de CSRF, `Origin` e `Sec-Fetch-Site` nas requisições que alteram estado (DTEC 023).
-- [ ] T021 Criar as entidades e a migração da identidade:
+- [x] T021 Criar as entidades e a migração da identidade:
   - **Entidades:** `app/identidade/modelos.py` (Usuario, Sessao, TentativaAcesso) e `app/revisao/modelos.py` (ParametrosFsrs).
   - **Migração** `backend/migracoes/versions/0002_identidade.py`: enums, as quatro tabelas, os `CHECK` de D-001, os índices (inclusive `lower(email)`), PK `generated always as identity` e `public_id` com `gen_random_uuid()`.
 
