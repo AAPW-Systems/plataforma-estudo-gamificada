@@ -9,7 +9,7 @@
 - Implementação: qualquer pessoa da equipe pode assumir, e registra o nome abaixo antes da primeira tarefa.
   - **Responsável pela implementação:** *a definir no início da implementação*.
 
-**Status:** em revisão; aguarda o portão "Plano aprovado", com a DTEC 048 (transversal) e as DTEC 049 a 056
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com a DTEC 048 (transversal) e as DTEC 049 a 056
 
 Este plano **reaproveita sem redefinir** o que as specs anteriores já definiram (resumo em [`contexto-tecnico.md`](../../skills/contexto-tecnico.md)):
 

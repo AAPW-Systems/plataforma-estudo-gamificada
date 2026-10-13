@@ -2,7 +2,7 @@
 
 Resumo das decisões e convenções já aprovadas, para que um agente comece uma spec nova sem ler todos os planos e `research.md` anteriores. **Este guia não decide nada.** Ele aponta para a fonte, e em caso de divergência a fonte prevalece: a DTEC, o plano aprovado ou o esquema.
 
-**Atualizado em:** 13/10/2026, até o plano da spec 004 ([registro](../prompts/2026-10-13-004-geracao-cartoes-plano.md)).
+**Atualizado em:** 13/10/2026, até o plano da spec 005 ([registro](../prompts/2026-10-13-005-licao-trilha-plano.md)).
 
 ## Como usar
 
@@ -19,8 +19,9 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Tarefas aprovadas | `0003_acervo` | `materias`, `fontes` |
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Tarefas aprovadas | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
+| [005](../specs/005-licao-trilha/plan.md) lição e trilha | Plano aprovado | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
 
-A próxima migração é a `0006`. Nenhum código foi implementado ainda: a decisão de 13/10/2026 é documentar todas as specs do MVP antes de implementar.
+A próxima migração é a `0007`. Nenhum código foi implementado ainda: a decisão de 13/10/2026 é documentar todas as specs do MVP antes de implementar.
 
 ## Convenções da API
 
@@ -47,6 +48,7 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
 - **002:** `materia_nome_em_uso`, `cota_materias_excedida`, `cota_fontes_excedida`, `cota_armazenamento_excedida`, `fonte_duplicada`, `arquivo_muito_grande`, `formato_nao_aceito`, `tipo_divergente`, `arquivo_vazio`, `arquivo_corrompido`, `pdf_protegido`, `pdf_paginas_excedidas`, `codificacao_invalida`, `confirmacao_invalida`, `impacto_alterado`, `reprocessamento_indisponivel`.
 - **003:** `cursor_invalido`.
 - **004:** `ciencia_aviso_pendente`, `aviso_desatualizado`, `fonte_nao_concluida`, `idempotencia_divergente`, `sem_conteudo_novo`, `limite_geracoes_excedido`, `orcamento_ia_esgotado`, `cartao_ja_decidido`.
+- **005:** `sem_cartoes_disponiveis`, `licao_encerrada`, `revelacao_pendente`, `apresentacao_ja_avaliada`, `cartao_indisponivel`, `limite_novos_atingido` (todos `409`).
 
 ## Banco de dados
 
@@ -55,9 +57,9 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
   - PK `bigint generated always as identity`; `public_id uuid` com `gen_random_uuid()` só nas tabelas expostas em rotas.
   - Toda migração sobe e desce nos testes.
   - `ALTER TYPE ... ADD VALUE` vai num `autocommit_block`, antes de qualquer uso do valor novo.
-- **Instantes e dias:** `timestamptz` em UTC. O **dia de estudo** vira às 4h no fuso do estudante (`usuarios.fuso`, RN-15). É o mesmo cálculo do limite e do orçamento da 004.
-- **Dono:** FKs compostas `(materia_id, usuario_id)` e, para fonte, `(fonte_id, materia_id, usuario_id)` garantem o mesmo dono e a mesma matéria no banco.
-- **Exclusão:** física (RN-14). Quando uma spec cria FK para `cartoes`, `revisoes` ou `eventos_xp`, usa `on delete set null` para preservar o histórico (obrigação da 003).
+- **Instantes e dias:** `timestamptz` em UTC. O **dia de estudo** vira às 4h no fuso do estudante (`usuarios.fuso`, RN-15), calculado só por `nucleo/dia_estudo.py` (`dia_estudo`, `inicio_dia`, `proxima_virada`; DTEC 048), usado pela 004, pela 005 e pela 006. O SQL recebe os limites já calculados.
+- **Dono:** FKs compostas `(materia_id, usuario_id)` e, para fonte, `(fonte_id, materia_id, usuario_id)` garantem o mesmo dono e a mesma matéria no banco. Desde a 005, `cartoes` e `licoes` têm índice único `(id, usuario_id)` como alvo de FKs compostas.
+- **Exclusão:** física (RN-14). Quando uma spec cria FK de **histórico** para `cartoes`, `revisoes` ou `eventos_xp`, usa `on delete set null` para preservar o histórico (obrigação da 003); com FK composta, `ON DELETE SET NULL (coluna)`. Exceção registrada na 005: `licoes_cartoes` e `apresentacoes` (plano da sessão, não histórico) usam `cascade`.
 - **Extensões:** `unaccent` (003). `vector` só no final acadêmico.
 
 ## Backend
@@ -79,7 +81,8 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
 - **Sentido das dependências:**
   - `cartoes` → `fontes` → `materias`;
   - `cartoes/geracao` → `ia`;
-  - nenhum domínio importa `cartoes`;
+  - `revisao` → `cartoes` (`consultas.py` e `agendamento.py`), `materias` (`consultas.py`) e `identidade`;
+  - `materias`, `fontes` e `identidade` não importam `cartoes`, e nenhum domínio importa `revisao` (a 006 se liga pelo evento do núcleo);
   - `ia` não importa domínio de negócio.
 
   Os efeitos cruzados (contagens e exclusão) passam pelos registros do núcleo.
@@ -109,6 +112,14 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
   - **Situações:** `ativo`, `suspenso`, `aguardando_revisao` e `recusado`. Só `ativo` entra em lições.
   - **Ordem dos novos:** `entrada_estudo_em`.
   - **Selo de verificado:** derivado da origem e da fonte da geração.
+- **Lição e revisão (DTEC 049 a 056):**
+  - **Começar ou continuar:** `POST /licoes` sob *advisory lock* do estudante (espaço `licao`); uma lição aberta por estudante (índice parcial); a de dia anterior é encerrada só ali (D-005), e as leituras não escrevem.
+  - **Elegíveis:** `ativo` em `revisao` com `vencimento < proxima_virada`; em aprendizado ou reaprendizado já revisado só com `vencimento <= agora`; novos por `entrada_estudo_em`, dentro do limite contado pelas primeiras revisões do dia e reconferido na primeira revisão.
+  - **Apresentação:** o verso só sai pela revelação; a avaliação exige revelação, é idempotente pela chave do cliente e pela apresentação, e a ordem das travas é *advisory lock* → lição → apresentação → cartão.
+  - **FSRS:** só `revisao/agendador.py` revisa com a `fsrs`; semente por revisão (`revisoes.semente_fuzz`) com gerador por contexto no lugar de `fsrs.scheduler.random`, coberto por teste de contrato; a escrita das colunas do FSRS e de `dominado_em` fica só em `cartoes/agendamento.py`.
+  - **Revisões:** imutáveis, com estado antes e depois, versão dos parâmetros, semente, `versao_regras`, `primeira_do_dia` e `tornou_dominado`; publicam `RevisaoRegistrada` em `nucleo/eventos_revisao.py`, na mesma transação.
+  - **Dominado:** `LIMIAR_DOMINADO_DIAS = 21` em `revisao/regras.py` (versionado); `dominado_em` preenchido uma vez.
+  - **Trilha:** `numero` atribuído na conclusão; `GET /trilha` com cursor, estado do nó atual e próximo vencimento.
 
 ## Frontend
 
@@ -119,7 +130,8 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
   - React Aria Components encapsulado em `src/componentes/ui/` (DTEC 016);
   - Zod e React Hook Form.
 - **Texto do estudante:** sempre como texto puro (`pre-wrap`). `dangerouslySetInnerHTML` é proibido por lint (DTEC 036).
-- **Componentes já previstos:** `DialogoConfirmacao` (destrutivo), `ZonaArquivo`, `GrupoOpcoes`, `SeloEstado`, `CampoTextoLongo`, `SeloOrigem`, `PainelEvidencia` e `CitacaoDestacada`.
+- **Componentes já previstos:** `DialogoConfirmacao` (destrutivo), `ZonaArquivo`, `GrupoOpcoes`, `SeloEstado`, `CampoTextoLongo`, `SeloOrigem`, `PainelEvidencia`, `CitacaoDestacada` e `AtalhoTeclado`.
+- **Lição:** rota única `/licao`, que chama `POST /licoes` ao carregar; atalhos Espaço ou Enter (revelar), 1 a 4 (notas) e Enter depois da explicação; medida `transicao-cartao` com `performance.mark` (CS-004 da 005).
 - **Acessibilidade:** WCAG 2.2 AA, `vitest-axe` em todo componente, uso a partir de 320 px.
 
 ## Testes
@@ -196,19 +208,31 @@ A próxima migração é a `0006`. Nenhum código foi implementado ainda: a deci
 | 045 | Revisão dos gerados: transições, ordem e selo derivado | [004](../specs/004-geracao-cartoes/research.md#decisão-dtec-045-revisão-dos-cartões-gerados) |
 | 046 | Participante da geração, descartados e retenção | [004](../specs/004-geracao-cartoes/research.md#decisão-dtec-046-participante-da-exclusão-descartes-e-retenção) |
 | 047 | Instruções embutidas, contradições e conjunto de avaliação | [004](../specs/004-geracao-cartoes/research.md#decisão-dtec-047-instruções-embutidas-contradições-e-avaliação) |
+| 048 | Dia de estudo calculado num único ponto (`nucleo/dia_estudo.py`) | [research](../research.md#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) |
+| 049 | Lição com cartões previstos e apresentações; `cascade` justificado | [005](../specs/005-licao-trilha/research.md#decisão-dtec-049-modelo-da-lição-cartões-previstos-e-apresentações) |
+| 050 | "Começar ou continuar" com trava; encerramento do dia anterior só no `POST /licoes` | [005](../specs/005-licao-trilha/research.md#decisão-dtec-050-abertura-retomada-e-encerramento-da-lição) |
+| 051 | Elegibilidade pelo estado do FSRS; limite de novos reconferido na primeira revisão | [005](../specs/005-licao-trilha/research.md#decisão-dtec-051-elegibilidade-e-limite-de-novos-por-dia) |
+| 052 | Revelação no servidor, avaliação idempotente, duração medida no cliente | [005](../specs/005-licao-trilha/research.md#decisão-dtec-052-revelação-avaliação-idempotente-e-duração) |
+| 053 | Semente por revisão e gerador por contexto na `fsrs` | [005](../specs/005-licao-trilha/research.md#decisão-dtec-053-agendamento-reprodutível-com-a-biblioteca-fsrs) |
+| 054 | Próximo cartão (passo curto vencido primeiro), término e transição numa ida e volta | [005](../specs/005-licao-trilha/research.md#decisão-dtec-054-próximo-cartão-término-e-desempenho-da-transição) |
+| 055 | Dominado com regras versionadas; fatos e evento entregues à 006 | [005](../specs/005-licao-trilha/research.md#decisão-dtec-055-dominado-e-fatos-entregues-à-gamificação) |
+| 056 | Trilha: `numero` na conclusão, cursor, estado do nó atual e extras | [005](../specs/005-licao-trilha/research.md#decisão-dtec-056-trilha-numeração-dos-nós-e-lições-extras) |
 
-A próxima DTEC é a **048**.
+A próxima DTEC é a **057**.
 
 ## Obrigações pendentes entre specs
 
 | Para | Obrigação | Origem |
 |---|---|---|
-| 005 | Lição só com cartões existentes e `ativo` (aguardando revisão e recusados nunca entram); novos na ordem de `entrada_estudo_em` | Planos da [003](../specs/003-cartoes-manuais/plan.md#obrigações-registradas-para-as-próximas-specs) e da [004](../specs/004-geracao-cartoes/plan.md#obrigações-registradas-para-as-próximas-specs) |
-| 005 | Criar `revisoes.cartao_id` com `on delete set null` e `cartoes.dominado_em` | Plano da 003 |
-| 005 | A revisão escreve só as colunas do FSRS (escritas disjuntas, DTEC 037) | DTEC 037 |
-| 005 | Ao marcar "Errei": explicação e acesso a `GET /cartoes/{id}/evidencias`, sem chamar a IA (EX-03, RN-16) | Plano da 004 |
-| 005 | Reverificar com lições reais: US1-1, US3-1, US3-2 e CS-003 da 003; US1-4 da 004 | Planos da 003 e da 004 |
+| 004 (implementação) | Usar `nucleo/dia_estudo.py` no limite de gerações e no orçamento; quem implementar primeiro (004 ou 005) cria o módulo | [DTEC 048](../research.md#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) |
+| 006 | Registrar o ouvinte de `RevisaoRegistrada` (mesma transação); XP só com `primeira_do_dia` e bônus só com `tornou_dominado`, com regra versionada própria | [Plano da 005](../specs/005-licao-trilha/plan.md#obrigações-registradas-para-as-próximas-specs) |
 | 006 | Criar `eventos_xp.cartao_id` com `on delete set null`; reverificar o XP preservado da US3-3 da 003 | Plano da 003 |
+| 006 | XP e sequência como campos aditivos de `Fechamento` e da trilha; meta e sequência com `nucleo/dia_estudo.py`; "extra depois da meta" é da 006 | Plano da 005 |
+| 007 | Ler `dominado_em`, a estabilidade atual e as revisões por dia pelas consultas de `revisao` e `cartoes` | Plano da 005 |
 | 010 | Reutilizar janela, cobertura, portões e filtro de repetição; geração com `fonte_id` nulo e publicação em lotes | Plano da 004 |
 | 011 | Criar `chave_imagem`; imagem segue a DTEC 025 (objeto antes das linhas) | Plano da 003 |
+| 012 | Acrescentar o filtro por matéria à elegibilidade (DTEC 051) e rever a unicidade da lição aberta (DTEC 050) | Plano da 005 |
 | 014 | Usar `ia/cliente.py` e a ciência da DTEC 039; registrar o participante dos índices e das citações | Planos da 002 e da 004 |
+| 015 | Tira-dúvidas como ação secundária na apresentação, sem alterar a avaliação | Plano da 005 |
+
+As obrigações da 003 e da 004 para a 005 (lição só com `ativo`, ordem de `entrada_estudo_em`, `revisoes.cartao_id` com `set null`, `dominado_em`, escritas disjuntas, explicação ao errar com a evidência e as reverificações da US1-1, US3-1, US3-2 e CS-003 da 003 e da US1-4 da 004) estão no plano da 005 e viram tarefas dela.

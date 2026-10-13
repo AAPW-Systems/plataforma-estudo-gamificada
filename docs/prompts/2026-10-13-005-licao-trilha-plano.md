@@ -96,6 +96,12 @@ concluída no dia; atalhos de teclado; Q-001 só com opções no plano; seis có
 novos) -> seguir
 ```
 
+### Prompt 2
+
+```text
+plano aprovado
+```
+
 ## Saída aceita
 
 Etapa 5 (planejar), até o portão "Plano aprovado":
@@ -132,7 +138,7 @@ Pendente de revisão.
 
 ## Pendências
 
-- Portão "Plano aprovado" (Artur Lins); na aprovação, atualizar `docs/skills/contexto-tecnico.md`, o índice de specs e o estado atual do `AGENTS.md`.
+- Portão "Plano aprovado": aprovado por Artur Lins em 13/10/2026; `docs/skills/contexto-tecnico.md`, o índice de specs, o README da spec e o estado atual do `AGENTS.md` atualizados no commit da aprovação.
 - Depois da aprovação: `tasks.md` (etapa 6) e `traceability.md` com análise de consistência (etapa 7).
 - Q-001 (trilha, UI-05): decisão da equipe até 14/10/2026, com as opções do plano.
 - Q-002 (EX-05): resposta do PO.

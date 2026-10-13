@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 005-licao-trilha (lição com repetição espaçada e trilha de progressão)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md))  
-**Status:** DTEC 049 a 056 propostas em 13/10/2026; aguardam a aprovação do plano
+**Status:** DTEC 049 a 056 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra só as dúvidas técnicas **novas** da spec 005. As decisões já tomadas não são reabertas:
 
