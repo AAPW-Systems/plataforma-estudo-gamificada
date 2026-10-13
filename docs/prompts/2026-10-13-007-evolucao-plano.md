@@ -106,6 +106,12 @@ ok em todas, segue as recomendações
 plano aprovado, segue para tarefas e rastreabilidade
 ```
 
+### Prompt 4
+
+```text
+tarefas aprovadas, foi gerado já um plano de implementação dividido entre mim e o arthur moura
+```
+
 ## Saída aceita
 
 ### Etapa 5 (planejar)
@@ -128,6 +134,12 @@ Consolidado das decisões (todas as recomendações da rodada 1) aplicado nos ar
 - `docs/specs/007-evolucao/tasks.md`: T001 a T026 (preparação, base, história única com backend e frontend, qualidade transversal), com dependências, paralelismo e o corte mínimo previsto pela spec.
 - `docs/specs/007-evolucao/traceability.md`: matriz de RF-001 a RF-005, RQ-001 a RQ-003, CS-001 e CS-002, os 6 casos de borda e as DTEC 064 a 067; análise de consistência; lacunas aceitas.
 
+### Aprovação das tarefas
+
+- Tarefas (T001 a T026) e rastreabilidade aprovadas por Artur Lins em 13/10/2026. Status atualizado em `tasks.md`, `traceability.md`, `README.md` da spec, índice de specs e `contexto-tecnico.md`.
+- `.agents/AGENTS.md` ("Estado atual"): documentação do MVP completa e implementação liberada; ordem de implementação pelos pré-requisitos das tarefas e pela sequência das migrações (001 → 002 → 003 → base da 004 → restante da 004 em paralelo com a 005 → 006 → 007), com as P1 antes das fases finais e a 007 como primeiro corte se o prazo apertar; divisão da implementação entre Artur Lins e Arthur Moura registrada como informada.
+- O plano de implementação dividido entre Artur Lins e Arthur Moura citado no prompt 4 não está no repositório (procurado na `develop`, na `main` e em `docs/reunioes/`). O agente não reproduziu o conteúdo dele.
+
 ## Alterações humanas
 
 Pendente de revisão.
@@ -141,4 +153,8 @@ Pendente de revisão.
 
 ## Pendências
 
-- Em andamento.
+- Versionar no repositório o plano de implementação dividido entre Artur Lins e Arthur Moura (por exemplo, numa ata em `docs/reunioes/`) e registrar o responsável na T001 de cada spec.
+- Implementação das specs 001 a 007, na `develop`, com a apresentação do MVP prevista para 15/10/2026.
+- Na implementação da 006 (T036), aplicar o recorte de `dias_no_intervalo` esclarecido pela DTEC 065; a T006 da 007 confere.
+- Na implementação da 007: a interpretação do contraste de 3:1 (DTEC 067) depende da paleta final (QA-19, UI-01 a UI-03); se o p95 do servidor reprovar (T022), a contingência da DTEC 066 vira tarefa nova com migração.
+- Questões com o PO seguem em pauta (PO-01 e PO-02); a EX-05, se aprovada, entra na 013.
