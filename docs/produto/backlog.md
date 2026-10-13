@@ -20,23 +20,23 @@ A coluna "Origem na base" aponta para os IDs da [base de especificação](../bas
 
 | ID | Funcionalidade | Pilar | Estágio | Origem na base | Questões que bloqueiam | Spec |
 |---|---|---|---|---|---|---|
-| F-01 | Conta, sessão e isolamento de dados; perfil e preferências | Base | MVP; recuperação de senha no Final | HU-01, RF-01, RF-02, RF-19, RN-01, RN-15 | — | — |
-| F-02 | Matérias e envio e gestão de fontes (acervo da matéria, exclusão definitiva com escolha sobre os cartões) | Materiais | MVP; formatos SRT, VTT, DOCX e envio múltiplo no Final | HU-02, HU-12, HU-13, RF-03, RF-04, RF-20, RN-02, RN-14, RN-23, CB-04, CB-23 | — | — |
-| F-03 | Processamento das fontes: extração e trechos (MVP); indexação para busca híbrida (Final) | Materiais | MVP; indexação no Final | HU-03, RF-05, RF-06, RN-03, CB-16 | QA-04 | — |
-| F-04 | Cartões: criação manual; geração por IA com evidência e explicação do erro (EX-03); revisão dos gerados (aceitar, editar, recusar, aceitar todos), resumo e "Gerar mais" (EX-02); cartão com imagem no Final | Flashcards | MVP; imagem no Final | HU-11, HU-14, HU-15, RF-11, RF-17, RF-22, RF-27, RN-04, RN-05, RN-08, RN-16, RN-22, CB-09, CB-14, CB-15, CB-26 | QA-04, QA-23 | — |
-| F-05 | Revisão com repetição espaçada (FSRS): lição, autoavaliação com quatro botões, explicação ao errar | Flashcards | MVP | HU-06, HU-07, HU-16, RF-21, RF-23, RN-10, RN-17, RN-20, RN-26, CB-22, CB-24, CB-28, CB-29, CB-30 | QA-24 | — |
-| F-06 | Chat com as fontes da matéria (RAG com busca híbrida e citações) | Chat | **Final** | HU-18, RF-25, RN-24 | QA-16, QA-31 | — |
-| F-07 | Trilha de progressão: lições como nós (MVP); filtro e domínio por matéria (Final) | Trilha | **MVP**; filtro e domínio no Final | HU-04, RF-08, RF-28, RN-19, RN-26, CB-13, CB-30 | UI-05 | — |
+| F-01 | Conta, sessão e isolamento de dados; perfil e preferências | Base | MVP; recuperação de senha no Final | HU-01, RF-01, RF-02, RF-19, RN-01, RN-15 | — | [001](../specs/001-conta-acesso/README.md) (MVP); [008](../specs/008-recuperacao-senha/README.md) (Final) |
+| F-02 | Matérias e envio e gestão de fontes (acervo da matéria, exclusão definitiva com escolha sobre os cartões) | Materiais | MVP; formatos SRT, VTT, DOCX e envio múltiplo no Final | HU-02, HU-12, HU-13, RF-03, RF-04, RF-20, RN-02, RN-14, RN-23, CB-04, CB-23 | — | [002](../specs/002-materias-fontes/README.md) (MVP); [009](../specs/009-formatos-fontes/README.md) (Final) |
+| F-03 | Processamento das fontes: extração e trechos (MVP); indexação para busca híbrida (Final) | Materiais | MVP; indexação no Final | HU-03, RF-05, RF-06, RN-03, CB-16 | QA-04 | [002](../specs/002-materias-fontes/README.md) (MVP); [014](../specs/014-chat-fontes/README.md) (Final, indexação) |
+| F-04 | Cartões: criação manual; geração por IA com evidência e explicação do erro (EX-03); revisão dos gerados (aceitar, editar, recusar, aceitar todos), resumo e "Gerar mais" (EX-02); cartão com imagem no Final | Flashcards | MVP; imagem no Final | HU-11, HU-14, HU-15, RF-11, RF-17, RF-22, RF-27, RN-04, RN-05, RN-08, RN-16, RN-22, CB-09, CB-14, CB-15, CB-26 | QA-04, QA-23 | [003](../specs/003-cartoes-manuais/README.md) e [004](../specs/004-geracao-cartoes/README.md) (MVP); [010](../specs/010-geracao-materia/README.md) e [011](../specs/011-cartao-imagem/README.md) (Final) |
+| F-05 | Revisão com repetição espaçada (FSRS): lição, autoavaliação com quatro botões, explicação ao errar | Flashcards | MVP | HU-06, HU-07, HU-16, RF-21, RF-23, RN-10, RN-17, RN-20, RN-26, CB-22, CB-24, CB-28, CB-29, CB-30 | QA-24 | [005](../specs/005-licao-trilha/README.md) (MVP) |
+| F-06 | Chat com as fontes da matéria (RAG com busca híbrida e citações) | Chat | **Final** | HU-18, RF-25, RN-24 | QA-16, QA-31 | [014](../specs/014-chat-fontes/README.md) (Final) |
+| F-07 | Trilha de progressão: lições como nós (MVP); filtro e domínio por matéria (Final) | Trilha | **MVP**; filtro e domínio no Final | HU-04, RF-08, RF-28, RN-19, RN-26, CB-13, CB-30 | UI-05 | [005](../specs/005-licao-trilha/README.md) (MVP); [012](../specs/012-filtro-dominio-materia/README.md) (Final) |
 | F-08 | Questões de escolha única com correção | Complemento | **Absorvida** | RN-07 e RF-09 (removidos) | — | Absorvida pelos flashcards em 29/09/2026 (QA-17) |
-| F-09 | XP e meta diária | Ritmo | MVP | RF-12, RN-18, RN-21 | QA-24 | — |
-| F-10 | Sequência diária (*streak*) | Ritmo | MVP; congelamento depois | HU-17, RF-24, RN-15, RN-21, CB-25 | QA-24 | — |
+| F-09 | XP e meta diária | Ritmo | MVP | RF-12, RN-18, RN-21 | QA-24 | [006](../specs/006-xp-meta-sequencia/README.md) (MVP) |
+| F-10 | Sequência diária (*streak*) | Ritmo | MVP; congelamento depois | HU-17, RF-24, RN-15, RN-21, CB-25 | QA-24 | [006](../specs/006-xp-meta-sequencia/README.md) (MVP) |
 | F-11 | Conquistas | Ritmo | Não | HU-09, RF-14, RN-13 | QA-08 | — |
-| F-12 | Painel de evolução | Evolução | MVP parcial; completo no Final | HU-08, RF-15, RN-25 | QA-09 (períodos e filtros) | — |
+| F-12 | Painel de evolução | Evolução | MVP parcial; completo no Final | HU-08, RF-15, RN-25 | QA-09 (períodos e filtros) | [007](../specs/007-evolucao/README.md) (MVP); [013](../specs/013-evolucao-completa/README.md) (Final) |
 | F-13 | Cobertura de assuntos e lacunas de material | Materiais | Não | HU-10, RF-07, RF-16, RN-06 | QA-04 | — |
 | F-14 | Plano de estudos a partir de um edital | Trilha | Não | Nova; relaciona-se com RN-06 | A abrir | — |
 | F-15 | Criar flashcard a partir de uma resposta do chat | Chat | Não | Nova | A abrir | — |
-| F-16 | Tira-dúvidas a partir de um cartão: durante a lição, o estudante abre o chat com o cartão como contexto e pede explicações, com referência (EX-04). Caminho opcional, fora do fluxo principal | Chat | **Final**; consulta externa (EX-01) em pauta com o PO | HU-19, RF-26, RN-24 | QA-16, QA-31; [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) | — |
-| F-17 | Painel administrativo simples, com acesso restrito ao papel administrador (RN-27). Escopo definido na spec | Base | **Final**; validação com o PO pendente | HU-20, RF-29, RN-27 | QA-32; [PO-06](pauta-po.md#po-06-painel-administrativo) | — |
+| F-16 | Tira-dúvidas a partir de um cartão: durante a lição, o estudante abre o chat com o cartão como contexto e pede explicações, com referência (EX-04). Caminho opcional, fora do fluxo principal | Chat | **Final**; consulta externa (EX-01) em pauta com o PO | HU-19, RF-26, RN-24 | QA-16, QA-31; [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) | [015](../specs/015-tira-duvidas-cartao/README.md) (Final) |
+| F-17 | Painel administrativo simples, com acesso restrito ao papel administrador (RN-27). Escopo definido na spec | Base | **Final**; validação com o PO pendente | HU-20, RF-29, RN-27 | QA-32; [PO-06](pauta-po.md#po-06-painel-administrativo) | [016](../specs/016-painel-administrativo/README.md) (Final) |
 
 ## Exigências do PO
 

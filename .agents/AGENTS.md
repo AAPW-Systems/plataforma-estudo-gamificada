@@ -12,7 +12,7 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
 
 ## Estado atual
 
-- **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Esquema inicial do banco escrito em 12/10/2026 (`docs/arquitetura/esquema-inicial.dbml`, QA-21, [registro](../docs/prompts/2026-10-12-esquema-inicial-banco.md)). Próximo passo: specs das funcionalidades do MVP conforme as guidelines.
+- **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Esquema inicial do banco escrito em 12/10/2026 (`docs/arquitetura/esquema-inicial.dbml`, QA-21, [registro](../docs/prompts/2026-10-12-esquema-inicial-banco.md)). Specs 001 a 016 escritas em rascunho em 12/10/2026 (7 do MVP e 9 do final acadêmico, [registro](../docs/prompts/2026-10-12-specs-funcionalidades.md)). Próximo passo: esclarecimento e revisão pelo checklist de requisitos de cada spec, começando pelas do MVP, até a aprovação (portão humano).
 - **Produto:** visão v0.3 em `docs/produto/visao.md`; recorte por estágio em `docs/produto/backlog.md`; regras globais (RN, RF, HU, CB) em `docs/base-specs/spec.md`. O novo recorte do MVP e as exigências EX-01 e EX-05 estão na pauta com o PO (`docs/produto/pauta-po.md`).
 - **FSRS soberano (12/10/2026):** o agendamento é calculado só pela biblioteca `fsrs`; lição, meta, XP e sequência se adaptam a ele (RN-26 em `docs/base-specs/spec.md`).
 - **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
@@ -24,7 +24,7 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
   - Comportamento de uma funcionalidade só é implementado com a spec, o plano e as tarefas dela aprovados (regra 1).
   - Todo código é escrito na branch `develop` (regra 14), com testes (regra 17).
 - **Constituição:** v0.4 em rascunho, aguardando aprovação da equipe.
-- **Specs:** nenhuma criada ainda (ver `docs/specs/README.md`).
+- **Specs:** 001 a 007 (MVP) e 008 a 016 (final acadêmico), todas em `Especificando`. Cada spec pertence a um único estágio; o índice está em `docs/specs/README.md`.
 - **Equipe:** Arthur Moura, Artur Lins, Caroline Santana, Pedro Paulo Lucena e William Johnson.
 - **PO:** professor Aldo Nunes. Ainda não foi decidido se haverá um representante interno do PO na equipe.
 - **Scrum Master:** rodízio semanal entre os integrantes (requisito obrigatório da disciplina).

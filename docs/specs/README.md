@@ -39,6 +39,30 @@ Mantido no `README.md` de cada pasta e refletido no índice abaixo.
 
 ## Índice
 
+Cada spec pertence a um único estágio. Os incrementos do final acadêmico de uma funcionalidade do MVP têm pasta própria e citam a spec do MVP que ampliam. A numeração segue a ordem de execução do [backlog](../produto/backlog.md#ordem): primeiro o MVP, depois o final acadêmico.
+
+### MVP
+
 | Pasta | Funcionalidade | Status |
 |---|---|---|
-| — | Nenhuma funcionalidade especificada ainda. Antes da primeira, vem o esquema inicial do banco em DBML (QA-21). A ordem está no [backlog](../produto/backlog.md#ordem). | — |
+| [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Especificando |
+| [002-materias-fontes](002-materias-fontes/README.md) | F-02 e F-03: matérias, envio e processamento de fontes | Especificando |
+| [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Especificando |
+| [004-geracao-cartoes](004-geracao-cartoes/README.md) | F-04: geração por IA, revisão dos gerados, "Gerar mais" (EX-02, EX-03) | Especificando |
+| [005-licao-trilha](005-licao-trilha/README.md) | F-05 e F-07: lição com FSRS e trilha | Especificando |
+| [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Especificando |
+| [007-evolucao](007-evolucao/README.md) | F-12 (parte): evolução mínima | Especificando |
+
+### Final acadêmico
+
+| Pasta | Funcionalidade | Status |
+|---|---|---|
+| [008-recuperacao-senha](008-recuperacao-senha/README.md) | F-01 (incremento): recuperação de senha por e-mail | Especificando |
+| [009-formatos-fontes](009-formatos-fontes/README.md) | F-02 (incremento): SRT, VTT, DOCX e envio múltiplo | Especificando |
+| [010-geracao-materia](010-geracao-materia/README.md) | F-04 (incremento): geração para a matéria inteira e quantidade proporcional | Especificando |
+| [011-cartao-imagem](011-cartao-imagem/README.md) | F-04 (incremento): cartão com imagem | Especificando |
+| [012-filtro-dominio-materia](012-filtro-dominio-materia/README.md) | F-07 (incremento): filtro da lição e domínio por matéria | Especificando |
+| [013-evolucao-completa](013-evolucao-completa/README.md) | F-12 (incremento): painel de evolução completo | Especificando |
+| [014-chat-fontes](014-chat-fontes/README.md) | F-06 e F-03 (indexação): chat com as fontes | Especificando |
+| [015-tira-duvidas-cartao](015-tira-duvidas-cartao/README.md) | F-16: tira-dúvidas a partir de um cartão (EX-04) | Especificando |
+| [016-painel-administrativo](016-painel-administrativo/README.md) | F-17: painel administrativo simples | Especificando |
