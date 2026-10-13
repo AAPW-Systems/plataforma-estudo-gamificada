@@ -101,7 +101,9 @@ O backend é um monólito modular, organizado por domínio, com as camadas MVC i
 | `busca` | Indexação, busca híbrida, RRF, reranking | Final |
 | `chat` | Conversas, mensagens, citações, tira-dúvidas | Final |
 
-Mapeamento MVC: **Model** = entidades SQLAlchemy, regras de domínio, serviços e repositórios; **Controller** = routers do FastAPI (finos, sem regra de negócio); **View** = o frontend React. A estrutura de pastas definitiva é registrada no primeiro `plan.md`.
+Mapeamento MVC: **Model** = entidades SQLAlchemy, regras de domínio, serviços e repositórios; **Controller** = routers do FastAPI (finos, sem regra de negócio); **View** = o frontend React.
+
+**Backend e frontend separados (12/10/2026, [registro](../prompts/2026-10-12-specs-funcionalidades.md)).** Os dois são desenvolvidos como projetos independentes no mesmo repositório, cada um em sua pasta na raiz: `backend/` (API, worker, migrações e testes pytest) e `frontend/` (aplicação React e seus testes). Cada pasta tem as próprias dependências, ferramentas de qualidade, testes e Dockerfile. A única fronteira entre eles é o contrato da API em OpenAPI (`contracts/openapi.yaml` de cada spec): o frontend não importa código do backend, e o backend não conhece a estrutura do frontend. O `compose.yaml` da raiz sobe os dois. A estrutura interna de cada pasta é registrada no primeiro `plan.md`.
 
 ### 5.2 Autenticação e sessão
 

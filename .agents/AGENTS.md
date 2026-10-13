@@ -68,7 +68,7 @@ docs/
 └── sdd_guidelines/        # material da disciplina: SOMENTE LEITURA
 ```
 
-A estrutura de código (ex.: `backend/`, `frontend/`, `compose.yaml`) segue a [arquitetura](../docs/arquitetura/README.md) e é registrada aqui quando for criada. Até 12/10/2026, `docs/base-specs/` se chamava `docs/init/`; os registros de prompts anteriores a essa data citam o nome antigo.
+A estrutura de código segue a [arquitetura](../docs/arquitetura/README.md) e é registrada aqui quando for criada. **Backend e frontend são projetos separados**, cada um em sua pasta na raiz (`backend/` e `frontend/`), com dependências, testes e Dockerfile próprios. A fronteira entre eles é o contrato OpenAPI, e o `compose.yaml` da raiz sobe os dois ([arquitetura, seção 5.1](../docs/arquitetura/README.md#51-organização-mvc-por-domínio)). Até 12/10/2026, `docs/base-specs/` se chamava `docs/init/`; os registros de prompts anteriores a essa data citam o nome antigo.
 
 ## Regras inegociáveis
 
