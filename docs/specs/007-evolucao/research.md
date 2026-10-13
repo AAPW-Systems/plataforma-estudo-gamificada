@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 007-evolucao (evolução mínima)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-007-evolucao-plano.md))  
-**Status:** DTEC 064 a 067 em revisão, junto com o plano
+**Status:** DTEC 064 a 067 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra só as dúvidas técnicas **novas** da spec 007. As decisões já tomadas não são reabertas:
 

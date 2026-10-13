@@ -9,7 +9,7 @@
 - Implementação: qualquer pessoa da equipe pode assumir, e registra o nome abaixo antes da primeira tarefa.
   - **Responsável pela implementação:** *a definir no início da implementação*.
 
-**Status:** em revisão (portão "Plano aprovado"), com as DTEC 064 a 067
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 064 a 067
 
 Este plano **reaproveita sem redefinir** o que as specs anteriores já definiram (resumo em [`contexto-tecnico.md`](../../skills/contexto-tecnico.md)):
 
@@ -284,12 +284,12 @@ Nenhuma nova. O período é decisão de produto (D-002), e o limiar é regra ver
 - [`data-model.md`](data-model.md): entidades calculadas, origem de cada valor e regras.
 - [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 - [`quickstart.md`](quickstart.md): validação local e demonstração.
-- **Propagação, aplicada na aprovação deste plano:**
+- **Propagação, aplicada na aprovação deste plano (13/10/2026):**
   - na T036 da 006, o esclarecimento de `dias_no_intervalo` (DTEC 065), sem mudança de comportamento;
   - em `contexto-tecnico.md`, as DTEC 064 a 067, a exceção de dependência, "nenhum código novo" e "nenhuma migração", e as obrigações cumpridas.
 
   O [esquema inicial](../../arquitetura/esquema-inicial.dbml) não muda.
-- `tasks.md` criado somente depois da revisão deste plano.
+- `tasks.md` criado depois da aprovação deste plano (portão "Plano aprovado", 13/10/2026).
 
 ### Obrigações registradas para as próximas specs
 
