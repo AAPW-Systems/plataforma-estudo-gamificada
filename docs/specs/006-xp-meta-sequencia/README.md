@@ -18,7 +18,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API, superconjunto dos caminhos afetados da 005.
 7. [`quickstart.md`](quickstart.md): validação local e demonstração.
 
-`tasks.md` e `traceability.md` nascem nesta etapa e aguardam o portão "Tarefas aprovadas" do [fluxo SDD](../../skills/fluxo-sdd.md).
+8. [`tasks.md`](tasks.md): T001 a T045, por história. Aguardam o portão "Tarefas aprovadas".
+9. [`traceability.md`](traceability.md): matriz requisito, teste e tarefa, com a análise de consistência. Aguarda o portão "Tarefas aprovadas".
 
 ## Histórico
 
@@ -30,3 +31,4 @@
 | 12/10/2026 | Spec aprovada para planejamento por Artur Lins, depois da revisão individual ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |
 | 13/10/2026 | Plano, pesquisa (DTEC 058 a 063 e a transversal DTEC 057), modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodada com Artur Lins ([registro](../../prompts/2026-10-13-006-xp-meta-sequencia-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 057 a 063 ([registro](../../prompts/2026-10-13-006-xp-meta-sequencia-plano.md)) |
+| 13/10/2026 | Tarefas (T001 a T045) e rastreabilidade com análise de consistência escritas; aguardam o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-006-xp-meta-sequencia-plano.md)) |
