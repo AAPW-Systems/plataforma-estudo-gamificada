@@ -1,3 +1,18 @@
+# Retomada da implementação da spec 001 a partir da T027
+
+**Data:** 2026-10-13
+**Autor:**
+**Agente e modelo:** Codex / GPT-6
+**Etapa SDD:** implementar
+**Funcionalidade:** 001-conta-acesso
+
+## Contexto fornecido
+
+Pausa da implementação da spec 001 na branch develop.
+
+## Prompt de retomada
+
+```text
 Continue a implementação da spec 001 (docs/specs/001-conta-acesso) na branch `develop`, a partir da T027. A sessão anterior foi pausada com segurança a pedido do usuário.
 
 Leia antes, nesta ordem: .agents/AGENTS.md; docs/skills/contexto-tecnico.md e docs/skills/padroes-implementacao.md; docs/specs/001-conta-acesso/tasks.md, plan.md, data-model.md, research.md (DTEC 019 a 023) e contracts/openapi.yaml; docs/specs/divisao-implementacao-mvp.md (escopo: Onda 0, T001 a T045 da 001, até S1); os registros docs/prompts/2026-10-13-001-conta-acesso-implementacao.md, implementacao-2.md e implementacao-3.md (os dois últimos têm o mesmo prefixo 2026-10-13-001-conta-acesso-). Para o frontend, leia também docs/skills/padroes-interface.md e docs/base-specs/design.md (seções 5 a 9.1). Crie um novo registro de prompts para sua sessão (regra 7), com este prompt literal, e adicione-o ao índice docs/prompts/README.md. Não reescreva os registros encerrados.
@@ -31,3 +46,20 @@ Ambiente: raiz `F:\Cesmac\Sistemas inteligentes\sistema\plataforma-estudo-gamifi
 Atenção à segurança: T031, T032, T034 e T035 exigem advisory lock ANTES da contagem, na mesma transação; testes de rajada usam fabrica_real, sem savepoints; tempo CS-003 deve ter teste estável. T041 deve percorrer rotas e detectar falta de casos de isolamento (DTEC 019). Leia os módulos existentes de sessão, CSRF, Argon2 e proteção antes de integrar.
 
 Pendências/divergências: T041 menciona perfil/senha/exclusão que só chegam em T049/T056 após S1; registre cobertura incremental e não antecipe US3/US4 silenciosamente. T037 pede contrato completo, mas rotas futuras exigem cobertura incremental explicitamente registrada. Resposta 413 ainda ausente no contrato: pendência T065. app/nucleo/fila.py mantém MODULOS_TAREFAS vazio até T056. Não reinicie T021 nem T024: o ponto de retomada é T027.
+```
+
+## Saída aceita
+
+Prompt de continuidade preparado para outro agente. Prompt preparado após a segunda pausa. T027 e o CI remoto ainda requerem verificação.
+
+## Alterações humanas
+
+Pendente de revisão.
+
+## Verificação
+
+Texto do prompt preservado literalmente do arquivo original.
+
+## Pendências
+
+Confirmar o estado do repositório e as verificações pendentes antes de continuar.

@@ -59,7 +59,7 @@ Interpretado no contexto do pedido anterior como continuar o fechamento seguro e
 | `backend/tests/arquitetura/test_camadas.py` | Detector AST e testes da T023 |
 | `frontend/src/componentes/ui/`, `frontend/src/estilos/` | Oito componentes, tokens claro/escuro e 11 testes da T024 |
 | `frontend/Dockerfile` | Correção de propriedade de `/app` para permitir cache pelo usuário `node` |
-| `docs/prompts/2026-10-13-001-conta-acesso-retomada.txt` | Prompt de continuidade no formato solicitado |
+| `docs/prompts/2026-10-13-001-conta-acesso-retomada.md` | Prompt de continuidade no formato solicitado |
 
 Pausa solicitada pelo usuário durante a T024. T025 a T045 não iniciadas. Nenhum push feito; S1 ainda não alcançado.
 

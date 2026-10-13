@@ -53,7 +53,7 @@ realize uma pause segura no desenvolvimento do projeto, gerando um prompt para c
 
 ## Saída aceita
 
-Sessão encerrada por pausa solicitada pelo usuário. T024, T025 e T026 concluídas. Prompt de retomada criado em [2026-10-13-001-conta-acesso-retomada-2.txt](2026-10-13-001-conta-acesso-retomada-2.txt), a partir da T027. S1 não alcançado.
+Sessão encerrada por pausa solicitada pelo usuário. T024, T025 e T026 concluídas. Prompt de retomada criado em [2026-10-13-001-conta-acesso-retomada-2.md](2026-10-13-001-conta-acesso-retomada-2.md), a partir da T027. S1 não alcançado.
 
 ## Alterações humanas
 

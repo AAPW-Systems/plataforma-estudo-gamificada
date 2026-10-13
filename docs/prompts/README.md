@@ -60,9 +60,9 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 
 ## Índice
 
-Retomada mais recente, a partir da T027: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada-2.txt).
+Retomada mais recente, a partir da T027: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada-2.md).
 
-Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada.txt).
+Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada.md).
 
 | Data | Sessão | Etapa | Autor |
 |---|---|---|---|
@@ -85,3 +85,4 @@ Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2
 | 2026-10-13 | [Divisão da implementação do MVP](2026-10-13-divisao-implementacao-mvp.md) | Implementar | Artur Lins |
 | 2026-10-13 | [Continuação da implementação da spec 001 até S1](2026-10-13-001-conta-acesso-implementacao-2.md) | Implementar | A confirmar |
 | 2026-10-13 | [Retomada da spec 001 a partir da T024](2026-10-13-001-conta-acesso-implementacao-3.md) | Implementar | A confirmar |
+| 2026-10-13 | [Conversão dos prompts de retomada da spec 001](2026-10-13-001-conta-acesso-retomadas-markdown.md) | Implementar |  |

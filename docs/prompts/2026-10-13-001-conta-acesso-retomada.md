@@ -1,3 +1,18 @@
+# Retomada da implementação da spec 001 a partir da T024
+
+**Data:** 2026-10-13
+**Autor:**
+**Agente e modelo:** Codex / GPT-6
+**Etapa SDD:** implementar
+**Funcionalidade:** 001-conta-acesso
+
+## Contexto fornecido
+
+Pausa da implementação da spec 001 na branch develop.
+
+## Prompt de retomada
+
+```text
 Continue a implementação da spec 001 (docs/specs/001-conta-acesso) na branch `develop`, a partir da conclusão da T024. A sessão anterior foi pausada com segurança a pedido do usuário.
 
 Leia antes, nesta ordem: .agents/AGENTS.md; docs/skills/contexto-tecnico.md e docs/skills/padroes-implementacao.md; docs/specs/001-conta-acesso/tasks.md, plan.md, data-model.md, research.md (DTEC 019 a 023) e contracts/openapi.yaml; docs/specs/divisao-implementacao-mvp.md (escopo: Onda 0, T001 a T045 da 001, até o ponto S1); os registros docs/prompts/2026-10-13-001-conta-acesso-implementacao.md e docs/prompts/2026-10-13-001-conta-acesso-implementacao-2.md (andamento, decisões e pendências). Para o frontend, leia também docs/skills/padroes-interface.md e docs/base-specs/design.md (seções 5 a 9.1). Crie um novo registro de prompts para sua sessão (regra 7) com este prompt literal e adicione-o ao índice docs/prompts/README.md. Não reescreva os registros encerrados.
@@ -26,3 +41,20 @@ Ambiente desta máquina: raiz do repositório em `F:\Cesmac\Sistemas inteligente
 Atenção especial à segurança: T031, T032, T034 e T035 (advisory lock ANTES da contagem na mesma transação; testes de rajada com fabrica_real, não savepoints; teste de tempo CS-003 estável); T041 deve percorrer as rotas e detectar falta de casos de isolamento (DTEC 019). O núcleo da sessão/CSRF/Argon2 já existe; leia-o antes de integrar.
 
 Divergências/pendências a registrar no tasks.md e no novo registro: T041 cita alteração de perfil, senha e exclusão, que só serão implementadas em T049/T056 (após S1); não declare essas rotas cobertas nem antecipe US3/US4 silenciosamente. T037 exige o contrato completo, mas parte das rotas também está após S1: registre explicitamente cobertura incremental e pendências. backend/openapi.json contém só saúde por enquanto; as rotas de identidade chegam na T036. A resposta 413 do limite de corpo ainda não consta do contrato, pendência herdada para T065. app/nucleo/fila.py mantém MODULOS_TAREFAS vazio até T056. Não há CI remoto verificado nem Compose completo verificado. O próximo agente deve continuar da T024, não da T021.
+```
+
+## Saída aceita
+
+Prompt de continuidade preparado para outro agente. Prompt preparado após a primeira pausa. A retomada posterior está documentada no registro de implementação 3.
+
+## Alterações humanas
+
+Pendente de revisão.
+
+## Verificação
+
+Texto do prompt preservado literalmente do arquivo original.
+
+## Pendências
+
+Confirmar o estado do repositório e as verificações pendentes antes de continuar.
