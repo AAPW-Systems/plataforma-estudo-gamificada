@@ -83,7 +83,7 @@
 
 ### Base do frontend
 
-- [ ] T024 [P] Criar os tokens de design claro e escuro em `frontend/src/estilos/` (seção 5 do [design](../../base-specs/design.md)) e os componentes de `frontend/src/componentes/ui/` sobre o React Aria (DTEC 016): `Botao`, `CampoTexto`, `CampoSenha`, `CampoNumero`, `CampoFuso`, `Dialogo`, `Aviso` e `MensagemErroFormulario`. Cada um tem um teste com Testing Library e `vitest-axe`.
+- [x] T024 [P] Criar os tokens de design claro e escuro em `frontend/src/estilos/` (seção 5 do [design](../../base-specs/design.md)) e os componentes de `frontend/src/componentes/ui/` sobre o React Aria (DTEC 016): `Botao`, `CampoTexto`, `CampoSenha`, `CampoNumero`, `CampoFuso`, `Dialogo`, `Aviso` e `MensagemErroFormulario`. Cada um tem um teste com Testing Library e `vitest-axe`.
 - [ ] T025 Criar o cliente da API em `frontend/src/api/`:
   - `cliente.ts`: `openapi-fetch` com *middleware* que envia `X-CSRF-Token` e repete uma vez após `403 csrf_invalido`;
   - `erros.ts`: `ErroApi` tipado;

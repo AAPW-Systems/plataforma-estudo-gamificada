@@ -82,3 +82,4 @@ Retomada da implementação após a pausa de 13/10/2026: [prompt para o próximo
 | 2026-10-13 | [Implementação da spec 001 e estrutura base](2026-10-13-001-conta-acesso-implementacao.md) | Implementar | Artur Lins |
 | 2026-10-13 | [Divisão da implementação do MVP](2026-10-13-divisao-implementacao-mvp.md) | Implementar | Artur Lins |
 | 2026-10-13 | [Continuação da implementação da spec 001 até S1](2026-10-13-001-conta-acesso-implementacao-2.md) | Implementar | A confirmar |
+| 2026-10-13 | [Retomada da spec 001 a partir da T024](2026-10-13-001-conta-acesso-implementacao-3.md) | Implementar | A confirmar |
