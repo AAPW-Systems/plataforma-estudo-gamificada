@@ -325,7 +325,7 @@ Table parametros_fsrs {
   usuario_id bigint [not null]
   versao integer [not null, note: 'A vigente é a maior versão do usuário']
   origem origem_parametros_fsrs [not null, default: 'padrao']
-  pesos "double precision[]" [not null, note: 'Os 21 pesos do modelo (Scheduler.parameters)']
+  pesos "float8[]" [not null, note: 'Os 21 pesos do modelo (Scheduler.parameters)']
   retencao_desejada numeric(3,2) [not null, default: 0.90, note: 'Preferência do perfil (RF-19)']
   passos_aprendizado_s "integer[]" [not null, note: 'Scheduler.learning_steps em segundos; padrão {60, 600}']
   passos_reaprendizado_s "integer[]" [not null, note: 'Scheduler.relearning_steps em segundos; padrão {600}']
@@ -553,7 +553,8 @@ Ref: eventos_xp.cartao_id > cartoes.id [delete: set null]
 Ref: dias_estudo.usuario_id > usuarios.id
 
 // Final acadêmico
-Ref: indices_trechos.trecho_id - trechos.id [delete: cascade]
+// Em 1:1, o DBML cria a FK na tabela à direita
+Ref: trechos.id - indices_trechos.trecho_id [delete: cascade]
 Ref: conversas.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: cascade]
 Ref: conversas.cartao_id > cartoes.id [delete: set null]
 Ref: mensagens.conversa_id > conversas.id [delete: cascade]
