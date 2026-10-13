@@ -17,7 +17,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 7. [`quickstart.md`](quickstart.md): validação local, demonstração e runbook.
 
-`tasks.md` e `traceability.md` nascem depois do portão "Plano aprovado" ([fluxo SDD](../../skills/fluxo-sdd.md)).
+8. [`tasks.md`](tasks.md): tarefas T001 a T059, por história. Aguardando o portão "Tarefas aprovadas".
+9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Aguardando o portão, junto com as tarefas.
 
 ## Histórico
 
@@ -29,3 +30,4 @@
 | 12/10/2026 | Spec aprovada para planejamento por Artur Lins, depois da revisão individual ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |
 | 13/10/2026 | Plano, pesquisa, modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodadas com Artur Lins ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 039 a 047 ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
+| 13/10/2026 | Tarefas (T001 a T059) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
