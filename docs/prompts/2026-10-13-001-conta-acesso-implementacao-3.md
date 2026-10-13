@@ -45,9 +45,15 @@ Atenção especial à segurança: T031, T032, T034 e T035 (advisory lock ANTES d
 Divergências/pendências a registrar no tasks.md e no novo registro: T041 cita alteração de perfil, senha e exclusão, que só serão implementadas em T049/T056 (após S1); não declare essas rotas cobertas nem antecipe US3/US4 silenciosamente. T037 exige o contrato completo, mas parte das rotas também está após S1: registre explicitamente cobertura incremental e pendências. backend/openapi.json contém só saúde por enquanto; as rotas de identidade chegam na T036. A resposta 413 do limite de corpo ainda não consta do contrato, pendência herdada para T065. app/nucleo/fila.py mantém MODULOS_TAREFAS vazio até T056. Não há CI remoto verificado nem Compose completo verificado. O próximo agente deve continuar da T024, não da T021.
 ```
 
+### Prompt 2 — pausa segura
+
+```text
+realize uma pause segura no desenvolvimento do projeto, gerando um prompt para continuar o desenvolvimento em outro agente, seguindo o padrão do prompt que lhe foi passado inicialmente
+```
+
 ## Saída aceita
 
-Em andamento.
+Sessão encerrada por pausa solicitada pelo usuário. T024, T025 e T026 concluídas. Prompt de retomada criado em [2026-10-13-001-conta-acesso-retomada-2.txt](2026-10-13-001-conta-acesso-retomada-2.txt), a partir da T027. S1 não alcançado.
 
 ## Alterações humanas
 
@@ -61,6 +67,10 @@ Pendente de revisão.
 - `docker compose up -d --wait` passou com banco/API/web saudáveis, worker em execução e migrate concluído. CI remoto ainda não verificado (T027).
 
 - T026: testes escritos antes do roteamento; 18 testes passaram no contêiner, incluindo redirecionamento 401, sessão válida e erro 503. Formatação, lint, tipos e build passaram. A leitura de perfil usa resposta desconhecida temporariamente até a exportação dos DTOs na T036/T037; não presume o formato do contrato ainda ausente no OpenAPI gerado.
+
+- Antes do push, git pull --rebase origin develop passou; suites completas passaram (216 backend, 18 frontend). Push concluído até cdb9e13. O pull sem branch explícita havia retornado ambiguidade de branches.
+- T027: tentativa posterior de compose up -d --build --wait interrompida com Ctrl+C na etapa chown da imagem web por solicitação de pausa. Compose ps --all ao encerrar confirmou db/api/web saudáveis, migrate exit 0 e worker ativo. Nenhum volume removido. CI remoto desconhecido: conector GitHub retornou 404, sem evidência de resultado do workflow.
+- Commits desta retomada: 0e03891 (T024), cdefd78 (T025), cdb9e13 (T026), todos publicados. Documentação final da pausa preservada em commit local, sem novo push.
 
 ## Pendências
 

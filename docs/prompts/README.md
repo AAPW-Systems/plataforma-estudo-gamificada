@@ -60,7 +60,9 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 
 ## Índice
 
-Retomada da implementação após a pausa de 13/10/2026: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada.txt).
+Retomada mais recente, a partir da T027: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada-2.txt).
+
+Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada.txt).
 
 | Data | Sessão | Etapa | Autor |
 |---|---|---|---|
