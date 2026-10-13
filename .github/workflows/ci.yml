@@ -50,6 +50,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+      - name: Preparar o .env do CI (o Compose exige as variáveis do banco)
+        run: |
+          cp .env.example .env
+          sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 16)|" .env
+          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -base64 48 \| tr -d '\n')|" .env
       - name: Construir a imagem dev
         run: docker compose build web
       - name: Formatação
