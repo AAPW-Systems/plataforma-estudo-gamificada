@@ -1,0 +1,738 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - XP, meta diária e sequência (spec 006)
+  version: 0.1.0
+  description: |
+    Contrato da spec 006-xp-meta-sequencia. É a referência de projeto: o OpenAPI gerado pela
+    aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de resposta e
+    esquemas daqui, e um teste de contrato verifica isso.
+
+    A 006 não cria rotas. Ela acrescenta campos às respostas da spec 005 (DTEC 063), por
+    isso este contrato redefine por completo os caminhos afetados da 005 como superconjunto
+    do contrato dela: `GET /trilha`, `POST /licoes`, `GET /licoes/{licaoId}` e
+    `POST /apresentacoes/{apresentacaoId}/avaliacao`. A revelação não muda e continua só no
+    contrato da 005. Todos os campos novos são obrigatórios na resposta e nunca removem nem
+    renomeiam campos da 005.
+
+    Convenções herdadas das specs 001 a 005 (não redefinidas aqui):
+    - Frontend e API na mesma origem; API sob `/api/v1`; JSON em camelCase; instantes em
+      ISO 8601 UTC; datas de estudo em `YYYY-MM-DD` no fuso do estudante, com virada às 4h
+      (DTEC 048).
+    - Sessão no cookie `__Host-sessao`; toda requisição POST, PATCH, PUT ou DELETE exige
+      `X-CSRF-Token` (double submit assinado, DTEC 023), `Origin` permitida e
+      `Sec-Fetch-Site: same-origin`.
+    - Erros sempre no esquema `Erro`; o enum `codigo` é cumulativo. A 006 não acrescenta
+      códigos. Sem sessão válida, `401 nao_autenticado`.
+    - Paginação por cursor opaco (DTEC 034).
+
+    Regras desta spec:
+    - XP, meta e sequência são calculados só no servidor (Princípio IV, RF-003); a interface
+      nunca os exibe como confirmados antes da resposta (RQ-001).
+    - XP: 10 pela primeira revisão de cada cartão no dia de estudo, independentemente da
+      nota, e 25 uma única vez quando o cartão se torna dominado, pela regra versionada
+      vigente (D-001, DTEC 058). Reenvios não concedem XP de novo (CB-24, DTEC 059).
+    - A concessão de XP, a meta e a sequência são gravadas na mesma transação da revisão
+      (RQ-002). Uma falha da gamificação desfaz a revisão inteira (`500 erro_interno`,
+      reenviável com a mesma chave).
+    - Leituras com `Cache-Control: no-store` e sem efeito colateral: a classificação dos dias
+      ainda não liquidados é calculada na leitura sem ser gravada (DTEC 061).
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: trilha
+    description: Nós alcançados, nó atual, próximo vencimento, XP, meta e sequência (RF-010)
+  - name: licoes
+    description: Começar, continuar e acompanhar a lição (US1, US4)
+  - name: apresentacoes
+    description: Autoavaliação de cada cartão exibido, com o XP e a meta da revisão (US1 e US2 da 006)
+paths:
+  /api/v1/trilha:
+    get:
+      tags: [trilha]
+      operationId: consultarTrilha
+      summary: Trilha do estudante, do nó mais recente ao mais antigo (RF-010, RF-013)
+      description: |
+        Devolve até `limite` nós (lições concluídas), o estado do nó atual, os cartões
+        disponíveis agora e o próximo vencimento (DTEC 056). Não escreve nada: uma lição aberta
+        de dia anterior aparece como `comecar` (DTEC 050).
+
+        Spec 006: `gamificacao` traz o XP total, o progresso da meta (revisados sobre a meta
+        efetiva, calculada com os disponíveis de agora) e a sequência, já considerando os dias
+        passados ainda não liquidados, sem gravá-los (RF-010, DTEC 061). Cada nó traz
+        `depoisDaMeta`.
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Trilha
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trilha'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '422':
+          description: '`cursor_invalido` ou `dados_invalidos` (limite fora de 1 a 100)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/licoes:
+    post:
+      tags: [licoes]
+      operationId: comecarOuContinuarLicao
+      summary: Começa uma lição ou continua a aberta do dia (US1, US4, RF-001, RF-011, RF-012)
+      description: |
+        Sob trava do estudante (DTEC 050):
+        - lição aberta do dia de estudo atual: devolvida com `200`, com a apresentação atual
+          garantida (cartões que deixaram de estar `ativo`, ou novos além do limite, são
+          retirados e o próximo é escolhido; se não sobrar nenhum, a lição é concluída);
+        - lição aberta de dia anterior: encerrada sem acender o nó (D-005), e uma nova é
+          montada;
+        - sem lição aberta: monta uma nova com devidos (do vencimento mais antigo) e novos
+          (na ordem de entrada), até o tamanho da lição e dentro do limite de novos (DTEC 051);
+        - nenhum cartão disponível: `409 sem_cartoes_disponiveis`, sem criar lição (RF-013).
+        A rota da lição chama este método ao carregar; recarregar a página é "voltar".
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '201':
+          description: Lição nova, com a primeira apresentação
+          headers:
+            Location:
+              description: '`/api/v1/licoes/{licaoId}`'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Licao'
+        '200':
+          description: Lição aberta do dia, retomada no ponto em que parou (ou concluída na retomada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Licao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '409':
+          description: '`sem_cartoes_disponiveis`; a interface recarrega a trilha para exibir o próximo vencimento'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: sem_cartoes_disponiveis
+                mensagem: Não há cartões para revisar agora.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  /api/v1/licoes/{licaoId}:
+    parameters:
+      - $ref: '#/components/parameters/LicaoId'
+    get:
+      tags: [licoes]
+      operationId: consultarLicao
+      summary: Estado atual da lição, com a apresentação pendente ou o fechamento
+      description: |
+        Usada para sincronizar outra aba (depois de `409 apresentacao_ja_avaliada`) e para
+        reabrir o fechamento. Não escreve nada; se a apresentação pendente sumiu (cartão
+        excluído), `atual` vem nulo e a interface chama `POST /licoes`.
+      responses:
+        '200':
+          description: Lição
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Licao'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /api/v1/apresentacoes/{apresentacaoId}/avaliacao:
+    parameters:
+      - $ref: '#/components/parameters/ApresentacaoId'
+    post:
+      tags: [apresentacoes]
+      operationId: avaliarApresentacao
+      summary: Registra a autoavaliação e devolve o próximo cartão ou o fechamento (RF-004 a RF-009)
+      description: |
+        Ordem das verificações, numa transação (DTEC 052): chave já usada (mesma apresentação
+        e nota devolvem o resultado original com `200`; conteúdo diferente, `409
+        idempotencia_divergente`); apresentação do dono; lição aberta; apresentação já
+        avaliada; revelação; cartão `ativo`; limite de novos. Depois: agendamento pelo FSRS com
+        os parâmetros vigentes e a semente da revisão, registro imutável da revisão, escrita só
+        das colunas do FSRS, e escolha do próximo (passo curto vencido, depois o próximo
+        previsto) ou conclusão (DTEC 054). A `duracaoMs` não entra na comparação da chave.
+
+        Spec 006, na mesma transação (RQ-002, DTEC 059 a 061): liquidação dos dias passados,
+        eventos de XP (`primeira_do_dia` e `tornou_dominado`), cache do XP total, linha do dia
+        com a meta efetiva e, se atingida, dia estudado e sequência. A resposta traz `xpGanho`
+        desta revisão, `metaCumpridaAgora` e o resumo atualizado. A interface anuncia o ganho
+        discretamente (RQ-003).
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvaliacaoEntrada'
+      responses:
+        '201':
+          description: Revisão registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoAvaliacao'
+        '200':
+          description: Reenvio com a mesma chave e o mesmo conteúdo; `revisao`, `explicacao`, `xpGanho` e `metaCumpridaAgora` são os originais (nenhum XP novo), e `licao` e `gamificacao` refletem o estado atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoAvaliacao'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: |
+            `revelacao_pendente` (CB-22), `apresentacao_ja_avaliada` (outra aba; recarregar a
+            lição), `idempotencia_divergente` (CB-24), `licao_encerrada`, `cartao_indisponivel`
+            (CB-27) ou `limite_novos_atingido` (RF-002). Nenhuma delas registra revisão; depois
+            de `cartao_indisponivel` ou `limite_novos_atingido`, a interface chama
+            `POST /licoes` para seguir.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              examples:
+                semRevelacao:
+                  value:
+                    codigo: revelacao_pendente
+                    mensagem: Revele a resposta antes de avaliar.
+                    idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+                outraAba:
+                  value:
+                    codigo: apresentacao_ja_avaliada
+                    mensagem: Este cartão já foi avaliado em outra aba.
+                    idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax (spec 001)
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Mesmo valor do cookie __Host-csrf (double submit assinado, DTEC 023)
+  parameters:
+    LicaoId:
+      name: licaoId
+      in: path
+      required: true
+      description: '`public_id` da lição'
+      schema:
+        type: string
+        format: uuid
+    ApresentacaoId:
+      name: apresentacaoId
+      in: path
+      required: true
+      description: '`public_id` da apresentação'
+      schema:
+        type: string
+        format: uuid
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Cursor opaco devolvido em `proximoCursor` (DTEC 034)
+      schema:
+        type: string
+    Limite:
+      name: limite
+      in: query
+      required: false
+      description: Nós por página (padrão 30 na trilha)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 30
+  headers:
+    SemCache:
+      description: '`no-store`; o estado muda em outras abas'
+      schema:
+        type: string
+        const: no-store
+  responses:
+    RequisicaoMalformada:
+      description: Corpo que não é JSON válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    DadosInvalidos:
+      description: Um ou mais campos fora das regras; nada é alterado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: dados_invalidos
+            mensagem: Alguns campos precisam de correção.
+            campos:
+              - campo: nota
+                mensagem: Escolha Errei, Difícil, Bom ou Fácil.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    NaoAutenticado:
+      description: Sem sessão válida; os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ProtecaoCsrf:
+      description: Token anti-CSRF ausente ou inválido (`csrf_invalido`) ou origem não permitida (`origem_nao_permitida`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Recurso inexistente ou de outro estudante, com corpo idêntico (DTEC 019)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: recurso_nao_encontrado
+            mensagem: Não encontramos o que você procurava.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  schemas:
+    Nota:
+      type: string
+      enum: [errei, dificil, bom, facil]
+      description: Errei, Difícil, Bom e Fácil = Again, Hard, Good e Easy do FSRS (RF-004)
+    EstadoNoAtual:
+      type: string
+      enum: [sem_materias, sem_cartoes, comecar, continuar, sem_disponiveis]
+      description: |
+        `sem_materias`: convite para criar a primeira matéria e enviar a primeira fonte
+        (US3-1). `sem_cartoes`: há matérias, mas nenhum cartão ativo. `comecar`: há
+        disponíveis. `continuar`: há lição aberta do dia. `sem_disponiveis`: nenhum disponível
+        agora; dia neutro para a sequência (CB-13)
+    NoTrilha:
+      type: object
+      required: [licaoId, numero, diaEstudo, extra, concluidaEm, revisoes, dominados, depoisDaMeta]
+      properties:
+        licaoId:
+          type: string
+          format: uuid
+        numero:
+          type: integer
+          minimum: 1
+        diaEstudo:
+          type: string
+          format: date
+        extra:
+          type: boolean
+        concluidaEm:
+          type: string
+          format: date-time
+        revisoes:
+          type: integer
+          minimum: 0
+          description: Revisões registradas na lição, com as reapresentações
+        dominados:
+          type: integer
+          minimum: 0
+          description: Cartões que se tornaram dominados na lição
+        depoisDaMeta:
+          type: boolean
+          description: Spec 006. A lição começou depois do cumprimento da meta do mesmo dia de estudo (extra depois da meta)
+    Disponiveis:
+      type: object
+      required: [devidos, novos]
+      properties:
+        devidos:
+          type: integer
+          minimum: 0
+        novos:
+          type: integer
+          minimum: 0
+          description: Novos elegíveis dentro do limite restante do dia
+    NoAtual:
+      type: object
+      required: [estado, licaoId]
+      properties:
+        estado:
+          $ref: '#/components/schemas/EstadoNoAtual'
+        licaoId:
+          type: [string, 'null']
+          format: uuid
+          description: Lição aberta do dia, só em `continuar`
+    Trilha:
+      type: object
+      required: [nos, proximoCursor, total, atual, disponiveis, proximoVencimento, diaEstudo, gamificacao]
+      properties:
+        nos:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoTrilha'
+        proximoCursor:
+          type: [string, 'null']
+        total:
+          type: integer
+          minimum: 0
+          description: Lições concluídas
+        atual:
+          $ref: '#/components/schemas/NoAtual'
+        disponiveis:
+          $ref: '#/components/schemas/Disponiveis'
+        proximoVencimento:
+          type: [string, 'null']
+          format: date-time
+          description: Próximo instante com cartão disponível; a interface exibe no fuso do estudante (RF-013)
+        diaEstudo:
+          type: string
+          format: date
+        gamificacao:
+          $ref: '#/components/schemas/ResumoGamificacao'
+    Apresentacao:
+      type: object
+      required: [apresentacaoId, cartaoId, frente, materia, revendo, revelada]
+      description: Cartão exibido; nunca contém o verso nem a explicação (RF-003)
+      properties:
+        apresentacaoId:
+          type: string
+          format: uuid
+        cartaoId:
+          type: string
+          format: uuid
+        frente:
+          type: string
+        materia:
+          type: object
+          required: [materiaId, nome]
+          properties:
+            materiaId:
+              type: string
+              format: uuid
+            nome:
+              type: string
+        revendo:
+          type: boolean
+          description: Reapresentação por passo curto vencido (RF-006)
+        revelada:
+          type: boolean
+          description: Já revelada nesta apresentação (retomada); a interface chama a revelação de novo para obter o verso
+    Progresso:
+      type: object
+      required: [revisados, previstos]
+      properties:
+        revisados:
+          type: integer
+          minimum: 0
+          description: Cartões distintos com primeira revisão na lição
+        previstos:
+          type: integer
+          minimum: 0
+          description: Cartões previstos não retirados
+    CartaoDominado:
+      type: object
+      required: [cartaoId, frente]
+      properties:
+        cartaoId:
+          type: [string, 'null']
+          format: uuid
+          description: Nulo se o cartão foi excluído depois
+        frente:
+          type: [string, 'null']
+    Fechamento:
+      type: object
+      required: [revisoes, cartoesDistintos, dominados, passosCurtosPendentes, voltamEm, continuarDisponivel, proximoVencimento, xpGanho, gamificacao]
+      description: Resumo da lição concluída (RF-014 da 005), com o XP ganho na lição e a sequência (RF-010 da 006)
+      properties:
+        revisoes:
+          type: integer
+          minimum: 0
+        cartoesDistintos:
+          type: integer
+          minimum: 0
+        dominados:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartaoDominado'
+        passosCurtosPendentes:
+          type: integer
+          minimum: 0
+          description: Cartões em passo curto ainda não vencido, que voltam na próxima lição (D-004)
+        voltamEm:
+          type: [string, 'null']
+          format: date-time
+          description: Vencimento mais próximo entre os passos curtos pendentes
+        continuarDisponivel:
+          type: boolean
+          description: Há cartões disponíveis para uma lição extra (US4)
+        proximoVencimento:
+          type: [string, 'null']
+          format: date-time
+          description: Presente quando `continuarDisponivel` é falso (CB-30)
+        xpGanho:
+          type: integer
+          minimum: 0
+          description: Spec 006. Soma dos eventos de XP das revisões desta lição, inclusive bônus de dominado
+        gamificacao:
+          $ref: '#/components/schemas/ResumoGamificacao'
+    EstadoLicao:
+      type: string
+      enum: [em_andamento, concluida, encerrada]
+    Licao:
+      type: object
+      required: [licaoId, numero, diaEstudo, extra, depoisDaMeta, estado, progresso, atual, fechamento]
+      properties:
+        licaoId:
+          type: string
+          format: uuid
+        numero:
+          type: [integer, 'null']
+          description: Atribuído na conclusão
+        diaEstudo:
+          type: string
+          format: date
+        extra:
+          type: boolean
+        depoisDaMeta:
+          type: boolean
+          description: Spec 006. A lição começou depois do cumprimento da meta do mesmo dia de estudo
+        estado:
+          $ref: '#/components/schemas/EstadoLicao'
+        progresso:
+          $ref: '#/components/schemas/Progresso'
+        atual:
+          oneOf:
+            - $ref: '#/components/schemas/Apresentacao'
+            - type: 'null'
+          description: Apresentação pendente, só em `em_andamento`
+        fechamento:
+          oneOf:
+            - $ref: '#/components/schemas/Fechamento'
+            - type: 'null'
+          description: Só em `concluida`
+    AvaliacaoEntrada:
+      type: object
+      additionalProperties: false
+      required: [chaveIdempotencia, nota, duracaoMs]
+      properties:
+        chaveIdempotencia:
+          type: string
+          format: uuid
+          description: Gerada no cliente uma vez por avaliação (RF-008)
+        nota:
+          $ref: '#/components/schemas/Nota'
+        duracaoMs:
+          type: integer
+          minimum: 0
+          maximum: 86400000
+          description: Da exibição da frente à nota, medida no cliente; limitada pelo servidor (DTEC 052)
+    RevisaoRegistrada:
+      type: object
+      required: [nota, revisadaEm, vencimento, primeiraDoDia, tornouDominado]
+      properties:
+        nota:
+          $ref: '#/components/schemas/Nota'
+        revisadaEm:
+          type: string
+          format: date-time
+        vencimento:
+          type: string
+          format: date-time
+          description: Próximo vencimento calculado pelo FSRS
+        primeiraDoDia:
+          type: boolean
+        tornouDominado:
+          type: boolean
+    ResultadoAvaliacao:
+      type: object
+      required: [revisao, cartaoId, explicacao, evidenciaDisponivel, licao, xpGanho, metaCumpridaAgora, gamificacao]
+      properties:
+        revisao:
+          $ref: '#/components/schemas/RevisaoRegistrada'
+        cartaoId:
+          type: string
+          format: uuid
+        explicacao:
+          type: [string, 'null']
+          description: Só com nota `errei` e quando o cartão tem explicação (RF-009); sem chamada à IA
+        evidenciaDisponivel:
+          type: boolean
+          description: Só com nota `errei`; verdadeiro quando `GET /api/v1/cartoes/{cartaoId}/evidencias` (spec 004) tem conteúdo a mostrar
+        licao:
+          $ref: '#/components/schemas/Licao'
+        xpGanho:
+          type: integer
+          minimum: 0
+          description: |
+            Spec 006. XP concedido por esta revisão: 10 se foi a primeira do cartão no dia de
+            estudo, mais 25 se o cartão se tornou dominado; 0 numa reapresentação (RF-001, RF-002)
+        metaCumpridaAgora:
+          type: boolean
+          description: Spec 006. Esta revisão fez o dia de estudo passar a estudado (anúncio da meta, RQ-003)
+        gamificacao:
+          $ref: '#/components/schemas/ResumoGamificacao'
+    ProgressoMeta:
+      type: object
+      required: [revisados, metaDiaria, metaEfetiva, cumprida, cumpridaEm]
+      description: Meta do dia de estudo corrente (RF-004 a RF-006)
+      properties:
+        revisados:
+          type: integer
+          minimum: 0
+          description: Cartões distintos revisados no dia; reapresentações não contam
+        metaDiaria:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: Preferência vigente do estudante (spec 001)
+        metaEfetiva:
+          type: integer
+          minimum: 0
+          description: |
+            Menor valor entre a meta diária e os revisados mais os disponíveis restantes
+            (RF-005). Depois de cumprida, é a do instante do cumprimento
+        cumprida:
+          type: boolean
+          description: Dia já estudado; nunca volta a falso no mesmo dia (RF-006)
+        cumpridaEm:
+          type: [string, 'null']
+          format: date-time
+    Sequencia:
+      type: object
+      required: [atual, recorde, hojeCumprido]
+      description: Sequência de dias estudados (RF-008), sem punir dias neutros (RF-007)
+      properties:
+        atual:
+          type: integer
+          minimum: 0
+          description: |
+            Dias estudados consecutivos, desconsiderando os neutros, até hoje se `hojeCumprido`,
+            senão até o último dia estudado; 0 se algum dia não neutro e não estudado veio
+            depois dele (US3-5)
+        recorde:
+          type: integer
+          minimum: 0
+        hojeCumprido:
+          type: boolean
+          description: Falso enquanto a meta de hoje ainda falta (a interface indica "hoje falta")
+    ResumoGamificacao:
+      type: object
+      required: [xpTotal, diaEstudo, meta, sequencia]
+      description: XP, meta e sequência calculados no servidor (RF-010, DTEC 063)
+      properties:
+        xpTotal:
+          type: integer
+          minimum: 0
+          description: Soma de todos os eventos de XP do estudante, preservada após a exclusão de cartões (US1-5)
+        diaEstudo:
+          type: string
+          format: date
+          description: Dia de estudo corrente no fuso do estudante
+        meta:
+          $ref: '#/components/schemas/ProgressoMeta'
+        sequencia:
+          $ref: '#/components/schemas/Sequencia'
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            # spec 001
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+            # spec 002
+            - materia_nome_em_uso
+            - cota_materias_excedida
+            - cota_fontes_excedida
+            - cota_armazenamento_excedida
+            - fonte_duplicada
+            - arquivo_muito_grande
+            - formato_nao_aceito
+            - tipo_divergente
+            - arquivo_vazio
+            - arquivo_corrompido
+            - pdf_protegido
+            - pdf_paginas_excedidas
+            - codificacao_invalida
+            - confirmacao_invalida
+            - impacto_alterado
+            - reprocessamento_indisponivel
+            # spec 003
+            - cursor_invalido
+            # spec 004
+            - ciencia_aviso_pendente
+            - aviso_desatualizado
+            - fonte_nao_concluida
+            - idempotencia_divergente
+            - sem_conteudo_novo
+            - limite_geracoes_excedido
+            - orcamento_ia_esgotado
+            - cartao_ja_decidido
+            # spec 005
+            - sem_cartoes_disponiveis
+            - licao_encerrada
+            - revelacao_pendente
+            - apresentacao_ja_avaliada
+            - cartao_indisponivel
+            - limite_novos_atingido
+            # spec 006: nenhum código novo
+          description: Estável e legível por máquina; as specs acrescentam códigos, sem renomear nem remover
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+security:
+  - sessao: []
