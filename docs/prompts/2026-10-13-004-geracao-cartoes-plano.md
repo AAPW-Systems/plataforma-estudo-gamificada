@@ -142,9 +142,15 @@ pydantic-evals fora do merge; (14) interface da revisão sem atalhos de uma letr
 plano aprovado, siga com as tarefas e a rastreabilidade
 ```
 
+### Prompt 3
+
+```text
+tarefas aprovadas, registre e gere o prompt da 005
+```
+
 ## Saída aceita
 
-Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6 e 7, aguardando o portão "Tarefas aprovadas":
+Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6 e 7, aprovadas por Artur Lins em 13/10/2026 (prompt 3):
 
 | Artefato | Ação |
 |---|---|
@@ -160,7 +166,7 @@ Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6
 | `docs/specs/003-cartoes-manuais/README.md`, `data-model.md` | alterados: propagação da DTEC 045 (selo derivado da fonte da geração), com registro no histórico |
 | `docs/specs/004-geracao-cartoes/tasks.md` | criado: T001 a T059, por história (US1 e US4 como P1, depois US3 e US2), mais a fase do conjunto de avaliação |
 | `docs/specs/004-geracao-cartoes/traceability.md` | criado: matriz e análise de consistência |
-| `docs/specs/README.md`, `.agents/AGENTS.md` | alterados: 004 em `Plano aprovado` e estado atual |
+| `docs/specs/README.md`, `.agents/AGENTS.md` | alterados: 004 em `Tarefas aprovadas` e estado atual (próximo passo: plano da 005) |
 
 ## Alterações humanas
 
@@ -176,7 +182,8 @@ Pendente de revisão.
 
 ## Pendências
 
-- Portão "Tarefas aprovadas" (Artur Lins).
-- Prompt da spec 005 para uma nova sessão, depois do portão.
+- Implementação da 004 adiada até a documentação das specs do MVP ficar completa (decisão de 13/10/2026).
+- Plano da spec 005 em nova sessão, com o prompt entregue ao fim desta.
+- `git push`: os commits desta sessão estão só no repositório local.
 - Nome da pessoa responsável pela implementação e revisora do conjunto de avaliação (RQ-007), registrado no plano no início da implementação.
 - Modelo padrão do provedor conferido na implementação contra a camada gratuita vigente.
