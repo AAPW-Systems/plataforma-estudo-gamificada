@@ -80,9 +80,37 @@ a implementação pode começar e proponha a ordem de implementação das specs 
 O MVP tem apresentação prevista para 15/10/2026.
 ```
 
+### Rodada 1 de alinhamento (resposta do agente)
+
+O agente conferiu as exigências do PO (nenhuma toca a 007; EX-05 fora do MVP pela D-009 da 005) e apresentou nove perguntas numeradas, com opções e recomendação:
+
+1. rota única `GET /evolucao` com `ResumoGamificacao` da 006 e transação `REPEATABLE READ, READ ONLY`;
+2. grade de 26 semanas de domingo a sábado;
+3. mapeamento das situações (hoje `estudado` se cumprido, senão `em_andamento`; `data_pulada` como `neutro`; datas anteriores à conta fora da resposta, com o recorte em `dias_no_intervalo` da 006);
+4. semanas em linhas com o padrão *grid* do WAI-ARIA;
+5. forma além da cor, tokens e teste de contraste;
+6. dominados atuais por `revisao/consultas.py` com o limiar vigente;
+7. estado vazio por `existe_revisao`;
+8. sem XP por dia no calendário do MVP;
+9. p95 de 300 ms no servidor e 1 s na tela, sem migração `0008`.
+
+### Prompt 2
+
+```text
+ok em todas, segue as recomendações
+```
+
 ## Saída aceita
 
-Em andamento.
+### Etapa 5 (planejar)
+
+Consolidado das decisões (todas as recomendações da rodada 1) aplicado nos artefatos:
+
+- `docs/specs/007-evolucao/research.md`: DTEC 064 (leitura consolidada), 065 (período e situações), 066 (dominados atuais) e 067 (calendário acessível e responsivo). Nenhuma decisão transversal.
+- `docs/specs/007-evolucao/plan.md`, `data-model.md`, `contracts/openapi.yaml` e `quickstart.md`.
+- `docs/specs/007-evolucao/README.md` e `docs/specs/README.md`: status `Planejando`.
+- Sem alteração no esquema (`esquema-inicial.dbml`) nem em `docs/research.md`: não há commit de esquema nem de decisões transversais.
+- Interpretação submetida ao portão: o contraste de 3:1 do RQ-001 não é atingível entre todos os pares de quatro situações só pela luminância; o plano o verifica em três razões (indicador contra o fundo, preenchimento contra células vazias, glifo contra o preenchimento), com a forma como distinção principal.
 
 ## Alterações humanas
 
@@ -90,7 +118,9 @@ Pendente de revisão.
 
 ## Verificação
 
-Em andamento.
+- `openapi-spec-validator` sobre `contracts/openapi.yaml` da 007: OK.
+- Comparação por script: `ResumoGamificacao`, `ProgressoMeta`, `Sequencia`, `ErroCampo` e o enum de `Erro.codigo` idênticos aos do contrato da 006.
+- Links relativos e âncoras dos arquivos da 007 e do índice de specs verificados por script: nenhum quebrado.
 
 ## Pendências
 
