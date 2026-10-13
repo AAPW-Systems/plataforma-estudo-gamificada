@@ -59,7 +59,7 @@ flowchart LR
 | Primitivas acessíveis | React Aria Components, encapsuladas em `componentes/ui/` | igual | [016](../research.md#decisão-dtec-016-primitivas-acessíveis-da-interface) |
 | Camadas do backend | DTO, mapeador, serviço, domínio, repositório e exceções por domínio | igual | [018](../research.md#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções) |
 | Integração contínua | GitHub Actions com os contêineres `dev`; pre-commit opcional | igual + publicação das imagens | [017](../research.md#decisão-dtec-017-integração-contínua-e-verificação-local) |
-| Banco | PostgreSQL com a imagem `pgvector/pgvector` desde o início | + pgvector (HNSW, cosseno) e `tsvector` em português | [005](../research.md#decisão-dtec-005-banco-de-dados-único) |
+| Banco | PostgreSQL com a imagem `pgvector/pgvector` desde o início; extensão `unaccent` para a busca dos cartões | + pgvector (HNSW, cosseno) e `tsvector` em português | [005](../research.md#decisão-dtec-005-banco-de-dados-único), [033](../research.md#decisão-dtec-033-busca-sem-diferenciar-maiúsculas-e-acentos) |
 | Fila e worker | Procrastinate (fila no Postgres), um contêiner de worker | igual | [006](../research.md#decisão-dtec-006-fila-e-processamento-assíncrono) |
 | Agentes e LLM | PydanticAI; Gemini (camada gratuita), Groq como alternativa | + agentes do chat e do tira-dúvidas, busca como ferramenta; LangGraph em reavaliação | [007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) |
 | Embeddings e reranking | Não há | bge-m3 (1024) e reranker no Workers AI da Cloudflare | [008](../research.md#decisão-dtec-008-embeddings-e-reranking) |

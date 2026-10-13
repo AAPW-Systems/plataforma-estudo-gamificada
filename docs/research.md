@@ -32,9 +32,11 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 024](#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis) | Execução isolada do processamento de arquivos não confiáveis | Aprovada em 13/10/2026 com o plano da 002 |
 | [DTEC 025](#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco) | Consistência entre o armazenamento de objetos e o banco | Aprovada em 13/10/2026 com o plano da 002 |
 | [DTEC 026](#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface) | Acompanhamento de processamentos assíncronos na interface | Aprovada em 13/10/2026 com o plano da 002 |
-| [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Aprovada em 13/10/2026 com o plano da 002 |
+| [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Aprovada em 13/10/2026 com o plano da 002; emenda de 13/10/2026 (`cartoes_suspensos`) proposta com o plano da 003 |
+| [DTEC 033](#decisão-dtec-033-busca-sem-diferenciar-maiúsculas-e-acentos) | Busca sem diferenciar maiúsculas e acentos | Proposta em 13/10/2026 com o plano da 003 |
+| [DTEC 034](#decisão-dtec-034-paginação-das-listagens-por-cursor) | Paginação das listagens por cursor | Proposta em 13/10/2026 com o plano da 003 |
 
-A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), e as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), e as da spec 003 (DTEC 035 a 037), no [`research.md` da 003](specs/003-cartoes-manuais/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -453,6 +455,74 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 
 **Condição para revisão:** um participante que precise de efeito fora do banco (ex.: apagar imagens dos cartões na 011), que seguirá a DTEC 025: objetos antes das linhas, na mesma transação.
 
+**Emenda de 13/10/2026: contagem separada dos cartões suspensos** ([registro](prompts/2026-10-13-003-cartoes-manuais-plano.md)). No planejamento da [spec 003](specs/003-cartoes-manuais/plan.md), apareceu um conflito. A lista de matérias mostra a quantidade de "cartões ativos" (RF-002 da 002), e o impacto da exclusão da matéria conta "ativos e suspensos" (`ContagensExclusaoMateria.cartoesAtivos` no contrato da 002). Os dois números saíam do mesmo campo `cartoes_ativos` de `contar_por_materia`.
+
+- **Alternativas:**
+  1. Acrescentar o campo `cartoes_suspensos` a `ContagensAcervo`. A lista mostra só `cartoes_ativos`, e o impacto da matéria soma `cartoes_ativos + cartoes_suspensos`.
+  2. Fazer `cartoes_ativos` contar ativos e suspensos nos dois lugares. A 002 não muda, mas a lista mostraria cartões suspensos como ativos, contra a RF-002 da 002.
+- **Decisão:** alternativa 1. A mudança é aditiva: campos ausentes continuam valendo zero, e o contrato da 002 não muda.
+- **Consequências:** o plano e as tarefas da 002 (T005 e T043) passam a citar o campo novo, com registro no histórico da 002. O participante dos cartões (spec 003) preenche `cartoes_ativos` e `cartoes_suspensos` com cartões de qualquer origem; a 004 não os conta de novo.
+- **Condição para revisão:** a mesma da decisão.
+
+## Decisão DTEC 033 Busca sem diferenciar maiúsculas e acentos
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-003-cartoes-manuais-plano.md))  
+**Questão:** como buscar textos do estudante (frente e verso dos cartões na RF-010 da spec 003 e, no futuro, outras buscas por texto curto) sem diferenciar maiúsculas, minúsculas e acentos, mantendo o comportamento "contém o texto" da spec?  
+**Critérios:**
+
+- semântica de substring, sem radicalização, porque a spec pede "contém o texto";
+- mesmo resultado para "célula", "Celula" e "CÉLULA";
+- nenhum serviço novo;
+- latência abaixo de 100 ms na escala da spec (uma matéria com centenas de cartões);
+- normalização feita num único ponto;
+- nenhuma coluna derivada mantida à mão por vários escritores (004 e 011 inclusive).
+
+**Alternativas consideradas:**
+
+1. **Extensão `unaccent` do PostgreSQL, sem índice:** `lower(unaccent(coluna)) LIKE '%' || lower(unaccent(:termo)) || '%' ESCAPE '\'`, aplicada aos cartões já recortados pelo índice `(materia_id, usuario_id)`. A extensão faz parte do *contrib* e já vem na imagem `pgvector/pgvector` (DTEC 005), sem pacote novo.
+2. **`unaccent` + `pg_trgm` com índice GIN de trigramas:** busca indexada em qualquer volume. Exige duas extensões e uma função `IMMUTABLE` em volta da `unaccent`, que é `STABLE`, para que ela possa entrar num índice. É complexidade sem uso na escala atual.
+3. **Coluna normalizada mantida pela aplicação** (em minúsculas e sem acentos, calculada em Python a cada escrita): dispensa a extensão, mas duplica o texto e depende de que todo escritor de cartões a atualize.
+4. **Busca textual (`tsvector` com a configuração `portuguese`):** radicaliza as palavras e não encontra pedaços de palavra, o que contraria o "contém o texto" da spec. Ela continua reservada ao RAG do final acadêmico (DTEC 005).
+
+**Decisão:** alternativa 1. A extensão é criada pela migração da spec 003 (`CREATE EXTENSION IF NOT EXISTS unaccent`).  
+**Justificativa:** atende à semântica exata da spec com uma única expressão SQL, sem coluna derivada nem serviço novo. Uma matéria cabe com folga numa varredura das linhas já filtradas pelo índice.  
+**Consequências:**
+
+- **Ordem das funções:** primeiro `unaccent`, depois `lower`. Assim "É" vira "E" antes da conversão para minúscula, o que funciona mesmo que a colação do banco converta só ASCII.
+- **Termo:** o termo é normalizado em NFC, sem espaços nas extremidades, com 1 a 100 caracteres. `%`, `_` e `\` são escapados antes do `LIKE`, para que o termo nunca vire padrão. Ele vai sempre como parâmetro, nunca concatenado ao SQL.
+- **Ponto único:** a expressão fica numa função do repositório de cartões, coberta por testes de integração com acentos, cedilha, maiúsculas e curingas.
+- **Permissão:** o papel que roda as migrações precisa poder criar a extensão. No MVP, é o próprio dono do banco.
+
+**Condição para revisão:** uma matéria com mais de 5 mil cartões ou uma busca acima de 100 ms no percentil 95, o que justificaria a alternativa 2.
+
+## Decisão DTEC 034 Paginação das listagens por cursor
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-003-cartoes-manuais-plano.md))  
+**Questão:** como paginar as listagens sem limite natural? É o caso dos cartões de uma matéria na spec 003 e, depois, das conversas e mensagens da 014. As listas da 002 dispensam paginação por causa das cotas.  
+**Critérios:**
+
+- nenhum item repetido ou pulado quando há criação ou exclusão entre as páginas;
+- custo constante por página;
+- contrato estável e documentado no OpenAPI;
+- integração com o TanStack Query (DTEC 015);
+- cursor inútil para enumerar recursos de outro estudante.
+
+**Alternativas consideradas:**
+
+1. ***Keyset* com cursor opaco:** a ordem é sempre total, com o `id` como desempate (ex.: `criado_em desc, id desc`). O cursor codifica, em base64url, a chave do último item da página e um resumo dos filtros. A consulta seguinte usa `(criado_em, id) < (:c, :i)`.
+2. ***Offset* e limite:** simples, mas repete ou pula itens quando a lista muda entre as páginas, e o custo cresce com o *offset*.
+3. **Sem paginação:** inviável numa matéria com centenas de cartões gerados.
+
+**Decisão:** alternativa 1, como convenção da API.  
+**Justificativa:** é a única alternativa estável sob escrita concorrente e com custo constante. O `useInfiniteQuery` do TanStack Query consome o cursor diretamente.  
+**Consequências:**
+
+- **Resposta:** `{itens, proximoCursor, total}`. `proximoCursor` é nulo na última página, e `total` conta todos os itens que atendem aos filtros, não só os da página. A requisição aceita `cursor` (opaco) e `limite` (padrão 50, de 1 a 100).
+- **Cursor:** guarda só a chave de ordenação e um resumo dos filtros. Como toda consulta também filtra pelo dono (DTEC 019), um cursor adulterado, de outra lista ou de outro estudante não revela nada. Cursor malformado ou de filtros diferentes dos atuais responde `422 cursor_invalido`.
+- **Índice:** cada listagem paginada tem um índice que cobre o filtro de dono e a ordem.
+
+**Condição para revisão:** uma tela que precise saltar para páginas arbitrárias, o que nenhuma tela prevista exige.
+
 ## Fontes consultadas
 
 - Documentação oficial do pytest (fixtures, parametrização, marcadores e plugins).
@@ -465,4 +535,5 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - Documentação do Procrastinate (`procrastinate.readthedocs.io`, páginas "Instantiate your connector" e "Using an external database connection"), consultada em 12/10/2026 para a emenda da DTEC 002.
 - Documentação do Procrastinate (`procrastinate.readthedocs.io/en/stable`, páginas "Retry a task", "Queueing locks" e "Retry stalled jobs"), consultada em 13/10/2026 para as DTEC 024 a 030.
 - Documentação da biblioteca padrão do Python (`multiprocessing` com o contexto `spawn` e `resource.setrlimit`), consultada em 13/10/2026 para a DTEC 024.
+- Documentação do PostgreSQL 17 (módulo `unaccent`, funções `lower` e `LIKE` com `ESCAPE`, comparação de linhas), consultada em 13/10/2026 para as DTEC 033 e 034.
 - Esboço de arquitetura de 12/10/2026, hoje [`arquitetura/referencia-pos-academica.md`](arquitetura/referencia-pos-academica.md).

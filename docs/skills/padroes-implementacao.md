@@ -51,6 +51,7 @@ A estrutura de pastas completa está no [plano da spec 001](../specs/001-conta-a
 - Use UTF-8 com normalização Unicode NFC.
 - Remova espaços nas extremidades dos campos simples. Preserve parágrafos, acentos, fórmulas e formatação relevante dos materiais e dos flashcards.
 - Comparação sem diferença de caixa ou acento só em chaves de busca. Nunca normalize senhas.
+- Busca por texto sem diferenciar maiúsculas e acentos: `lower(unaccent(coluna)) LIKE` com o termo escapado (`%`, `_`, `\`) e sempre como parâmetro, numa única função do repositório ([DTEC 033](../research.md#decisão-dtec-033-busca-sem-diferenciar-maiúsculas-e-acentos)).
 - O conteúdo dos materiais é dado, nunca instrução (Princípio II).
 
 ## Datas
@@ -100,6 +101,7 @@ A estrutura de pastas completa está no [plano da spec 001](../specs/001-conta-a
 
 - Mantenha a especificação OpenAPI coerente com as respostas reais, com Swagger UI. Prefira gerá-la a partir dos contratos do código.
 - Documente autenticação, upload multipart, paginação, enumerações, limites, exemplos, erros e consulta de tarefas assíncronas.
+- Listagens sem limite natural usam paginação por cursor opaco: resposta `{itens, proximoCursor, total}`, parâmetros `cursor` e `limite` (padrão 50, de 1 a 100), ordem total com o `id` como desempate e `422 cursor_invalido` para cursor adulterado ([DTEC 034](../research.md#decisão-dtec-034-paginação-das-listagens-por-cursor)). Listagens limitadas por cota (ex.: matérias e fontes) dispensam paginação.
 - Separe o contrato "antes da resposta" do contrato "correção".
 
 ## Testes
