@@ -24,6 +24,7 @@
 - Editar frente, verso e explicação de qualquer cartão do estudante.
 - Suspender e reativar cartões.
 - Excluir um cartão definitivamente, com confirmação.
+- Buscar por texto e filtrar a lista de cartões da matéria por situação e por origem (D-005).
 - Exibir a origem: "Gerado e verificado", "Editado por você", "Criado por você" e "Fonte apagada" (RN-05, RN-08).
 
 ### Fora do escopo
@@ -33,6 +34,7 @@
 - Mover um cartão para outra matéria, importar ou exportar baralhos.
 - Reiniciar o aprendizado de um cartão: incremento posterior de F-05 (RN-26).
 - Tipos de cartão com correção automática (RN-08).
+- Formatação no texto do cartão (negrito, listas, fórmulas): o MVP aceita só texto puro com quebras de linha (D-003).
 
 ## Cenários de usuário e testes
 
@@ -75,6 +77,19 @@ Como estudante, quero tirar um cartão das lições temporariamente ou de vez, p
 2. **Dado** um cartão suspenso, **quando** o estudante o reativa, **então** ele volta às lições conforme o vencimento calculado antes da suspensão. Se o vencimento já passou, o cartão é devido.
 3. **Dado** um cartão, **quando** o estudante pede para excluí-lo, **então** um diálogo avisa que a exclusão é definitiva. Depois de confirmada, o cartão some, enquanto as revisões já registradas e o XP permanecem.
 
+### História de usuário 4 Encontrar um cartão P3
+
+Como estudante, quero buscar e filtrar os cartões de uma matéria, para encontrar rapidamente o cartão que quero editar ou suspender.
+
+**Motivo da prioridade:** com cartões gerados, uma matéria passa de 100 cartões rapidamente; não bloqueia a criação nem a lição.
+**Teste independente:** numa matéria com 120 cartões fictícios, buscar por uma palavra da frente, por uma palavra do verso e filtrar por suspensos e por origem, conferindo os resultados.
+
+**Cenários de aceitação**
+
+1. **Dado** uma matéria com muitos cartões, **quando** o estudante busca por um texto, **então** a lista mostra só os cartões cuja frente ou verso contém o texto, sem diferenciar maiúsculas, minúsculas e acentos.
+2. **Dado** a lista de cartões, **quando** o estudante filtra por situação (ativo ou suspenso) ou por origem, **então** só os cartões correspondentes aparecem, e os filtros podem ser combinados com a busca.
+3. **Dado** uma busca sem resultados, **quando** a lista é exibida, **então** ela informa que nenhum cartão corresponde à busca, diferente do estado de matéria sem cartões.
+
 ## Casos de borda
 
 - Frente, verso ou explicação só com espaços.
@@ -95,6 +110,8 @@ Como estudante, quero tirar um cartão das lições temporariamente ou de vez, p
 - **RF-007:** Um cartão suspenso não deverá entrar em lições, e seu estado de agendamento deverá ser preservado até a reativação (deriva de RN-08 da base).
 - **RF-008:** A exclusão de um cartão deverá exigir confirmação e preservar as revisões e o XP já registrados.
 - **RF-009:** Todo cartão deverá exibir uma única origem: "Gerado e verificado", "Editado por você" ou "Criado por você", acrescida de "Fonte apagada" quando a fonte de referência tiver sido excluída.
+- **RF-010:** O estudante deverá conseguir buscar os cartões da matéria por texto da frente ou do verso, sem diferenciar maiúsculas, minúsculas e acentos, e filtrá-los por situação e por origem (D-005).
+- **RF-011:** Frente, verso e explicação deverão ser texto puro, com quebras de linha preservadas (D-003).
 
 ## Entidades principais
 
@@ -115,18 +132,30 @@ Como estudante, quero tirar um cartão das lições temporariamente ou de vez, p
 
 ## Suposições e dependências
 
-- **Suposição:** os limites de texto de RF-001 são propostos pelo agente, configuráveis por ambiente e confirmados na revisão da spec.
 - **Dependência:** [001-conta-acesso](../001-conta-acesso/spec.md) e [002-materias-fontes](../002-materias-fontes/spec.md) (matérias e, para a referência opcional, fontes).
 - **Dependência:** a entrada do cartão nas lições é verificada com [005-licao-trilha](../005-licao-trilha/spec.md).
 
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E11:** O texto do cartão aceita formatação? → Não no MVP; só texto puro com quebras de linha (D-003).
+- **E12:** Os limites de texto estão confirmados? → Sim: frente até 1.000 caracteres, verso até 2.000, explicação até 1.000 (D-004).
+- **E13:** A lista de cartões tem busca e filtro? → Sim: busca por texto e filtro por situação e por origem (D-005).
+
 ## Questões abertas
 
-- **Q-001:** Os textos do cartão aceitam formatação simples (negrito, listas, fórmulas) ou só texto puro no MVP? **Recomendação:** só texto puro com quebras de linha no MVP; formatação depois, porque exige sanitização e testes adicionais. — **Responsável:** equipe — **Prazo:** 14/10/2026
+- **Q-001:** ~~Formatação simples no texto do cartão?~~ Resolvida em 12/10/2026 (D-003).
+
+Nenhuma questão aberta impede o planejamento.
 
 ## Decisões confirmadas
 
 - **D-001:** Modelo único de cartão (frente, verso, explicação e origem), sem tipos com correção automática; a explicação é opcional nos cartões criados pelo estudante. — **Confirmada por:** equipe, na [visão](../../produto/visao.md#flashcards-f-04) — **Data:** 29/09/2026
 - **D-002:** O cartão criado pelo estudante pode citar uma fonte de referência, mas nunca recebe o selo de verificado (Princípio I, QA-20). — **Confirmada por:** equipe, na [constituição](../../constitution.md) v0.2 — **Data:** 29/09/2026
+- **D-003:** Frente, verso e explicação são texto puro com quebras de linha no MVP; formatação fica para depois. — **Confirmada por:** Artur Lins (equipe), esclarecimento E11 — **Data:** 12/10/2026
+- **D-004:** Limites de texto: frente de 1 a 1.000 caracteres, verso de 1 a 2.000 e explicação de até 1.000, configuráveis por ambiente; valem também para os cartões gerados. — **Confirmada por:** Artur Lins (equipe), esclarecimento E12 — **Data:** 12/10/2026
+- **D-005:** A lista de cartões da matéria tem busca por texto e filtro por situação e por origem. — **Confirmada por:** Artur Lins (equipe), esclarecimento E13 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
@@ -138,7 +167,7 @@ Como estudante, quero tirar um cartão das lições temporariamente ou de vez, p
 |---|---|
 | I Fontes exclusivas | Conteúdo do estudante nunca recebe selo de verificado (RF-002, RF-006, RF-009) |
 | II Proteção e isolamento | RQ-001 e RQ-002 |
-| III Verificação humana | Exclusão com confirmação (US3) |
+| III Verificação humana | Exclusão com confirmação (US3); decisões do esclarecimento registradas pela equipe (D-003 a D-005) |
 | IV Servidor autoritativo | Editar não altera o agendamento (RF-005); histórico preservado (RF-008) |
 | V Qualidade verificável | CS-001 a CS-003 |
 | VI Entrega incremental | US1 demonstrável sozinha, sem IA |

@@ -24,7 +24,7 @@
 - Validar o arquivo antes de processá-lo: extensão, tipo real do conteúdo, tamanho e integridade.
 - Processar a fonte em segundo plano, com estados visíveis (`pendente`, `processando`, `concluido`, `falhou`) e nova tentativa após falha técnica (RN-03).
 - Extrair o texto e dividi-lo em trechos, guardando a página quando ela for conhecida (RF-06, parte do MVP).
-- Listar as fontes da matéria (acervo) e consultar os dados de cada uma.
+- Listar as fontes da matéria (acervo), consultar os dados de cada uma e renomear o título (D-005).
 - Excluir uma fonte definitivamente, com o impacto exibido e a escolha sobre os cartões aceitos (RN-14).
 - Excluir uma matéria definitivamente, em cascata (D-002).
 - Cotas por estudante (D-003).
@@ -37,7 +37,7 @@
 - Arquivar com restauração: "arquivar" significa guardar no acervo, não ocultar (RN-14).
 - Mover fontes entre matérias.
 - Geração de cartões: [004-geracao-cartoes](../004-geracao-cartoes/spec.md).
-- Visualizar ou baixar o arquivo original (Q-001).
+- Visualizar ou baixar o arquivo original no MVP (D-007).
 
 ## Cenários de usuário e testes
 
@@ -56,6 +56,8 @@ Como estudante, quero criar uma matéria e enviar uma fonte para ela, para ter m
 4. **Dado** um arquivo de 3 MB, ou com extensão diferente do conteúdo real, ou corrompido, **quando** o estudante tenta enviá-lo, **então** o envio é recusado com uma explicação específica e nada é guardado.
 5. **Dado** um PDF sem camada de texto, **quando** o processamento não encontra texto extraível, **então** a fonte fica `falhou` com a explicação de que PDFs digitalizados não são aceitos, sem oferecer nova tentativa (CB-23).
 6. **Dado** uma falha técnica no processamento, **quando** o estudante pede nova tentativa, **então** o processamento recomeça sem duplicar trechos.
+7. **Dado** um arquivo com conteúdo idêntico ao de uma fonte já existente na matéria, **quando** o estudante tenta enviá-lo, **então** o envio é recusado com a mensagem "Esta fonte já está nesta matéria" e o título da fonte existente (D-004).
+8. **Dado** uma fonte com pouco texto extraível (por exemplo, um parágrafo), **quando** o processamento termina, **então** ela chega a `concluido`; a eventual falta de conteúdo para gerar cartões é tratada na geração (D-006).
 
 ### História de usuário 2 Excluir uma fonte decidindo sobre os cartões P2
 
@@ -85,6 +87,7 @@ Como estudante, quero renomear e excluir matérias, para manter meus estudos org
 2. **Dado** um nome que o estudante já usa em outra matéria (sem diferenciar maiúsculas e minúsculas), **quando** ele tenta usá-lo, **então** a operação é recusada com explicação.
 3. **Dado** uma matéria com fontes e cartões, **quando** o estudante pede para excluí-la, **então** um diálogo mostra a quantidade de fontes, cartões ativos e cartões aguardando revisão que serão apagados, e só habilita a exclusão depois que o estudante digita o nome da matéria.
 4. **Dado** a confirmação, **quando** a exclusão termina, **então** a matéria, as fontes, os trechos e os cartões são apagados, enquanto revisões, XP e sequência permanecem.
+5. **Dado** uma fonte, **quando** o estudante renomeia o título para um valor de 1 a 120 caracteres, **então** o novo título aparece no acervo, e a descrição da origem já copiada nos cartões não muda (D-005).
 
 ## Casos de borda
 
@@ -94,7 +97,8 @@ Como estudante, quero renomear e excluir matérias, para manter meus estudos org
 - Exclusão de fonte ou de matéria com cartões numa lição aberta: as revisões já registradas permanecem, e os cartões apagados deixam de ser apresentados (CB-27).
 - Arquivo vazio, TXT com codificação inválida, PDF protegido por senha.
 - Arquivo cujo nome tem caminhos, caracteres de controle ou mais de 255 caracteres: o nome é só exibido, nunca usado para guardar o arquivo.
-- Mesmo arquivo enviado duas vezes à mesma matéria (Q-002).
+- Mesmo arquivo enviado duas vezes à mesma matéria: recusado (D-004). O mesmo arquivo em matérias diferentes é aceito.
+- Dois envios simultâneos do mesmo arquivo à mesma matéria: no máximo um é aceito.
 - Cota atingida: 50 matérias, 30 fontes na matéria ou 100 MB no total.
 - Dois envios simultâneos que ultrapassariam a cota juntos: no máximo um é aceito.
 - Texto da fonte com instruções direcionadas à IA: é guardado como conteúdo comum (CB-15; o tratamento na geração está em [004](../004-geracao-cartoes/spec.md)).
@@ -114,6 +118,9 @@ Como estudante, quero renomear e excluir matérias, para manter meus estudos org
 - **RF-011:** A exclusão de uma matéria deverá exibir o impacto, exigir que o estudante digite o nome dela e apagar fontes, trechos e cartões, preservando revisões, XP e sequência (D-002).
 - **RF-012:** O sistema deverá recusar com explicação a criação de matéria ou o envio de fonte que ultrapasse as cotas de D-003.
 - **RF-013:** A exclusão de uma fonte em processamento deverá interromper o processamento sem deixar trechos (deriva de CB-16 da base).
+- **RF-014:** O sistema deverá recusar o envio de um arquivo com conteúdo idêntico ao de uma fonte existente na mesma matéria, informando o título da fonte existente (D-004).
+- **RF-015:** O estudante deverá conseguir renomear o título de uma fonte (1 a 120 caracteres), sem alterar a descrição da origem já copiada nos cartões (D-005).
+- **RF-016:** O processamento deverá aceitar qualquer fonte válida com texto extraível, sem quantidade mínima de texto (D-006).
 
 ## Entidades principais
 
@@ -140,18 +147,34 @@ Como estudante, quero renomear e excluir matérias, para manter meus estudos org
 
 - **Dependência:** [001-conta-acesso](../001-conta-acesso/spec.md).
 - **Dependência:** as contagens de cartões no diálogo de exclusão só são diferentes de zero depois de [003](../003-cartoes-manuais/spec.md) e [004](../004-geracao-cartoes/spec.md). A US2 pode ser testada com cartões criados diretamente nos dados de teste.
-- **Suposição:** o tempo de 60 segundos de CS-003 é uma meta proposta pelo agente para o ambiente local, a confirmar na revisão da spec.
+
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E6:** O que acontece com um arquivo idêntico enviado de novo à mesma matéria? → É recusado, com o título da fonte existente (D-004).
+- **E7:** O título da fonte pode ser renomeado? → Sim; a descrição da origem já copiada nos cartões não muda (D-005).
+- **E8:** Existe texto mínimo para aceitar uma fonte? → Não; a insuficiência é tratada na geração (D-006).
+- **E9:** O estudante abre ou baixa o arquivo original no MVP? → Não (D-007).
+- **E10:** A meta de 60 s para um PDF de 2 MB está confirmada? → Sim, medida no ambiente local do quickstart (D-008).
 
 ## Questões abertas
 
-- **Q-001:** O estudante deve conseguir abrir ou baixar o arquivo original de uma fonte no MVP? **Recomendação:** não no MVP, porque a evidência já mostra o trecho; reavaliar no final acadêmico. — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-002:** O que acontece quando o estudante envia de novo um arquivo idêntico (mesmo conteúdo) à mesma matéria? **Recomendação:** recusar com a mensagem "Esta fonte já está nesta matéria", indicando o título existente, para evitar cartões duplicados. — **Responsável:** equipe — **Prazo:** 14/10/2026
+- **Q-001:** ~~Abrir ou baixar o arquivo original no MVP?~~ Resolvida em 12/10/2026 (D-007).
+- **Q-002:** ~~Arquivo idêntico enviado de novo à mesma matéria?~~ Resolvida em 12/10/2026 (D-004).
+
+Nenhuma questão aberta impede o planejamento.
 
 ## Decisões confirmadas
 
 - **D-001:** Os formatos e os limites do MVP são os da RN-02 da base (PDF com texto, TXT e MD, até 2 MB, um arquivo por envio). — **Confirmada por:** equipe, na [visão](../../produto/visao.md#matérias-e-fontes-f-02-f-03) — **Data:** 29/09/2026
 - **D-002:** A exclusão de uma matéria é definitiva e em cascata (fontes, trechos e cartões), com o impacto exibido e a confirmação pelo nome digitado. Revisões, XP e sequência são preservados. Não há opção de manter os cartões, porque todo cartão pertence a uma matéria. — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-003:** Cotas por estudante: até 50 matérias, até 30 fontes por matéria e até 100 MB de fontes no total, configuráveis por ambiente. — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
+- **D-004:** Um arquivo com conteúdo idêntico ao de uma fonte existente na mesma matéria é recusado, com o título da fonte existente. — **Confirmada por:** Artur Lins (equipe), esclarecimento E6 — **Data:** 12/10/2026
+- **D-005:** O título da fonte pode ser renomeado; a descrição da origem copiada nos cartões não muda. — **Confirmada por:** Artur Lins (equipe), esclarecimento E7 — **Data:** 12/10/2026
+- **D-006:** Qualquer fonte válida com texto extraível é aceita; a falta de conteúdo para gerar cartões é tratada na geração ([004](../004-geracao-cartoes/spec.md), US4). — **Confirmada por:** Artur Lins (equipe), esclarecimento E8 — **Data:** 12/10/2026
+- **D-007:** O MVP não permite abrir nem baixar o arquivo original; a evidência mostra o trecho. — **Confirmada por:** Artur Lins (equipe), esclarecimento E9 — **Data:** 12/10/2026
+- **D-008:** Meta de até 60 segundos para uma fonte de 2 MB em PDF chegar a `concluido`, medida no ambiente local do quickstart (CS-003). — **Confirmada por:** Artur Lins (equipe), esclarecimento E10 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
@@ -163,7 +186,7 @@ Nenhuma exigência (EX-01 a EX-05) toca esta funcionalidade diretamente. As font
 |---|---|
 | I Fontes exclusivas | Os trechos guardam a página só quando conhecida (RF-006) |
 | II Proteção e isolamento | RQ-001 a RQ-003; conteúdo da fonte tratado como dado |
-| III Verificação humana | Exclusões com impacto e confirmação explícita (US2 e US3) |
+| III Verificação humana | Exclusões com impacto e confirmação explícita (US2 e US3); decisões do esclarecimento registradas pela equipe (D-004 a D-008) |
 | IV Servidor autoritativo | Estados do processamento vêm do servidor; reprocessamento sem duplicar (RF-008) |
 | V Qualidade verificável | CS-001 a CS-004, com conjuntos de arquivos fictícios |
 | VI Entrega incremental | US1 demonstrável sozinha |
