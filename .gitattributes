@@ -1,4 +1,15 @@
 * text=auto eol=lf
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
 *.pdf binary
+*.woff binary
+*.woff2 binary
+# Arquivos gerados: diffs reduzidos na revisão
+backend/uv.lock linguist-generated=true -diff
+frontend/package-lock.json linguist-generated=true -diff
+frontend/src/api/*.gerado.* linguist-generated=true
+frontend/src/routeTree.gen.ts linguist-generated=true

@@ -8,3 +8,25 @@
 Thumbs.db
 .vscode/
 .idea/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Dados locais (armazenamento de arquivos do ambiente de desenvolvimento)
+dados/
