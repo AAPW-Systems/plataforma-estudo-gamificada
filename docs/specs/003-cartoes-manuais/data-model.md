@@ -72,7 +72,7 @@ Os valores iniciais do FSRS vêm de `fsrs.Card()` na criação ([DTEC 037](resea
 
 | Valor | Regra | Exibição |
 |---|---|---|
-| `verificado` | `origem = 'gerado_verificado'` | Selo "Gerado e verificado" (RF-009) |
+| `verificado` | `origem = 'gerado_verificado'`; desde o plano da 004, também com a fonte da geração existente ([DTEC 045](../004-geracao-cartoes/research.md#decisão-dtec-045-revisão-dos-cartões-gerados)) | Selo "Gerado e verificado" (RF-009) |
 | `fonteApagada` | `referencia_titulo IS NOT NULL AND fonte_id IS NULL` (manual). Nos cartões gerados, vem das evidências (004) | "Fonte apagada" junto da descrição da origem (RF-009, D-006) |
 | Rótulo da origem | `criado` → "Criado por você"; `editado` → "Editado por você"; `gerado_verificado` → "Gerado e verificado" | Texto e ícone, nunca só cor (RQ-003) |
 
