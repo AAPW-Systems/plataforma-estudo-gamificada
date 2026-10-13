@@ -85,7 +85,7 @@ Enum origem_parametros_fsrs {
 }
 
 Enum tipo_evento_xp {
-  revisao [note: 'Revisão concluída, independentemente da nota (RN-18)']
+  revisao [note: 'Primeira revisão do cartão no dia, independentemente da nota (RN-18)']
   cartao_dominado [note: 'Bônus único quando o cartão é dominado pela primeira vez']
 }
 
@@ -397,6 +397,7 @@ Table eventos_xp {
   id bigint [pk, increment]
   usuario_id bigint [not null]
   revisao_id bigint [not null, note: 'Todo XP nasce de uma revisão; o bônus de domínio, da revisão que dominou o cartão']
+  cartao_id bigint [note: 'Nulo se o cartão for excluído; o evento nunca é apagado']
   tipo tipo_evento_xp [not null]
   quantidade integer [not null]
   versao_regra varchar(20) [not null, note: 'Versão dos valores de QA-24; mudar valores não altera XP concedido']
@@ -404,18 +405,19 @@ Table eventos_xp {
   concedido_em timestamptz [not null, default: `now()`]
 
   indexes {
-    (revisao_id, tipo) [unique, note: 'Impede XP duplicado por reenvio (RN-10)']
+    (cartao_id, dia_estudo, tipo) [unique, note: 'XP uma vez por cartão distinto no dia (RN-18): reapresentações e reenvios não rendem XP']
     (usuario_id, dia_estudo)
+    revisao_id
   }
 
-  Note: 'Histórico de XP, nunca removido (RN-18). usuarios.xp_total é o seu total em cache.'
+  Note: 'Histórico de XP, nunca removido (RN-18). usuarios.xp_total é o seu total em cache. O bônus de domínio é único por cartão (cartoes.dominado_em).'
 }
 
 Table dias_estudo {
   usuario_id bigint [not null]
   dia date [not null]
   fuso varchar(64) [not null, note: 'Fuso vigente no dia (CB-25)']
-  revisoes_feitas integer [not null, default: 0]
+  cartoes_revisados integer [not null, default: 0, note: 'Cartões distintos revisados no dia; reapresentações não contam (RN-21)']
   meta_efetiva integer [not null, note: 'min(meta diária, cartões disponíveis no dia) (RN-21)']
   meta_cumprida_em timestamptz [note: 'Preenchido quando o dia passa a contar como estudado']
 
@@ -546,6 +548,7 @@ Ref: revisoes.parametros_fsrs_id > parametros_fsrs.id
 // Gamificação
 Ref: eventos_xp.usuario_id > usuarios.id
 Ref: eventos_xp.revisao_id > revisoes.id
+Ref: eventos_xp.cartao_id > cartoes.id [delete: set null]
 Ref: dias_estudo.usuario_id > usuarios.id
 
 // Final acadêmico

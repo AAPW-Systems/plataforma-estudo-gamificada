@@ -40,7 +40,7 @@ O produto não pode ser uma cópia de uma solução existente (requisito da disc
 
 Toda regra de gamificação segue três critérios, nesta ordem:
 
-1. **Recompensar esforço honesto.** O XP premia a revisão concluída e o domínio medido pelo algoritmo, e nunca a nota que o próprio estudante se atribui.
+1. **Recompensar esforço honesto.** O XP premia cada cartão revisado no dia e o domínio medido pelo algoritmo, e nunca a nota que o próprio estudante se atribui.
 2. **Nunca punir quem está em dia.** Um dia sem cartões disponíveis não quebra a sequência, e revisar tudo o que havia conta como dia estudado.
 3. **Tirar o máximo de frustração possível**, sem criar atalhos que tornem os números desonestos (ex.: dias "de graça").
 
@@ -169,8 +169,8 @@ Decisões tomadas em 29/09/2026 ([registro](../prompts/2026-09-29-brainstorming-
 
 ### XP, meta e sequência (F-09, F-10)
 
-- **XP:** concedido por revisão concluída, independente da nota, mais um bônus quando um cartão passa a ser considerado dominado (estabilidade do FSRS acima de um limiar). Valores em [QA-24](pendencias.md#qa-24-valores-da-gamificação).
-- **Meta diária:** número de revisões, configurável. **Meta efetiva** = o menor valor entre a meta e os cartões disponíveis no dia.
+- **XP:** concedido uma vez por cartão distinto revisado no dia, independente da nota (rever um cartão errado na mesma lição não rende XP de novo), mais um bônus quando um cartão passa a ser considerado dominado (estabilidade do FSRS acima de um limiar). Valores em [QA-24](pendencias.md#qa-24-valores-da-gamificação).
+- **Meta diária:** número de cartões distintos revisados no dia, configurável. **Meta efetiva** = o menor valor entre a meta e os cartões disponíveis no dia.
 - **Dia estudado:** o dia em que a meta efetiva é cumprida. Um dia sem nenhum cartão disponível é **neutro**: não conta como dia estudado e não quebra a sequência.
 - **Congelamento da sequência:** fora do MVP, previsto para o projeto final.
 - **Fuso:** configurável no perfil, detectado no cadastro, padrão `America/Sao_Paulo`. O dia de estudo vira às **4h** no horário local, para que quem estuda de madrugada não perca o dia.

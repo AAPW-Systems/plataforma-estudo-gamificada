@@ -307,11 +307,11 @@ Aberta em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)
 
 As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-aprofundado)). Os **números** não estão:
 
-- XP por revisão concluída e bônus por cartão dominado.
+- XP por cartão distinto revisado no dia e bônus por cartão dominado.
 - Limiar de estabilidade FSRS que define "cartão dominado".
-- Meta diária padrão (proposta inicial: 20 revisões) e tamanho padrão da lição (proposta: 10 cartões).
+- Meta diária padrão (proposta inicial: 20 cartões distintos) e tamanho padrão da lição (proposta: 10 cartões).
 - Teto de tempo por cartão para o "tempo dedicado" (proposta: 60 s).
-- **Reapresentações na mesma lição (12/10/2026):** com o FSRS soberano (RN-26), um cartão marcado Errei volta na mesma lição. Se cada revisão concede XP e conta para a meta, errar de propósito renderia mais XP. Decidir se XP e meta contam revisões ou cartões distintos por dia, sem premiar a nota que o próprio estudante se atribui.
+- **Reapresentações na mesma lição (12/10/2026):** com o FSRS soberano (RN-26), um cartão marcado Errei volta na mesma lição. Se cada revisão concedesse XP e contasse para a meta, errar de propósito renderia mais XP. **Decidido em 12/10/2026:** XP e meta contam **cartões distintos por dia** (RN-18, RN-21).
 
 **Impacto:** mudar esses valores depois do lançamento não pode alterar o XP já concedido (Princípio IV). A regra de concessão deve ser versionada.
 

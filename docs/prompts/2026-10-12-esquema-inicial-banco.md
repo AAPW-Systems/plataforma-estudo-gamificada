@@ -39,6 +39,12 @@ Q12-Q18: sua recomendação
 Q19:"a", na versão final acadêmica, pois é uma funcionalidade essencial, se ela ficar de fora, podemos ser penalizados na matéria
 ```
 
+### Prompt 2
+
+```text
+XP e meta contam cartões distintos por dia. Sobre o R2, no caso do mvp, como poderíamos pensar numa estratégia de que ele rode localmente? seria viável criarmos um temp local, que depois de processado, é apagado?
+```
+
 ## Decisões consolidadas
 
 | Tema | Decisão |
@@ -54,6 +60,7 @@ Q19:"a", na versão final acadêmica, pois é uma funcionalidade essencial, se e
 | Lição extra | Só com cartões devidos ou novos dentro do limite; nunca revisão antecipada |
 | Edição | Editar não reinicia o estado do FSRS; "reiniciar aprendizado" fica como incremento |
 | XP e sequência | Totais em cache em `usuarios` + `eventos_xp` + `dias_estudo` |
+| XP e meta | Contam **cartões distintos por dia**: reapresentações na mesma lição não rendem XP nem contam para a meta (RN-18, RN-21; `eventos_xp` único por cartão, dia e tipo) |
 | Abrangência | MVP completo; tabelas do final acadêmico em grupo separado (`vector(1024)`) |
 
 ## Saída aceita
@@ -88,7 +95,6 @@ Pendente de revisão: o autor vai conferir o diagrama no dbdiagram.io.
 ## Pendências
 
 - Aplicar o SQL num PostgreSQL com pgvector para validar a extensão `vector` e os índices (primeiro `plan.md` ou primeira migração).
-- QA-24: decidir se XP e meta contam revisões ou cartões distintos, já que um cartão errado volta na mesma lição.
 - QA-32 e PO-06: escopo do painel administrativo e validação com o PO.
 - DTEC 010: definir no primeiro `plan.md` como testar a integração com o R2.
 - Exportar o diagrama do dbdiagram como imagem para a documentação, se a equipe quiser.

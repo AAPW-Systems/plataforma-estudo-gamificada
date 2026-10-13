@@ -162,7 +162,7 @@ Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.m
 
 ### RN-18 XP
 
-- Toda revisão concluída concede XP, **independentemente da nota** (Princípio de gamificação da [visão](../produto/visao.md#princípio-de-gamificação): nunca premiar a nota que o próprio estudante se atribui).
+- A **primeira revisão de cada cartão no dia de estudo** concede XP, **independentemente da nota**. Reapresentações do mesmo cartão no mesmo dia (passos curtos do FSRS, RN-26) não concedem XP, para que errar de propósito não renda pontos. Decidido em 12/10/2026 (Princípio de gamificação da [visão](../produto/visao.md#princípio-de-gamificação): nunca premiar a nota que o próprio estudante se atribui).
 - Um cartão que se torna **dominado** pela primeira vez concede um bônus.
 - XP é calculado no servidor, rastreável ao evento que o originou e nunca removido. Os valores (QA-24) ficam numa regra versionada: mudar valores não altera XP já concedido.
 
@@ -182,7 +182,7 @@ O estudante configura o limite diário de cartões novos que entram nas lições
 
 ### RN-21 Meta diária e sequência
 
-- A meta diária é um número de revisões, configurável.
+- A meta diária é um número de **cartões distintos revisados** no dia, configurável. Reapresentações do mesmo cartão não contam duas vezes.
 - A meta efetiva usa os cartões **disponíveis** no dia (devidos e novos dentro do limite).
 - **Dia estudado:** dia em que a meta efetiva é cumprida.
 - Um dia sem nenhum cartão disponível é **neutro**: não conta como estudado e não quebra a sequência.
