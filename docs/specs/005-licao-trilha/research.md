@@ -223,7 +223,7 @@ Vale também a DTEC transversal proposta neste planejamento: dia de estudo num �
 - **Extra:** `extra = true` quando já existe lição concluída no mesmo dia de estudo. "Depois da meta" é classificação da 006, que conhece a meta.
 - **Dependências de leitura:** `revisao` lê `materias` (existência) e `cartoes` (elegíveis) por consultas expostas por esses domínios, sem acessar os modelos ORM deles.
 
-**Condição para revisão:** decisão da Q-001 que exija dados que a API não traz (ex.: marcos por dominados acumulados), atendida com campos aditivos.
+**Condição para revisão:** composição da trilha que exija dados que a API não traz (ex.: marcos por dominados acumulados), atendida com campos aditivos. A Q-001 foi decidida em 13/10/2026 (caminho vertical contínuo, D-008), sem mudar esta decisão; a composição do final acadêmico está em discussão na QA-34.
 
 ## Fontes consultadas
 

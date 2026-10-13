@@ -131,6 +131,7 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
   - Zod e React Hook Form.
 - **Texto do estudante:** sempre como texto puro (`pre-wrap`). `dangerouslySetInnerHTML` é proibido por lint (DTEC 036).
 - **Componentes já previstos:** `DialogoConfirmacao` (destrutivo), `ZonaArquivo`, `GrupoOpcoes`, `SeloEstado`, `CampoTextoLongo`, `SeloOrigem`, `PainelEvidencia`, `CitacaoDestacada` e `AtalhoTeclado`.
+- **Trilha do MVP:** caminho vertical contínuo (D-008 da 005); a do final acadêmico está em discussão (QA-34).
 - **Lição:** rota única `/licao`, que chama `POST /licoes` ao carregar; atalhos Espaço ou Enter (revelar), 1 a 4 (notas) e Enter depois da explicação; medida `transicao-cartao` com `performance.mark` (CS-004 da 005).
 - **Acessibilidade:** WCAG 2.2 AA, `vitest-axe` em todo componente, uso a partir de 320 px.
 

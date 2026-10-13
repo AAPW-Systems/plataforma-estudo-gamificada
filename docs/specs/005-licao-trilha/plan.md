@@ -57,7 +57,7 @@ A ordem US1 com US2 (P1, o fluxo da lição com a explicação) → US3 (trilha)
 |---|---|---|
 | I Fontes exclusivas | A explicação exibida ao errar é a gravada com o cartão; a evidência vem da rota da 004; nenhuma chamada à IA na lição (RF-009, RN-16) | Teste funcional da US2 com o provedor simulado registrando zero chamadas |
 | II Proteção e isolamento | FKs compostas com o dono em todas as tabelas novas; 3 rotas novas com identificador na tabela de isolamento (DTEC 019); verso só pela revelação; logs sem frente, verso nem explicação | Testes `security/`; teste de logs; teste de catálogo da exclusão da conta |
-| III Verificação humana | Q-001 e Q-002 ficam com a equipe e o PO; DTEC 048 a 056 registradas para aprovação | Este plano; registro da sessão |
+| III Verificação humana | Q-001 decidida pela equipe (D-008); EX-05 fora do MVP e em pauta com o PO (D-009); DTEC 048 a 056 registradas para aprovação | Este plano; registro da sessão |
 | IV Servidor autoritativo | Montagem, elegibilidade, limite, revelação, agendamento, término e trilha decididos no servidor; idempotência pela chave e pela apresentação; revisão imutável com estado antes e depois | Testes de concorrência e de reenvio (CS-002); teste de imutabilidade |
 | V Qualidade verificável | CS-001 comparado com a biblioteca isolada; CS-003 por testes de elegibilidade com relógio controlado; CS-004 medido; axe nos componentes | `traceability.md`; roteiro de medição no quickstart |
 | VI Entrega incremental | US1 e US2 demonstráveis com cartões manuais, sem IA | `quickstart.md` |
@@ -111,9 +111,9 @@ A 005 **não** calcula XP, meta nem sequência. Ela entrega:
 - **Fechamento extensível:** o esquema `Fechamento` recebe campos aditivos de XP e sequência na 006, e `extra` permanece como "lição depois de outra concluída no dia"; a classificação "depois da meta" é da 006.
 - **Lições concluídas por dia:** `revisao/consultas.py`, para a 006 e a 007.
 
-## Q-001 (composição da trilha, UI-05): opções para a equipe
+## Q-001 (composição da trilha, UI-05)
 
-O plano **não decide** a Q-001; a decisão é da equipe até 14/10/2026. A API (DTEC 056) atende às três opções sem mudança.
+**Decidida pela equipe em 13/10/2026 (D-008 da spec, [registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)):** opção 1, caminho vertical contínuo, no MVP. Manter ou não esse padrão no final acadêmico está em discussão na [QA-34](../../produto/pendencias.md#qa-34-composição-da-trilha-no-final-acadêmico). A API (DTEC 056) atende às três opções sem mudança, então a decisão do final acadêmico não altera o backend. Opções avaliadas:
 
 | Opção | Descrição | Consequências |
 |---|---|---|
@@ -121,11 +121,11 @@ O plano **não decide** a Q-001; a decisão é da equipe até 14/10/2026. A API 
 | 2. Estações por dia de estudo | Os nós de um mesmo dia agrupados numa "estação", com as extras dentro dela | Mais compacta com muitas extras; liga a trilha ao dia de estudo, como a sequência da 006; pede o agrupamento por `diaEstudo` na interface |
 | 3. Marcos por cartões dominados | Caminho vertical, com marcos ao atingir 10, 25 e 50 cartões dominados acumulados | Liga a trilha ao domínio; pede um campo aditivo com o total de dominados na trilha; depende de o limiar de 21 dias ser atingido, o que leva semanas |
 
-Sugestão do agente, a confirmar pela equipe: opção 1 no MVP, por ser a mais simples e independente. Os estados de nó nunca dependem só de cor (forma e rótulo textual), conforme a seção 9.2 do design.
+Os estados de nó nunca dependem só de cor (forma e rótulo textual), conforme a seção 9.2 do design.
 
 ## EX-05 (Q-002)
 
-Até a resposta do PO, a 005 **não** tem nenhum requisito de dificuldade. A dificuldade calculada pelo FSRS já fica gravada em `cartoes.dificuldade` e em cada revisão; se o PO aprovar a proposta de três faixas (PO-01), exibi-la é uma leitura, sem mudança de esquema nem de agendamento (RN-26).
+**Fora do MVP** por decisão da equipe de 13/10/2026 (D-009 da spec); a discussão com o PO segue em PO-01 e QA-26. A 005 **não** tem nenhum requisito de dificuldade. A dificuldade calculada pelo FSRS já fica gravada em `cartoes.dificuldade` e em cada revisão; se o PO aprovar a proposta de três faixas (PO-01), exibi-la é uma leitura, sem mudança de esquema nem de agendamento (RN-26).
 
 ## Estrutura do repositório
 
@@ -285,13 +285,13 @@ Nenhuma nova. O limiar de dominado é regra versionada em código (DTEC 055), e 
 
 | Risco | Consequência | Mitigação | Como verificar |
 |---|---|---|---|
-| Prazo de 15/10/2026 | US3 e US4 sem tempo | US1 com US2 primeiro; trilha simples (opção 1 da Q-001, se a equipe aprovar) | Quickstart da P1 funcionando antes da US3 |
+| Prazo de 15/10/2026 | US3 e US4 sem tempo | US1 com US2 primeiro; trilha simples (caminho vertical contínuo, D-008) | Quickstart da P1 funcionando antes da US3 |
 | Símbolo interno `fsrs.scheduler.random` mudar | Fuzz fora do controle da semente; CS-001 quebrado | Versão fixada; teste de contrato bloqueia a atualização | `contrato/fsrs` na integração contínua |
 | Virada das 4h com fuso e horário de verão | Lição ou limite no dia errado (CS-003) | Módulo único (DTEC 048); testes de propriedade; relógio injetável | Testes unitários e funcionais da virada |
 | p95 acima de 300 ms | CS-004 reprovado | Uma ida e volta por transição; índices; orçamento de 150 ms no servidor | Teste de desempenho; roteiro do quickstart |
 | *Deadlock* entre avaliação, abertura e edição | Erro intermitente | Ordem única das travas (DTEC 052); edição em colunas disjuntas | Testes de concorrência |
 | Lição deixada aberta por dias | Usuário retoma lição antiga | Encerramento no `POST /licoes`, que a página chama ao carregar | Teste funcional do D-005 |
-| Decisão da Q-001 tardia | Interface da trilha refeita | API neutra às três opções | Revisão da equipe em 14/10 |
+| Outra composição da trilha no final acadêmico (QA-34) | Interface da trilha refeita | API neutra às três opções; trilha como componente próprio | Decisão da QA-34 antes do plano da 012 |
 
 ## Complexidade e exceções
 

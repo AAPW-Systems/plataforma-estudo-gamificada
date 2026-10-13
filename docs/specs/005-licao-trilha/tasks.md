@@ -150,7 +150,7 @@
 
 **Objetivo:** ver os nós alcançados, o nó atual e o próximo passo, ou o próximo vencimento sem disponíveis.  
 **Teste independente:** com 3 lições concluídas, 3 nós alcançados, o nó atual e o próximo passo; sem disponíveis, nenhuma lição e o próximo vencimento.  
-**Bloqueio:** a T038 depende da decisão da Q-001 pela equipe (prazo 14/10/2026). As T034 a T037 não dependem dela.
+**Composição:** caminho vertical contínuo (D-008, decidido em 13/10/2026).
 
 - [ ] T034 [P] [US3] Criar os testes da trilha em `tests/unit/revisao/test_trilha.py` e `tests/functional/revisao/test_us3_trilha.py` (DTEC 056):
   - estado do nó atual: `sem_materias` (cenário 1), `sem_cartoes`, `comecar`, `continuar` (cenário 2) e `sem_disponiveis` com `proximoVencimento` (cenário 3, CB-13);
@@ -159,8 +159,8 @@
   - nós sem buracos depois de uma lição encerrada (D-005); paginação por cursor com 35 lições.
 - [ ] T035 [P] [US3] Criar os testes de segurança e adversariais da trilha em `tests/security/revisao/test_trilha_seguranca.py`: nós de outro estudante nunca aparecem; cursor adulterado (`422 cursor_invalido`); `limite` fora de 1 a 100 (`422 dados_invalidos`).
 - [ ] T036 [US3] Implementar `GET /trilha` em `app/revisao/servicos.py`, `repositorios.py`, `consultas.py` (lições concluídas por dia, para a 006 e a 007), `mapeadores.py` e `rotas.py`, até que as T034 e T035 passem.
-- [ ] T037 [P] [US3] Criar os testes de componente em `frontend/src/funcionalidades/trilha/`: convite inicial sem nós fictícios; nós alcançados, atual e futuros com estados por forma e texto (não só por cor); "Começar lição" e "Continuar lição"; sem disponíveis com o horário no fuso e o aviso de dia neutro; teclado; 320 px; axe sem violações.
-- [ ] T038 [US3] Implementar a trilha em `frontend/src/rotas/_autenticado/index.tsx` e `frontend/src/funcionalidades/trilha/`, na composição decidida pela equipe na Q-001 (registrar a decisão na spec antes de começar), até que a T037 passe.
+- [ ] T037 [P] [US3] Criar os testes de componente em `frontend/src/funcionalidades/trilha/`: convite inicial sem nós fictícios; caminho vertical contínuo (D-008) com nós alcançados, o atual destacado, três futuros esmaecidos e um marco a cada 10 lições; estados por forma e texto (não só por cor); "Começar lição" e "Continuar lição"; sem disponíveis com o horário no fuso e o aviso de dia neutro; teclado; 320 px; axe sem violações.
+- [ ] T038 [US3] Implementar a trilha em `frontend/src/rotas/_autenticado/index.tsx` e `frontend/src/funcionalidades/trilha/`, como caminho vertical contínuo (D-008), até que a T037 passe.
 - [ ] T039 [US3] Executar a verificação da US3 no quickstart e registrar a evidência.
 
 ## Fase 6 História de usuário 4 Continuar estudando depois da meta (P3)
@@ -201,7 +201,7 @@
   - a Fase 2 (T004 a T013) bloqueia todas as histórias.
 - **US1:** T014 a T017, T019 e T020 sem dependência entre si → T021 → T022 → T023 → T024 → T018 → T025 → T027 (usa os tipos gerados) → T028. A T026 pode ser escrita em paralelo ao backend.
 - **US2:** depende da T023. T029 → T030; T031 → T032; → T033.
-- **US3:** depende da T022 (numeração na conclusão). Pode ser feita em paralelo à US2, por pessoas diferentes. A T038 depende da decisão da Q-001.
+- **US3:** depende da T022 (numeração na conclusão). Pode ser feita em paralelo à US2, por pessoas diferentes.
 - **US4:** depende da US1 (T022 e T023) e da US3 (`proximoVencimento`, T036).
 - **Specs seguintes:** a 006 registra o ouvinte de `RevisaoRegistrada`, usa `primeira_do_dia` e `tornou_dominado` e acrescenta XP e sequência ao fechamento ([obrigações no plano](plan.md#obrigações-registradas-para-as-próximas-specs)).
 - **Fase final:** depende de todas as histórias.
@@ -216,5 +216,5 @@
 
 1. **Base completa:** a T013 prova a migração, o agendador reproduzível (CS-001) e o dia de estudo.
 2. **P1 demonstrável:** entregar a US1 e a US2 juntas, com cartões manuais e um gerado da fábrica, sem IA. A lição completa com a explicação ao errar é o centro da apresentação de 15/10/2026.
-3. **Trilha:** acrescentar a US3 assim que a Q-001 for decidida, sem quebrar a P1. A suíte completa passa a cada commit.
+3. **Trilha:** acrescentar a US3 (caminho vertical contínuo, D-008), sem quebrar a P1. A suíte completa passa a cada commit.
 4. **Extras e verificação final:** a US4, as medições do CS-004 e a fase final. Nenhum merge na `main` acontece sem todos os testes passando (regra 17).

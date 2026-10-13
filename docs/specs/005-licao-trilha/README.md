@@ -33,3 +33,4 @@
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 048 a 056 ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
 | 13/10/2026 | Tarefas (T001 a T049) e rastreabilidade com análise de consistência escritas; aguardam o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
+| 13/10/2026 | Q-001 decidida (D-008, trilha em caminho vertical contínuo no MVP; final acadêmico na QA-34) e Q-002 resolvida (D-009, EX-05 fora do MVP), com propagação ao plano, à pesquisa, às tarefas (T037, T038) e à rastreabilidade ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |

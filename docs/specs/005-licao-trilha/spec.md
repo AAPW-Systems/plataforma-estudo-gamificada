@@ -36,7 +36,7 @@
 - Desfazer revisão e reiniciar o aprendizado de um cartão: incrementos posteriores de F-05.
 - Revisão antecipada de cartões que ainda não venceram (RN-26).
 - Otimização dos parâmetros pelo histórico do estudante (RN-26).
-- Seleção de cartões por dificuldade (EX-05): em pauta com o PO (Q-002).
+- Seleção ou exibição de cartões por dificuldade (EX-05): fora do MVP por decisão da equipe de 13/10/2026 (D-009); segue em pauta com o PO ([PO-01](../../produto/pauta-po.md#po-01-níveis-de-dificuldade-ex-05), [QA-26](../../produto/pendencias.md#qa-26-níveis-de-dificuldade)).
 - Cálculo de XP, meta e sequência: [006-xp-meta-sequencia](../006-xp-meta-sequencia/spec.md).
 
 ## Cenários de usuário e testes
@@ -166,10 +166,15 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 
 - **R6:** Quando um cartão novo passa a contar no limite de novos por dia? → Quando é revisado pela primeira vez (D-007).
 
+### Decisões da equipe de 13/10/2026, depois da aprovação das tarefas ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md))
+
+- **Q-001:** Qual a composição da trilha? → Caminho vertical contínuo no MVP (D-008). Manter ou não esse padrão no final acadêmico fica em discussão ([QA-34](../../produto/pendencias.md#qa-34-composição-da-trilha-no-final-acadêmico)).
+- **Q-002:** EX-05 entra nesta spec? → Não. Fica fora do MVP e segue nas pendências para discutir com o PO (D-009).
+
 ## Questões abertas
 
-- **Q-001:** Composição visual da trilha: densidade de nós, marcos periódicos e comportamento no celular ([UI-05](../../base-specs/design.md#12-pendências-de-design)). Não muda o comportamento desta spec, mas precisa estar definida antes da implementação da interface da US3. — **Responsável:** equipe — **Prazo:** 14/10/2026, antes da apresentação do MVP (meta da equipe: 15/10/2026)
-- **Q-002:** EX-05 (níveis de dificuldade). A equipe propõe exibir a dificuldade calculada pelo FSRS em três faixas, sem permitir escolha nem filtro ([PO-01](../../produto/pauta-po.md#po-01-níveis-de-dificuldade-ex-05)). Até a resposta do PO, esta spec não tem nenhum requisito de dificuldade. — **Responsável:** PO (professor Aldo Nunes) — **Prazo:** próxima review
+- **Q-001:** ~~Composição visual da trilha: densidade de nós, marcos periódicos e comportamento no celular ([UI-05](../../base-specs/design.md#12-pendências-de-design)).~~ Resolvida em 13/10/2026 para o MVP (D-008). A composição do final acadêmico segue em discussão na [QA-34](../../produto/pendencias.md#qa-34-composição-da-trilha-no-final-acadêmico).
+- **Q-002:** ~~EX-05 (níveis de dificuldade). A equipe propõe exibir a dificuldade calculada pelo FSRS em três faixas, sem permitir escolha nem filtro.~~ Resolvida em 13/10/2026 (D-009): fora do MVP. A discussão com o PO segue em [PO-01](../../produto/pauta-po.md#po-01-níveis-de-dificuldade-ex-05) e [QA-26](../../produto/pendencias.md#qa-26-níveis-de-dificuldade).
 
 ## Decisões confirmadas
 
@@ -180,11 +185,13 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - **D-005:** Uma lição deixada aberta de um dia de estudo anterior é encerrada sem acender o nó, e uma nova lição é montada com os cartões disponíveis do dia. — **Confirmada por:** Artur Lins (equipe), esclarecimento E20 — **Data:** 12/10/2026
 - **D-006:** A duração de uma revisão vai da exibição da frente até a autoavaliação; meta de até 300 ms por transição de cartão no percentil 95, no ambiente local (CS-004). — **Confirmada por:** Artur Lins (equipe), esclarecimento E21 — **Data:** 12/10/2026
 - **D-007:** Um cartão novo conta no limite de novos por dia quando é revisado pela primeira vez; entrar numa lição não consome o limite. — **Confirmada por:** Artur Lins (equipe), revisão R6 — **Data:** 12/10/2026
+- **D-008:** A trilha do MVP é um **caminho vertical contínuo**: um nó por lição concluída, o nó atual destacado, três nós futuros esmaecidos e um marco visual a cada 10 lições; no celular, a mesma coluna. Os estados de nó usam forma e texto, nunca só cor. Manter ou não esse padrão no final acadêmico fica em discussão (QA-34). — **Confirmada por:** Artur Lins (equipe), Q-001 — **Data:** 13/10/2026
+- **D-009:** A EX-05 (níveis de dificuldade) fica **fora do MVP**: esta spec não tem requisito de dificuldade, e a discussão com o PO segue em PO-01 e QA-26. A dificuldade calculada pelo FSRS continua gravada em cada cartão e revisão, sem uso no MVP. — **Confirmada por:** Artur Lins (equipe), Q-002 — **Data:** 13/10/2026
 
 ## Exigências do PO
 
 - **EX-03** (explicação do erro): coberta por US2 e RF-009.
-- **EX-05** (dificuldade): Q-002, em pauta com o PO.
+- **EX-05** (dificuldade): fora do MVP (D-009); em pauta com o PO (PO-01).
 
 ## Verificação da constituição
 
@@ -192,7 +199,7 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 |---|---|
 | I Fontes exclusivas | A explicação exibida é a gerada com o cartão, com evidência; nenhuma nova chamada à IA (RF-009) |
 | II Proteção e isolamento | Lições só com cartões do estudante; verso só enviado depois da revelação |
-| III Verificação humana | EX-05 fica com o PO (Q-002) |
+| III Verificação humana | EX-05 fora do MVP e em pauta com o PO (D-009) |
 | IV Servidor autoritativo | Lição, agendamento e revisão no servidor; idempotência (RF-008); eventos imutáveis (RF-007) |
 | V Qualidade verificável | CS-001 compara com a biblioteca de referência; RQ-003 |
 | VI Entrega incremental | US1 demonstrável com cartões manuais, sem IA |
