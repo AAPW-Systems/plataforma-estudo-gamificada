@@ -57,6 +57,8 @@ Pendente de revisão.
 
 - Branch develop, árvore limpa, quatro commits locais preservados.
 - T024: formatação, lint e 11 testes passaram com usuário padrão `node`. Build encontrou `dist` herdado como root; corrigida apenas a propriedade desse diretório gerado com `chown`, e build com Vite/TypeScript passou como `node`. T024 marcada após a verificação.
+- T025: testes escritos antes do cliente falharam por módulo ausente; depois, **15 testes do frontend passaram**, incluindo quatro do cliente (CSRF, corpo preservado, uma repetição, erro tipado). Geração OpenAPI, tipos, lint e build passaram. MSW 3 usa `onUnhandledFrame`, confirmado no pacote instalado. Os limites gerados estão vazios enquanto o OpenAPI só contém saúde; serão regenerados quando os DTOs da identidade existirem (T036/T037), sem valores inventados.
+- `docker compose up -d --wait` passou com banco/API/web saudáveis, worker em execução e migrate concluído. CI remoto ainda não verificado (T027).
 
 ## Pendências
 
