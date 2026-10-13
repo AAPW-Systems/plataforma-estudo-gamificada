@@ -148,6 +148,18 @@ plano aprovado, siga com as tarefas e a rastreabilidade
 tarefas aprovadas, registre e gere o prompt da 005
 ```
 
+### Prompt 4
+
+```text
+uma dúvida: o projeto já está ficando bem grande e o limite de contexto tá sendo consumido muito rapidamente. estou usando o opus high, é recomendável manter esse modelo ou posso diminuir a capacidade?
+```
+
+### Prompt 5
+
+```text
+faça o resumo e ajuste o prompt
+```
+
 ## Saída aceita
 
 Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6 e 7, aprovadas por Artur Lins em 13/10/2026 (prompt 3):
@@ -167,6 +179,8 @@ Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6
 | `docs/specs/004-geracao-cartoes/tasks.md` | criado: T001 a T059, por história (US1 e US4 como P1, depois US3 e US2), mais a fase do conjunto de avaliação |
 | `docs/specs/004-geracao-cartoes/traceability.md` | criado: matriz e análise de consistência |
 | `docs/specs/README.md`, `.agents/AGENTS.md` | alterados: 004 em `Tarefas aprovadas` e estado atual (próximo passo: plano da 005) |
+| `docs/skills/contexto-tecnico.md` | criado (prompt 5): resumo das DTEC 001 a 047, convenções da API, do banco, do backend, do frontend, dos testes e da IA, e obrigações pendentes entre specs |
+| `docs/skills/README.md`, `.agents/AGENTS.md` | alterados (prompt 5): o guia novo entra na tabela de guias |
 
 ## Alterações humanas
 
@@ -178,6 +192,7 @@ Pendente de revisão.
 - Links relativos e âncoras dos arquivos alterados conferidos por script (0 problemas).
 - Documentação do PydanticAI (`UsageLimits`, `RunUsage`, `FunctionModel`, `TestModel`, `ALLOW_MODEL_REQUESTS`) e do pydantic-evals (`Dataset`, `Case`, avaliadores) consultada pelo Context7 em 13/10/2026.
 - Semântica de `max_attempts` do Procrastinate conferida contra a DTEC 030 (`max_attempts=2` = até 2 novas tentativas).
+- Guia `contexto-tecnico.md`: links e âncoras conferidos por script (0 problemas); cada linha da tabela de DTEC conferida contra a linha "Decisão" do `research.md` de origem.
 - Tarefas: numeração contínua de T001 a T059 e presença de todas na rastreabilidade conferidas por script (nenhuma faltando); links de `tasks.md` e `traceability.md` conferidos (0 problemas).
 
 ## Pendências
