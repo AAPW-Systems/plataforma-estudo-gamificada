@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-02](../../produto/backlog.md#funcionalidades-candidatas) e [F-03](../../produto/backlog.md#funcionalidades-candidatas), parte do MVP (os formatos e o envio múltiplo do final acadêmico estão em [009-formatos-fontes](../009-formatos-fontes/spec.md); a indexação, em [014-chat-fontes](../014-chat-fontes/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [base de especificação](../../base-specs/spec.md) (HU-02, HU-03, HU-12, HU-13, RF-03, RF-04, RF-05, RF-06, RF-20, RN-02, RN-03, RN-14, RN-23, CB-04, CB-16, CB-23, CB-27) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

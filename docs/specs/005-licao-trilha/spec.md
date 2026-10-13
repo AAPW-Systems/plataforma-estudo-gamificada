@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-05](../../produto/backlog.md#funcionalidades-candidatas) e [F-07](../../produto/backlog.md#funcionalidades-candidatas), parte do MVP (o filtro por matéria e o domínio por matéria, do final acadêmico, estão em [012-filtro-dominio-materia](../012-filtro-dominio-materia/spec.md); o tira-dúvidas, em [015-tira-duvidas-cartao](../015-tira-duvidas-cartao/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [exigências do PO](../../produto/exigencias_po.md) EX-03 e EX-05, [base de especificação](../../base-specs/spec.md) (HU-04, HU-06, HU-07, HU-16, RF-08, RF-21, RF-23, RN-10, RN-15, RN-16, RN-17, RN-19, RN-20, RN-26, CB-13, CB-22, CB-24, CB-25, CB-27, CB-28, CB-30) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

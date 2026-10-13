@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-04](../../produto/backlog.md#funcionalidades-candidatas), parte de IA do MVP (o pedido para a matéria inteira e a quantidade proporcional ao volume, do final acadêmico, estão em [010-geracao-materia](../010-geracao-materia/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [exigências do PO](../../produto/exigencias_po.md) EX-02 e EX-03, [base de especificação](../../base-specs/spec.md) (HU-11, HU-14, RF-17, RF-22, RN-04, RN-05, RN-10, RN-16, RN-22, RQ-03, RQ-04, RQ-05, RQ-10, CB-09, CB-14, CB-15, CB-16, CB-26) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

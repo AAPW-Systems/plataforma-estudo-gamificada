@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-01](../../produto/backlog.md#funcionalidades-candidatas), parte do MVP (a recuperação de senha do final acadêmico está em [008-recuperacao-senha](../008-recuperacao-senha/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [base de especificação](../../base-specs/spec.md) (HU-01, RF-01, RF-02, RF-19, RN-01, RN-15, RN-26, RN-27) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

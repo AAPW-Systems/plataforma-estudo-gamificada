@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-12](../../produto/backlog.md#funcionalidades-candidatas), parte do MVP (o painel completo do final acadêmico está em [013-evolucao-completa](../013-evolucao-completa/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [base de especificação](../../base-specs/spec.md) (HU-08, RF-15, RN-25) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

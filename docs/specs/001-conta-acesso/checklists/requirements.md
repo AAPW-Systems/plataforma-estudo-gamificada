@@ -2,10 +2,10 @@
 
 **Finalidade:** verificar se a especificação está pronta para planejamento  
 **Funcionalidade:** [spec.md](../spec.md)  
-**Revisor:** Claude Code (claude-opus-5-5), revisão preliminar do agente; revisor humano: pendente  
+**Revisor:** Claude Code (claude-opus-5-5), revisão preliminar do agente; revisor humano: Artur Lins, revisão individual da spec em 12/10/2026  
 **Data:** 12/10/2026 ([registro](../../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
 
-Marcar um item significa que o revisor avaliou a qualidade do texto do requisito. Não significa que a implementação está pronta. Os itens foram marcados pelo agente e precisam ser conferidos pelo revisor humano, que é quem aprova a spec (portão humano).
+Marcar um item significa que o revisor avaliou a qualidade do texto do requisito. Não significa que a implementação está pronta. Os itens foram marcados pelo agente e conferidos pelo revisor humano, que aprovou a spec (portão humano).
 
 ## Completude
 
@@ -52,5 +52,5 @@ Marcar um item significa que o revisor avaliou a qualidade do texto do requisito
 ## Resultado da revisão
 
 **Recomendação do agente:** aprovar para planejamento: sim.  
-**Aprovada para planejamento:** pendente do revisor humano.  
+**Aprovada para planejamento:** sim, por Artur Lins (equipe), em 12/10/2026.  
 **Pendências:** nenhuma bloqueante.

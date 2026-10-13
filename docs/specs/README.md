@@ -45,13 +45,13 @@ Cada spec pertence a um único estágio. Os incrementos do final acadêmico de u
 
 | Pasta | Funcionalidade | Status |
 |---|---|---|
-| [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Especificando |
-| [002-materias-fontes](002-materias-fontes/README.md) | F-02 e F-03: matérias, envio e processamento de fontes | Especificando |
-| [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Especificando |
-| [004-geracao-cartoes](004-geracao-cartoes/README.md) | F-04: geração por IA, revisão dos gerados, "Gerar mais" (EX-02, EX-03) | Especificando |
-| [005-licao-trilha](005-licao-trilha/README.md) | F-05 e F-07: lição com FSRS e trilha | Especificando |
-| [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Especificando |
-| [007-evolucao](007-evolucao/README.md) | F-12 (parte): evolução mínima | Especificando |
+| [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Spec aprovada |
+| [002-materias-fontes](002-materias-fontes/README.md) | F-02 e F-03: matérias, envio e processamento de fontes | Spec aprovada |
+| [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Spec aprovada |
+| [004-geracao-cartoes](004-geracao-cartoes/README.md) | F-04: geração por IA, revisão dos gerados, "Gerar mais" (EX-02, EX-03) | Spec aprovada |
+| [005-licao-trilha](005-licao-trilha/README.md) | F-05 e F-07: lição com FSRS e trilha | Spec aprovada |
+| [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Spec aprovada |
+| [007-evolucao](007-evolucao/README.md) | F-12 (parte): evolução mínima | Spec aprovada |
 
 ### Final acadêmico
 

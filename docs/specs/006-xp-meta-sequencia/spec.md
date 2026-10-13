@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-09](../../produto/backlog.md#funcionalidades-candidatas) e [F-10](../../produto/backlog.md#funcionalidades-candidatas), parte do MVP (o congelamento da sequência é incremento posterior)
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [princípio de gamificação](../../produto/visao.md#princípio-de-gamificação), [base de especificação](../../base-specs/spec.md) (HU-06, HU-17, RF-12, RF-24, RN-10, RN-15, RN-18, RN-21, RN-26, CB-13, CB-24, CB-25) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado

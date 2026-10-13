@@ -4,7 +4,7 @@
 **Estágio:** MVP
 **Funcionalidade do backlog:** [F-04](../../produto/backlog.md#funcionalidades-candidatas), parte manual do MVP (a geração por IA está em [004-geracao-cartoes](../004-geracao-cartoes/spec.md); o cartão com imagem do final acadêmico, em [011-cartao-imagem](../011-cartao-imagem/spec.md))
 **Criada em:** 12/10/2026
-**Status:** Rascunho
+**Status:** Aprovada para planejamento em 12/10/2026 por Artur Lins (equipe)
 **Origem:** backlog, [base de especificação](../../base-specs/spec.md) (HU-15, RF-11, RN-05, RN-08, RN-14, RN-16, RN-26) e decisões da [sessão de 12/10/2026](../../prompts/2026-10-12-specs-funcionalidades.md)
 
 ## Problema e resultado esperado
