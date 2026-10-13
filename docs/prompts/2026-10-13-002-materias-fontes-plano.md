@@ -78,6 +78,14 @@ O agente tratou a resposta como confirmação do consolidado, idêntico às reco
 - As cotas são serializadas por *advisory lock* por estudante, e não por `FOR UPDATE` na linha `usuarios`, para não disputar a linha com a sessão e o perfil da 001 (DTEC 032).
 - O domínio `fontes` também é participante da exclusão da matéria, o que mantém a dependência num só sentido (DTEC 027).
 
+### Prompt 2
+
+```text
+revisado, caso tenha terminado, me passe o prompt do spec seguinte
+```
+
+O agente tratou "revisado" como a aprovação do plano (portão "Plano aprovado"). Em seguida, escreveu as tarefas e a rastreabilidade (etapas 6 e 7), parou no portão "Tarefas aprovadas" e entregou o prompt da spec 003.
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -94,10 +102,14 @@ O agente tratou a resposta como confirmação do consolidado, idêntico às reco
 | `docs/specs/002-materias-fontes/README.md`, `docs/specs/README.md` | alterados (status `Planejando`) |
 | `.agents/AGENTS.md` | alterado (estado atual) |
 | `docs/prompts/README.md` | alterado (índice) |
+| `docs/specs/002-materias-fontes/tasks.md` | criado (T001 a T051) |
+| `docs/specs/002-materias-fontes/traceability.md` | criado (matriz e análise de consistência) |
+| `docs/research.md`, `plan.md` e `research.md` da 002, READMEs e `.agents/AGENTS.md` | alterados (aprovação do plano e estado atual) |
 
 ## Alterações humanas
 
-Pendente: aprovação do plano (portão "Plano aprovado").
+- Plano aprovado por Artur Lins em 13/10/2026 sem alterações (prompt 2), com as DTEC 024 a 032.
+- Tarefas e rastreabilidade: pendentes do portão "Tarefas aprovadas".
 
 ## Verificação
 
@@ -105,9 +117,12 @@ Pendente: aprovação do plano (portão "Plano aprovado").
 - Links relativos e âncoras dos arquivos Markdown alterados conferidos por script: nenhum quebrado.
 - Recursos do Procrastinate citados (`RetryStrategy`, `queueing_lock` com `AlreadyEnqueued`, `get_stalled_jobs`, `retry_job`, `prune_stalled_workers`) conferidos na documentação oficial em 13/10/2026.
 - Commits até o portão do plano: `031d3b2` e `3d2c150` (decisões transversais), `1618360` (esquema), `44f2852` (padrões), `6c64ede` (artefatos da 002) e o commit deste registro.
+- Commits do prompt 2: `1301a0c` (aprovação do plano), `3221d15` (tarefas e rastreabilidade) e o commit deste registro.
+- Tarefas conferidas por script: 51 tarefas, todas citadas na rastreabilidade; todo ID citado existe em `tasks.md`; todo RF, RQ e CS da spec aparece na matriz.
 - Nenhum código foi escrito nem executado (decisão de 13/10/2026).
 
 ## Pendências
 
-- Portão "Plano aprovado" da 002; depois, `tasks.md` (etapa 6) e `traceability.md` com análise de consistência (etapa 7).
+- Portão "Tarefas aprovadas" da 002 (tarefas e rastreabilidade).
+- Plano da 003 em nova sessão (prompt entregue ao usuário na resposta ao prompt 2). Ponto em aberto para o plano da 003: o esquema não tem onde guardar a fonte de referência de um cartão manual (`cartoes` não tem coluna de fonte, e `evidencias_cartoes` liga a trechos).
 - Obrigações registradas para as próximas specs: 003 (participante dos cartões criados à mão), 004 (participante dos cartões gerados e das gerações, `FOR SHARE` na fonte ao publicar) e 014 (participante dos índices e citações).
