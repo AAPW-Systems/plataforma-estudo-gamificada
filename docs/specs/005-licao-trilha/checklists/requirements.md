@@ -17,7 +17,7 @@ Marcar um item significa que o revisor avaliou a qualidade do texto do requisito
 ## Clareza
 
 - [x] CHK005 Cada requisito descreve comportamento observável.
-- [ ] CHK006 Termos vagos possuem medida, condição ou referência. **Pendente:** O limite de novos por dia (RF-002) não define quando um cartão novo passa a contar: ao entrar numa lição ou ao ser revisado pela primeira vez. Isso importa quando a lição é interrompida ou encerrada no dia seguinte (D-005). Achado R6.
+- [x] CHK006 Termos vagos possuem medida, condição ou referência. Resolvido em 12/10/2026 (R6, D-007).
 - [x] CHK007 Questões abertas indicam responsável e prazo.
 
 ## Consistência
@@ -41,15 +41,10 @@ Marcar um item significa que o revisor avaliou a qualidade do texto do requisito
 
 ### Abertos (dependem de decisão da equipe)
 
-- R6: ver os itens desmarcados acima e o [registro da revisão](../../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md).
-
-### Observações
-
-- Q-001 (composição visual da trilha, UI-05) e Q-002 (EX-05, com o PO) têm responsável e prazo e não bloqueiam o plano.
-- D-004 altera o texto da RN-19 da base; atualizar a base na aprovação.
+- Nenhum. R6 respondido por Artur Lins em 12/10/2026.
 
 ## Resultado da revisão
 
-**Recomendação do agente:** aprovar para planejamento: sim, depois de responder R6.  
+**Recomendação do agente:** aprovar para planejamento: sim.  
 **Aprovada para planejamento:** pendente do revisor humano.  
-**Pendências:** R6.
+**Pendências:** nenhuma bloqueante.

@@ -107,13 +107,14 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - Mudança da retenção desejada durante uma lição: vale a partir da próxima revisão (CB-29).
 - Menos cartões disponíveis que o tamanho da lição: a lição tem só os disponíveis, e o fechamento indica que não há mais cartões no dia.
 - Limite de novos por dia igual a zero: a lição só tem devidos.
+- Lição interrompida ou encerrada no dia seguinte com cartões novos ainda não revisados: esses cartões não consumiram o limite de novos e voltam a ser elegíveis (D-007).
 - Alteração do tamanho da lição com uma lição em andamento: vale a partir da próxima lição.
 - Cartão marcado Errei várias vezes seguidas na mesma lição: volta a cada passo curto vencido enquanto a lição está em andamento, e não impede a conclusão (D-004).
 
 ## Requisitos funcionais
 
 - **RF-001:** O servidor deverá montar a lição com cartões ativos devidos (vencimento antes da próxima virada das 4h no fuso do estudante), ordenados do vencimento mais antigo ao mais recente, seguidos de cartões novos na ordem de entrada, até o tamanho da lição em cartões distintos (deriva de RN-19 e RN-26 da base).
-- **RF-002:** A quantidade de cartões novos apresentados pela primeira vez no dia de estudo não deverá ultrapassar o limite de novos por dia do estudante (deriva de RN-20 da base).
+- **RF-002:** A quantidade de cartões novos revisados pela primeira vez no dia de estudo não deverá ultrapassar o limite de novos por dia do estudante. Um cartão novo só conta no limite quando é revisado pela primeira vez; entrar numa lição não consome o limite (deriva de RN-20 da base; D-007).
 - **RF-003:** O verso só deverá ser enviado ao navegador quando o estudante pedir a revelação, e uma avaliação sem revelação naquela apresentação deverá ser recusada (deriva de RN-08 e CB-22 da base).
 - **RF-004:** A autoavaliação deverá oferecer Errei, Difícil, Bom e Fácil para todos os cartões, correspondendo às notas Again, Hard, Good e Easy do FSRS (deriva de RN-17 da base).
 - **RF-005:** O vencimento de cada cartão deverá ser calculado exclusivamente pelo FSRS, com os parâmetros vigentes do estudante e a variação aleatória leve dos intervalos ligada. Nenhuma regra de lição, meta, XP ou sequência altera esse cálculo (deriva de RN-26 da base).
@@ -161,9 +162,13 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - **E20:** O que acontece com uma lição deixada aberta de um dia de estudo anterior? → É encerrada sem acender o nó, e uma nova lição é montada (D-005).
 - **E21:** A duração da revisão e a meta de 300 ms por transição estão confirmadas? → Sim (D-006).
 
+### Revisão pelo checklist de 12/10/2026 ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
+
+- **R6:** Quando um cartão novo passa a contar no limite de novos por dia? → Quando é revisado pela primeira vez (D-007).
+
 ## Questões abertas
 
-- **Q-001:** Composição visual da trilha: densidade de nós, marcos periódicos e comportamento no celular ([UI-05](../../base-specs/design.md#12-pendências-de-design)). Não muda o comportamento desta spec, mas precisa estar definida antes da implementação da interface da US3. — **Responsável:** equipe — **Prazo:** 16/10/2026
+- **Q-001:** Composição visual da trilha: densidade de nós, marcos periódicos e comportamento no celular ([UI-05](../../base-specs/design.md#12-pendências-de-design)). Não muda o comportamento desta spec, mas precisa estar definida antes da implementação da interface da US3. — **Responsável:** equipe — **Prazo:** 14/10/2026, antes da apresentação do MVP (meta da equipe: 15/10/2026)
 - **Q-002:** EX-05 (níveis de dificuldade). A equipe propõe exibir a dificuldade calculada pelo FSRS em três faixas, sem permitir escolha nem filtro ([PO-01](../../produto/pauta-po.md#po-01-níveis-de-dificuldade-ex-05)). Até a resposta do PO, esta spec não tem nenhum requisito de dificuldade. — **Responsável:** PO (professor Aldo Nunes) — **Prazo:** próxima review
 
 ## Decisões confirmadas
@@ -174,6 +179,7 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - **D-004:** A lição termina quando todos os cartões previstos foram revisados ao menos uma vez e nenhum passo curto já vencido aguarda reapresentação; cartões em passo curto ainda não vencido mantêm o vencimento do FSRS e entram na próxima lição. Altera a RN-19 da base, que será atualizada quando esta spec for aprovada. — **Confirmada por:** Artur Lins (equipe), esclarecimento E19 — **Data:** 12/10/2026
 - **D-005:** Uma lição deixada aberta de um dia de estudo anterior é encerrada sem acender o nó, e uma nova lição é montada com os cartões disponíveis do dia. — **Confirmada por:** Artur Lins (equipe), esclarecimento E20 — **Data:** 12/10/2026
 - **D-006:** A duração de uma revisão vai da exibição da frente até a autoavaliação; meta de até 300 ms por transição de cartão no percentil 95, no ambiente local (CS-004). — **Confirmada por:** Artur Lins (equipe), esclarecimento E21 — **Data:** 12/10/2026
+- **D-007:** Um cartão novo conta no limite de novos por dia quando é revisado pela primeira vez; entrar numa lição não consome o limite. — **Confirmada por:** Artur Lins (equipe), revisão R6 — **Data:** 12/10/2026
 
 ## Exigências do PO
 

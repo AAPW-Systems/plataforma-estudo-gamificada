@@ -45,7 +45,7 @@ Marcar um item significa que o revisor avaliou a qualidade do texto do requisito
 
 ### Observações
 
-- O achado R1 (exclusão de fonte e cartões manuais com referência) também afeta esta spec: a resposta deve ser refletida no cenário de borda "Fonte de referência excluída depois".
+- O achado R1 (exclusão de fonte e cartões manuais com referência) também afetava esta spec: resolvido em 12/10/2026 e refletido no caso de borda "Fonte de referência excluída depois" (D-006).
 
 ## Resultado da revisão
 

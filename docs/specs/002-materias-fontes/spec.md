@@ -72,7 +72,8 @@ Como estudante, quero excluir uma fonte de vez e decidir o que acontece com os c
 2. **Dado** a opção "Manter os cartões", **quando** o estudante confirma, **então** o arquivo e os trechos são apagados, os cartões aceitos continuam ativos com "Fonte apagada" e a descrição da origem, perdem o selo de verificado e mantêm o histórico de revisão (RN-14).
 3. **Dado** a opção "Excluir os cartões junto", **quando** o estudante confirma, **então** os cartões da fonte são apagados, mas as revisões já registradas, o XP e a sequência permanecem.
 4. **Dado** qualquer uma das opções, **quando** a exclusão termina, **então** os cartões aguardando revisão daquela fonte foram apagados.
-5. **Dado** o diálogo aberto, **quando** o estudante cancela, **então** nada muda.
+5. **Dado** cartões criados pelo estudante que citam a fonte apenas como referência, **quando** a fonte é excluída com qualquer uma das opções, **então** esses cartões são sempre mantidos, com "Fonte apagada" e a descrição da origem; o diálogo mostra a quantidade deles separadamente (D-009).
+6. **Dado** o diálogo aberto, **quando** o estudante cancela, **então** nada muda.
 
 ### História de usuário 3 Organizar matérias e fontes P3
 
@@ -99,7 +100,7 @@ Como estudante, quero renomear e excluir matérias e renomear fontes, para mante
 - Arquivo cujo nome tem caminhos, caracteres de controle ou mais de 255 caracteres: o nome é só exibido, nunca usado para guardar o arquivo.
 - Mesmo arquivo enviado duas vezes à mesma matéria: recusado (D-004). O mesmo arquivo em matérias diferentes é aceito.
 - Dois envios simultâneos do mesmo arquivo à mesma matéria: no máximo um é aceito.
-- Cota atingida: 50 matérias, 30 fontes na matéria ou 100 MB no total.
+- Cota atingida: 50 matérias, 30 fontes na matéria ou 100 MB no total. Fontes com `falhou` ocupam a cota até serem excluídas (D-010).
 - Dois envios simultâneos que ultrapassariam a cota juntos: no máximo um é aceito.
 - Texto da fonte com instruções direcionadas à IA: é guardado como conteúdo comum (CB-15; o tratamento na geração está em [004](../004-geracao-cartoes/spec.md)).
 
@@ -114,9 +115,9 @@ Como estudante, quero renomear e excluir matérias e renomear fontes, para mante
 - **RF-007:** O sistema deverá distinguir, na mensagem ao estudante, falha técnica (com nova tentativa) de conteúdo sem texto extraível (sem nova tentativa).
 - **RF-008:** Uma nova tentativa ou um reprocessamento não deverá duplicar trechos nem alterar cartões já aceitos (deriva de RN-10 da base).
 - **RF-009:** O estudante deverá conseguir listar as fontes da matéria e consultar os dados de cada uma, conforme US1, cenário 3 (deriva de RF-04 da base).
-- **RF-010:** A exclusão de uma fonte deverá exibir o impacto antes da confirmação e oferecer "Manter os cartões" ou "Excluir os cartões junto", conforme RN-14 da base.
+- **RF-010:** A exclusão de uma fonte deverá exibir o impacto antes da confirmação e oferecer "Manter os cartões" ou "Excluir os cartões junto", conforme RN-14 da base. As opções valem para os cartões gerados da fonte; cartões criados pelo estudante que só a citam como referência são sempre mantidos (D-009).
 - **RF-011:** A exclusão de uma matéria deverá exibir o impacto, exigir que o estudante digite o nome dela e apagar fontes, trechos e cartões, preservando revisões, XP e sequência (D-002).
-- **RF-012:** O sistema deverá recusar com explicação a criação de matéria ou o envio de fonte que ultrapasse as cotas de D-003.
+- **RF-012:** O sistema deverá recusar com explicação a criação de matéria ou o envio de fonte que ultrapasse as cotas de D-003. Fontes com `falhou` ocupam a cota até serem excluídas, e o acervo oferece a ação de excluí-las (D-010).
 - **RF-013:** A exclusão de uma fonte em processamento deverá interromper o processamento sem deixar trechos (deriva de CB-16 da base).
 - **RF-014:** O sistema deverá recusar o envio de um arquivo com conteúdo idêntico ao de uma fonte existente na mesma matéria, informando o título da fonte existente (D-004).
 - **RF-015:** O estudante deverá conseguir renomear o título de uma fonte (1 a 120 caracteres), sem alterar a descrição da origem já copiada nos cartões (D-005).
@@ -158,6 +159,11 @@ Como estudante, quero renomear e excluir matérias e renomear fontes, para mante
 - **E9:** O estudante abre ou baixa o arquivo original no MVP? → Não (D-007).
 - **E10:** A meta de 60 s para um PDF de 2 MB está confirmada? → Sim, medida no ambiente local do quickstart (D-008).
 
+### Revisão pelo checklist de 12/10/2026 ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
+
+- **R1:** "Excluir os cartões junto" apaga também os cartões criados pelo estudante que só citam a fonte como referência? → Não; eles são sempre mantidos com "Fonte apagada", e o diálogo os conta separadamente (D-009).
+- **R2:** Uma fonte com `falhou` ocupa a cota? → Sim, até ser excluída (D-010).
+
 ## Questões abertas
 
 - **Q-001:** ~~Abrir ou baixar o arquivo original no MVP?~~ Resolvida em 12/10/2026 (D-007).
@@ -175,6 +181,8 @@ Nenhuma questão aberta impede o planejamento.
 - **D-006:** Qualquer fonte válida com texto extraível é aceita; a falta de conteúdo para gerar cartões é tratada na geração ([004](../004-geracao-cartoes/spec.md), US4). — **Confirmada por:** Artur Lins (equipe), esclarecimento E8 — **Data:** 12/10/2026
 - **D-007:** O MVP não permite abrir nem baixar o arquivo original; a evidência mostra o trecho. — **Confirmada por:** Artur Lins (equipe), esclarecimento E9 — **Data:** 12/10/2026
 - **D-008:** Meta de até 60 segundos para uma fonte de 2 MB em PDF chegar a `concluido`, medida no ambiente local do quickstart (CS-003). — **Confirmada por:** Artur Lins (equipe), esclarecimento E10 — **Data:** 12/10/2026
+- **D-009:** Na exclusão de uma fonte, as opções "Manter os cartões" e "Excluir os cartões junto" valem para os cartões gerados da fonte; cartões criados pelo estudante que só a citam como referência são sempre mantidos, com "Fonte apagada", e contados separadamente no diálogo. — **Confirmada por:** Artur Lins (equipe), revisão R1 — **Data:** 12/10/2026
+- **D-010:** Fontes com `falhou` ocupam a cota de fontes e de armazenamento até serem excluídas; o acervo oferece a ação de excluí-las. — **Confirmada por:** Artur Lins (equipe), revisão R2 — **Data:** 12/10/2026
 
 ## Exigências do PO
 

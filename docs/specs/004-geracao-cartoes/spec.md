@@ -107,7 +107,7 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - Fonte excluída durante a geração: a geração é interrompida e nenhum cartão dela é publicado (CB-16).
 - Fonte `pendente`, `processando` ou `falhou`: a ação de pedir cartões não está disponível.
 - Fonte com pouco texto (por exemplo, um parágrafo): pode resultar em menos de 10 cartões, ou em nenhum (US4, cenário 6).
-- Limite diário de gerações do estudante atingido: o pedido é recusado com a indicação de quando o limite volta (D-005).
+- Limite diário de gerações do estudante atingido: o pedido é recusado com a indicação de quando o limite volta (D-005). Gerações com falha técnica não contam no limite (D-010).
 - Nova geração da mesma fonte com cartões ainda aguardando revisão: permitida; os novos cartões não repetem os que aguardam revisão (D-008).
 - "Aceitar todos" enviado duas vezes: um único efeito.
 - Cartão aguardando revisão editado com frente ou verso vazios: recusado como em [003](../003-cartoes-manuais/spec.md), RF-001.
@@ -133,7 +133,7 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **RF-016:** Em falha do provedor, a geração deverá terminar como `falhou`, sem publicar cartões parciais, e permitir nova tentativa (deriva de CB-14 da base).
 - **RF-017:** Cada geração deverá registrar o provedor, o modelo, a versão das instruções, os trechos usados, as quantidades geradas e aprovadas e o consumo do provedor, sem registrar o conteúdo das fontes nos logs (deriva de RN-22 da base).
 - **RF-018:** O estudante deverá conseguir consultar a evidência e a descrição da origem de um cartão gerado, inclusive com "Fonte apagada" depois da exclusão da fonte (deriva de RF-17 da base).
-- **RF-019:** O sistema deverá limitar os pedidos de geração a 20 por dia de estudo por estudante, valor configurável por ambiente, e informar quando o limite volta (D-005).
+- **RF-019:** O sistema deverá limitar os pedidos de geração a 20 por dia de estudo por estudante, valor configurável por ambiente, e informar quando o limite volta (D-005). Só contam as gerações concluídas ou em andamento; gerações que terminam em `falhou` por erro técnico não contam (D-010).
 - **RF-020:** Ao recusar um cartão, o estudante poderá indicar um motivo opcional (incorreto, irrelevante, repetido ou mal escrito), registrado para a análise da qualidade (D-007).
 
 ## Entidades principais
@@ -152,6 +152,7 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **CS-004:** No conjunto de avaliação, pelo menos 90% dos cartões publicados são considerados sustentados pelo revisor humano, e nenhum contém afirmação ausente da fonte (D-006).
 - **CS-005:** A taxa de aceitação (aceitos, incluindo os editados, sobre o total revisado) é calculável por geração, por fonte e no total, e é exibida no relatório de avaliação.
 - **CS-006:** Uma geração de 10 cartões de uma fonte de 2 MB termina em até 2 minutos no ambiente local, com o provedor disponível.
+- **CS-007:** Em três pedidos de "Gerar mais" seguidos sobre a mesma fonte do conjunto de avaliação, o revisor humano não encontra nenhum cartão que repita outro da matéria (existente, aguardando revisão ou recusado) (D-011).
 
 ## Requisitos de qualidade
 
@@ -161,6 +162,7 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **RQ-004:** A revisão dos gerados opera por teclado e atende WCAG 2.2 AA; "Aceitar todos" fica depois da lista.
 - **RQ-005:** Mensagens de erro ao estudante não expõem detalhes do provedor de IA.
 - **RQ-006:** O conjunto de avaliação registra provedor, modelo e versão das instruções. Trocar qualquer um deles exige executá-lo de novo (RQ-10 da base).
+- **RQ-007:** O conjunto de avaliação é revisado pela pessoa da equipe responsável pela implementação desta spec, registrada no plano (D-012; Princípio V).
 
 ## Suposições e dependências
 
@@ -176,6 +178,12 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **E16:** O estudante indica o motivo ao recusar? → Sim, de forma opcional e com um clique (D-007).
 - **E17:** Pode pedir nova geração da fonte com cartões aguardando revisão? → Sim; os novos não repetem os aguardando (D-008).
 - **E18:** A meta de 2 minutos para 10 cartões está confirmada? → Sim (D-009).
+
+### Revisão pelo checklist de 12/10/2026 ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
+
+- **R3:** Gerações com falha técnica contam no limite diário? → Não; só as concluídas ou em andamento (D-010).
+- **R4:** Como verificar que "Gerar mais" não repete cartões? → Com o critério CS-007, avaliado pelo revisor humano (D-011).
+- **R5:** Quem revisa o conjunto de avaliação? → A pessoa da equipe responsável pela implementação desta spec, registrada no plano; sem discussão adicional, por causa do prazo do MVP (D-012).
 
 ## Questões abertas
 
@@ -196,6 +204,9 @@ Nenhuma questão aberta impede o planejamento.
 - **D-007:** Ao recusar, o estudante pode indicar um motivo opcional: incorreto, irrelevante, repetido ou mal escrito. — **Confirmada por:** Artur Lins (equipe), esclarecimento E16 — **Data:** 12/10/2026
 - **D-008:** Uma nova geração da mesma fonte é permitida com cartões ainda aguardando revisão; os novos cartões não repetem os existentes (inclusive os aguardando) nem os recusados. — **Confirmada por:** Artur Lins (equipe), esclarecimento E17 — **Data:** 12/10/2026
 - **D-009:** Meta de até 2 minutos para uma geração de 10 cartões de uma fonte de 2 MB, no ambiente local, com o provedor disponível (CS-006). — **Confirmada por:** Artur Lins (equipe), esclarecimento E18 — **Data:** 12/10/2026
+- **D-010:** Gerações que terminam em `falhou` por erro técnico não contam no limite diário de gerações. — **Confirmada por:** Artur Lins (equipe), revisão R3 — **Data:** 12/10/2026
+- **D-011:** A ausência de repetição no "Gerar mais" (EX-02) é verificada pelo CS-007: três pedidos seguidos sobre a mesma fonte do conjunto de avaliação, sem nenhum cartão repetido segundo o revisor humano. — **Confirmada por:** Artur Lins (equipe), revisão R4 — **Data:** 12/10/2026
+- **D-012:** A pessoa responsável pela revisão do conjunto de avaliação (Princípio V) é quem implementa esta spec, registrada no plano. Cada spec tem como responsável quem a desenvolve. — **Confirmada por:** Artur Lins (equipe), revisão R5 — **Data:** 12/10/2026
 
 ## Exigências do PO
 

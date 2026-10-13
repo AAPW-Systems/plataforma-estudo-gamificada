@@ -96,7 +96,7 @@ Como estudante, quero buscar e filtrar os cartões de uma matéria, para encontr
 - Texto com marcação ou script: exibido como texto, nunca executado.
 - Cartão suspenso ou excluído enquanto está numa lição aberta: deixa de ser apresentado, e as revisões já registradas permanecem (CB-27).
 - Edição concorrente em duas abas: a última gravação vale, e a lição em andamento não perde revisões.
-- Fonte de referência excluída depois: o cartão mostra "Fonte apagada" com a descrição da origem (RN-14).
+- Fonte de referência excluída depois: o cartão é sempre mantido, mesmo que a fonte seja excluída com "Excluir os cartões junto", e mostra "Fonte apagada" com a descrição da origem (RN-14; D-006).
 - Cartão aguardando revisão (gerado e ainda não aceito): não aparece nesta lista; é tratado em [004](../004-geracao-cartoes/spec.md).
 
 ## Requisitos funcionais
@@ -143,6 +143,10 @@ Como estudante, quero buscar e filtrar os cartões de uma matéria, para encontr
 - **E12:** Os limites de texto estão confirmados? → Sim: frente até 1.000 caracteres, verso até 2.000, explicação até 1.000 (D-004).
 - **E13:** A lista de cartões tem busca e filtro? → Sim: busca por texto e filtro por situação e por origem (D-005).
 
+### Revisão pelo checklist de 12/10/2026 ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
+
+- **R1:** A exclusão de uma fonte com "Excluir os cartões junto" apaga os cartões criados pelo estudante que a citam? → Não; eles são sempre mantidos (D-006; [002](../002-materias-fontes/spec.md), D-009).
+
 ## Questões abertas
 
 - **Q-001:** ~~Formatação simples no texto do cartão?~~ Resolvida em 12/10/2026 (D-003).
@@ -156,6 +160,7 @@ Nenhuma questão aberta impede o planejamento.
 - **D-003:** Frente, verso e explicação são texto puro com quebras de linha no MVP; formatação fica para depois. — **Confirmada por:** Artur Lins (equipe), esclarecimento E11 — **Data:** 12/10/2026
 - **D-004:** Limites de texto: frente de 1 a 1.000 caracteres, verso de 1 a 2.000 e explicação de até 1.000, configuráveis por ambiente; valem também para os cartões gerados. — **Confirmada por:** Artur Lins (equipe), esclarecimento E12 — **Data:** 12/10/2026
 - **D-005:** A lista de cartões da matéria tem busca por texto e filtro por situação e por origem. — **Confirmada por:** Artur Lins (equipe), esclarecimento E13 — **Data:** 12/10/2026
+- **D-006:** Um cartão criado pelo estudante que cita uma fonte como referência é sempre mantido quando a fonte é excluída, em qualquer opção do diálogo, e passa a mostrar "Fonte apagada" ([002](../002-materias-fontes/spec.md), D-009). — **Confirmada por:** Artur Lins (equipe), revisão R1 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
