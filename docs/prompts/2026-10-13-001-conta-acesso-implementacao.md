@@ -80,7 +80,7 @@ Pendente de revisão.
 
 ## Pendências
 
-- **Próxima tarefa: T020** (sessão, CSRF e Argon2 em `app/nucleo/seguranca/`), seguida de T021 (modelos e migração `0002`), T022 (`principal.py`, saúde e exportação do OpenAPI; acrescentar aí o cliente HTTP do `conftest`), T023 a T027 e a US1 e a US2 (até a T045, ponto S1 da divisão).
+- **T020 concluída** (sessão, CSRF, Argon2 e `MiddlewareProtecaoCsrf` em `app/nucleo/seguranca/`; 147 testes unitários passando; o middleware ainda não está ligado à aplicação, o que a T022 faz). **Próxima tarefa: T021**, seguida de (modelos e migração `0002`), T022 (`principal.py`, saúde e exportação do OpenAPI; acrescentar aí o cliente HTTP do `conftest`), T023 a T027 e a US1 e a US2 (até a T045, ponto S1 da divisão).
 - O cliente `httpx` do `conftest` (parte da T016) depende de `criar_aplicacao` (T022): usar `base_url="https://teste"`, porque os cookies `__Host-` são `Secure`.
 - `nucleo/fila.py` tem `MODULOS_TAREFAS` vazio; a T056 acrescenta `app.identidade.tarefas`.
 - Contrato: o `contracts/openapi.yaml` da 001 não declara a resposta `413` das rotas com corpo; registrar na fase final (T065) ou numa emenda.

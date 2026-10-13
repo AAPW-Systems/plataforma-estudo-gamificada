@@ -67,7 +67,7 @@
 - [x] T017 Criar o teste de enfileiramento atômico em `tests/integration/nucleo/test_fila_transacao.py`: um *rollback* não deixa tarefa na fila, e um commit deixa (emenda da DTEC 002).
 - [x] T018 [P] Criar a interface de armazenamento em `app/nucleo/armazenamento/` (`interface.py`, `memoria.py`, `disco.py`), com `apagar_prefixo`, e a suíte de contrato `tests/integration/nucleo/test_armazenamento_contrato.py`, rodada contra os dois adaptadores. A suíte inclui a recusa de chave que escapa da raiz, contra *path traversal* (DTEC 010 e 021).
 - [x] T019 [P] Implementar o registro de exclusão por domínio em `app/nucleo/exclusao.py`, com teste unitário de ordem em `tests/unit/nucleo/test_exclusao.py`.
-- [ ] T020 [P] Criar os testes de segurança do núcleo em `tests/unit/nucleo/test_seguranca.py`:
+- [x] T020 [P] Criar os testes de segurança do núcleo em `tests/unit/nucleo/test_seguranca.py`:
   - **Sessão:** token de 256 bits; hash SHA-256; validade por inatividade de 14 dias e absoluta de 30 dias, com relógio controlado; renovação no máximo uma vez por minuto.
   - **CSRF:** a assinatura liga o token à sessão ou à pré-sessão; um token de outra sessão é recusado.
   - **Argon2:** perfil da RFC 9106, semáforo, `check_needs_rehash` e hash fictício.
