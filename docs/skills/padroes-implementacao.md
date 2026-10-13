@@ -64,6 +64,8 @@ A estrutura de pastas completa está no [plano da spec 001](../specs/001-conta-a
 - O backend valida obrigatoriedade, tipo, comprimento, intervalo e vínculo entre entidades. A interface replica os limites relevantes, e os valores ficam centralizados em um único ponto.
 - Verifique propriedade e autorização em **cada** operação.
 - Valide arquivos por extensão, tipo real do conteúdo, tamanho e quantidade. Não confie no navegador. Armazene com identificador interno e acesso controlado.
+- Abra e extraia arquivos enviados pelo estudante **somente** por `nucleo/isolamento.executar_isolado`, em subprocesso com tempo limite e teto de memória ([DTEC 024](../research.md#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis)). No envio, grave o objeto antes da linha e apague-o se a transação falhar; na exclusão de um item isolado, apague o objeto antes das linhas ([DTEC 025](../research.md#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco)).
+- Um domínio que tenha dados ligados a fontes ou matérias registra um participante da exclusão em `nucleo/participantes_acervo.py` ([DTEC 027](../research.md#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias)), além da função `apagar_dados_usuario` do registro de exclusão da conta (DTEC 021).
 - Nenhum limite pendente vira número arbitrário no código: registre-o como questão aberta.
 
 ## Erros e respostas da API

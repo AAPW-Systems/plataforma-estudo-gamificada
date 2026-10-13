@@ -29,8 +29,12 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 016](#decisão-dtec-016-primitivas-acessíveis-da-interface) | Primitivas acessíveis da interface | Aprovada em 12/10/2026 com o plano da 001 |
 | [DTEC 017](#decisão-dtec-017-integração-contínua-e-verificação-local) | Integração contínua e verificação local | Aprovada em 12/10/2026 com o plano da 001 |
 | [DTEC 018](#decisão-dtec-018-camadas-do-backend-dto-mapper-repositório-e-exceções) | Camadas do backend: DTO, mapper, repositório e exceções | Aprovada em 12/10/2026 com o plano da 001 |
+| [DTEC 024](#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis) | Execução isolada do processamento de arquivos não confiáveis | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
+| [DTEC 025](#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco) | Consistência entre o armazenamento de objetos e o banco | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
+| [DTEC 026](#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface) | Acompanhamento de processamentos assíncronos na interface | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
+| [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Proposta em 13/10/2026 com o plano da 002; aguarda o portão "Plano aprovado" |
 
-A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), e as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -363,6 +367,91 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 
 **Condição para revisão:** camadas que só repassam dados sem acrescentar regra em mais da metade dos casos de uso, o que indicaria abstração em excesso.
 
+## Decisão DTEC 024 Execução isolada do processamento de arquivos não confiáveis
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-002-materias-fontes-plano.md))  
+**Questão:** como abrir e extrair arquivos enviados pelo estudante (PDF na spec 002; SRT, VTT e DOCX na 009; imagens na 011) sem que um arquivo malicioso ou patológico trave, esgote a memória ou derrube a API ou o worker? O PyMuPDF (DTEC 009) é uma biblioteca em C: um laço infinito ou uma explosão de memória dentro dela não é interrompível por uma *thread* Python.  
+**Critérios:** Princípio II (proteção); disponibilidade da API e do worker; memória previsível na VPS de 2 a 4 GB; nenhuma tecnologia nova; custo de latência aceitável num envio de até 2 MB.  
+**Alternativas consideradas:**
+
+1. **Subprocesso por chamada, com tempo limite e limite de memória:** a função de leitura roda num processo filho criado pelo contexto `spawn` do `multiprocessing`, que aplica `resource.setrlimit(RLIMIT_AS)` antes de abrir o arquivo; o pai espera até o tempo limite e mata o filho (`kill`) se ele não terminar. A concorrência é limitada por um semáforo por processo. Custo: cerca de 0,2 a 0,5 s de criação do processo por chamada.
+2. **Mesma chamada numa *thread* com tempo limite:** o tempo limite só abandona a espera; a *thread* continua consumindo CPU e memória, e o processo não pode matá-la.
+3. **Contêiner ou serviço de conversão separado (sandbox dedicado):** isolamento mais forte, mas é um serviço residente a mais, contrário ao critério comum das DTEC 002 a 014.
+
+**Decisão:** alternativa 1, num utilitário único do núcleo (`nucleo/isolamento.py`, `executar_isolado(funcao, argumentos, tempo_limite_s, memoria_max_mb)`), usado tanto na verificação de integridade feita na requisição quanto na extração feita no worker.  
+**Justificativa:** é a única alternativa sem serviço novo que garante a interrupção de verdade e um teto de memória por arquivo. A latência adicional é irrelevante diante do tempo de envio e da meta de 60 s do processamento (CS-003 da 002).  
+**Consequências:**
+
+- O filho recebe o **caminho de um arquivo temporário** (nunca o conteúdo pela fila de mensagens) e devolve só dados simples e serializáveis (contagens, textos por página, código de erro).
+- Estouro do tempo ou da memória vira um resultado tipado (`tempo_esgotado`, `memoria_esgotada`), que cada spec traduz para a sua mensagem ao estudante. Nenhum desses casos derruba o processo pai.
+- Valores padrão configuráveis por ambiente: na API, 10 s, 256 MiB e no máximo 2 verificações simultâneas (`VALIDACAO_ARQUIVO_*`); no worker, 30 s e 512 MiB (`EXTRACAO_*`).
+- O `RLIMIT_AS` só existe em Linux. Como todo serviço roda em contêiner Linux (regra 11), os testes que dependem dele são marcados para rodar somente nesse ambiente.
+
+**Condição para revisão:** um formato que exija ferramenta externa pesada (ex.: OCR na referência pós-acadêmica), o que pode justificar um contêiner de conversão separado.
+
+## Decisão DTEC 025 Consistência entre o armazenamento de objetos e o banco
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-002-materias-fontes-plano.md))  
+**Questão:** o arquivo vai para o armazenamento (DTEC 010) e o registro vai para o PostgreSQL, sem transação comum. Como evitar linhas sem objeto e objetos sem linha no envio (fontes na 002, imagens na 011) e na exclusão?  
+**Critérios:** nenhuma linha visível ao estudante aponta para um objeto inexistente; nenhum objeto fica para sempre sem dono (custo e privacidade, Princípio II); idempotência; regra do esquema "objetos antes das linhas" na exclusão de um item isolado; exceção da DTEC 021 na exclusão da conta.  
+**Alternativas consideradas:**
+
+1. **Objeto primeiro, linha depois, com compensação e reconciliação:** no envio, grava o objeto, abre a transação, insere a linha (e enfileira o processamento) e confirma; se a transação falhar, apaga o objeto. Uma tarefa periódica apaga objetos sem linha mais antigos que uma margem de segurança, o que cobre a queda do processo entre a gravação e a confirmação.
+2. **Só compensação:** uma queda do processo no meio deixa o objeto órfão para sempre.
+3. **Linha primeiro, num estado "recebendo", e objeto depois:** exige um estado a mais visível nas consultas e a limpeza de linhas presas, com o mesmo problema invertido.
+
+**Decisão:** alternativa 1.  
+**Justificativa:** a linha só existe depois que o objeto existe, então a API nunca mostra um registro sem arquivo; a compensação resolve a falha comum, e a reconciliação resolve a falha rara (queda do processo) sem estado extra no domínio.  
+**Consequências:**
+
+- **A interface de armazenamento ganha `listar_prefixo(prefixo) -> iterável de (chave, criado_em)`**, ao lado de `gravar`, `ler_para_arquivo`, `apagar` (idempotente) e `apagar_prefixo` (DTEC 021). Os adaptadores de disco e em memória a implementam, e a suíte de contrato dos adaptadores a cobre.
+- **Reconciliação:** a tarefa periódica `reconciliar_objetos` (diária, às 3h30 UTC) percorre `usuarios/*/fontes/` (e, na 011, `usuarios/*/imagens/`) e apaga as chaves sem linha correspondente criadas há mais de 1 hora (`RECONCILIACAO_MARGEM_MIN`). A margem impede que ela apague o objeto de um envio ainda em curso.
+- **Exclusão de um item isolado:** trava a linha (`FOR UPDATE`), apaga o objeto (operação idempotente) e só então apaga as linhas, na mesma transação. Se a transação falhar depois de apagar o objeto, a linha continua existindo sem arquivo; repetir a exclusão conclui o trabalho, e um reprocessamento falha como erro técnico. Esse estado é raro e recuperável pelo próprio estudante.
+- **Exclusão da conta:** continua como na DTEC 021 (linhas primeiro, objetos por tarefa).
+
+**Condição para revisão:** um armazenamento que ofereça gravação condicional ligada ao banco, ou um volume de objetos em que listar o prefixo diariamente fique caro (gatilho para um índice de objetos no banco).
+
+## Decisão DTEC 026 Acompanhamento de processamentos assíncronos na interface
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-002-materias-fontes-plano.md))  
+**Questão:** como a interface mostra a mudança de estado de um trabalho em segundo plano (processamento de fonte na 002, geração de cartões na 004, indexação na 014) sem que o estudante recarregue a página (RF-005 da 002)?  
+**Critérios:** Princípio IV (o estado vem do servidor); nenhuma tecnologia ou serviço novo; funcionamento através do proxy do Vite e do Caddy; custo de requisições desprezível; simplicidade de teste.  
+**Alternativas consideradas:**
+
+1. ***Polling* condicional com o TanStack Query (DTEC 015):** a consulta da lista usa `refetchInterval` de 2 s **somente enquanto** algum item da tela estiver num estado não final (`pendente` ou `processando`) e para sozinha quando todos chegam a um estado final. Também consulta ao voltar o foco à aba.
+2. **Server-Sent Events alimentados por `LISTEN/NOTIFY` do PostgreSQL:** atualização imediata, mas com conexões longas no proxy, reconexão, autenticação do fluxo e mais testes.
+3. **WebSocket:** bidirecional sem necessidade, e com o mesmo custo de infraestrutura da alternativa 2.
+
+**Decisão:** alternativa 1, com o intervalo configurado num único ponto do frontend (`api/acompanhamento.ts`).  
+**Justificativa:** os processamentos duram de segundos a um minuto (CS-003 da 002); 2 s de latência são imperceptíveis nesse contexto, e o *polling* só existe enquanto há trabalho em andamento.  
+**Consequências:** as rotas de listagem devolvem o estado de cada item e não têm cache no navegador (`Cache-Control: no-store`); o anúncio da mudança de estado a leitores de tela é feito por uma região `aria-live="polite"` (WCAG 2.2 AA); a interface nunca mostra um estado que o servidor não confirmou.  
+**Condição para revisão:** o chat em *streaming* do final acadêmico (spec 014), que pode justificar SSE para aquela funcionalidade, sem mudar esta decisão para os processamentos.
+
+## Decisão DTEC 027 Participantes da exclusão de fontes e matérias
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-002-materias-fontes-plano.md))  
+**Questão:** a exclusão de uma fonte ou de uma matéria (spec 002) precisa contar e tratar cartões, evidências e gerações, que pertencem aos domínios `cartoes` (specs 003 e 004) e, no final acadêmico, `busca` e `chat` (spec 014). A lista de matérias também mostra contagens de cartões (RF-002 da 002). Como fazer isso sem que o domínio `fontes` dependa das tabelas de outros domínios (DTEC 018)?  
+**Critérios:** domínios desacoplados; cada spec é dona das tabelas que cria; atomicidade da exclusão; contagens exibidas iguais às efetivamente apagadas (CS-004 da 002); a 002 testável antes da 003.  
+**Alternativas consideradas:**
+
+1. **Registro de participantes no núcleo:** cada domínio registra, em `nucleo/participantes_acervo.py`, um participante com quatro operações, todas executadas **na transação de quem chama**: `contar_por_materia(sessao, usuario_id) -> {materia_id: contagens}`, `impacto_fonte(sessao, usuario_id, fonte_id) -> contagens`, `ao_excluir_fonte(sessao, usuario_id, fonte_id, modo)` e `ao_excluir_materia(sessao, usuario_id, materia_id)`. O serviço de `fontes` ou de `materias` organiza a exclusão e soma as contagens dos participantes. É o mesmo padrão do registro `apagar_dados_usuario` (DTEC 021).
+2. **A 002 cria agora as tabelas mínimas de cartões:** quebra a regra de que cada spec é dona das colunas que usa e obriga a 002 a carregar regras da 003 e da 004 sem testes.
+3. **O serviço de fontes consulta e altera diretamente as tabelas de cartões:** acopla os domínios e viola a DTEC 018.
+
+**Decisão:** alternativa 1.  
+**Justificativa:** a 002 entrega o mecanismo, as próprias contagens (fontes e trechos) e testes com um participante falso; cada spec seguinte só registra o seu participante, e a exclusão continua sendo uma única transação.  
+**Consequências:**
+
+- **Contagens padronizadas** (`ContagensAcervo`): `cartoes_ativos`, `cartoes_aguardando_revisao`, `cartoes_gerados_aceitos` (afetados pela escolha "Manter" ou "Excluir"), `cartoes_referencia` (criados pelo estudante e sempre mantidos, D-009 da 002). Campos ausentes valem zero; antes da 003, todas as contagens de cartões são zero.
+- **Obrigações das próximas specs:**
+  - A **003** registra o participante dos cartões criados à mão (contagem e marcação "Fonte apagada" dos que citam a fonte).
+  - A **004** registra o participante dos cartões gerados e das gerações: apaga os aguardando revisão, aplica o modo escolhido aos aceitos (manter com "Fonte apagada" e sem selo de verificado, ou apagar) e interrompe as gerações em andamento da fonte (CB-16).
+  - A **014** registra o participante dos índices e das citações.
+- **Ordem:** os participantes rodam **antes** de a fonte ou a matéria ter as linhas apagadas, na ordem de registro, porque as FKs de cartões para matérias usam `restrict`.
+- **Testes:** um participante falso cobre o mecanismo na 002. Cada spec seguinte acrescenta testes do seu participante e reexecuta os testes funcionais da exclusão (US2 e US3 da 002) com dados reais.
+
+**Condição para revisão:** um participante que precise de efeito fora do banco (ex.: apagar imagens dos cartões na 011), que seguirá a DTEC 025: objetos antes das linhas, na mesma transação.
+
 ## Fontes consultadas
 
 - Documentação oficial do pytest (fixtures, parametrização, marcadores e plugins).
@@ -373,4 +462,6 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - Página de preços do R2 da Cloudflare (`developers.cloudflare.com/r2/pricing/`), consultada em 12/10/2026.
 - Página de limites da API do Gemini (`ai.google.dev/gemini-api/docs/rate-limits`) e fontes secundárias sobre a camada gratuita, consultadas em 12/10/2026 (os limites gratuitos são exibidos por projeto no painel do provedor).
 - Documentação do Procrastinate (`procrastinate.readthedocs.io`, páginas "Instantiate your connector" e "Using an external database connection"), consultada em 12/10/2026 para a emenda da DTEC 002.
+- Documentação do Procrastinate (`procrastinate.readthedocs.io/en/stable`, páginas "Retry a task", "Queueing locks" e "Retry stalled jobs"), consultada em 13/10/2026 para as DTEC 024 a 030.
+- Documentação da biblioteca padrão do Python (`multiprocessing` com o contexto `spawn` e `resource.setrlimit`), consultada em 13/10/2026 para a DTEC 024.
 - Esboço de arquitetura de 12/10/2026, hoje [`arquitetura/referencia-pos-academica.md`](arquitetura/referencia-pos-academica.md).

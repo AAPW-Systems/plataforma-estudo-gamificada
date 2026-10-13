@@ -122,10 +122,14 @@ Tarefas do Procrastinate, idempotentes e com estados visíveis (RN-03):
 
 | Tarefa | O que faz | Estágio |
 |---|---|---|
-| `processar_fonte` | Extrai texto, divide em trechos com página e posição, persiste | MVP |
+| `processar_fonte` | Extrai texto (em subprocesso isolado, [DTEC 024](../research.md#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis)), divide em trechos com página e posição, persiste | MVP |
 | `gerar_cartoes` | Seleciona trechos, chama o agente gerador, valida estrutura e sustentação, grava como "aguardando revisão" | MVP |
 | `indexar_fonte` | Gera embeddings (bge-m3) e o `tsvector` dos trechos | Final |
 | `backup` | `pg_dump` para o bucket de backup no R2 | Final |
+| `reconciliar_objetos` | Periódica: apaga objetos do armazenamento sem linha correspondente, com margem de 1 hora ([DTEC 025](../research.md#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco)) | MVP |
+| `reenfileirar_tarefas_travadas` | Periódica: devolve à fila as tarefas de workers que pararam de enviar sinal de vida ([DTEC 030](../specs/002-materias-fontes/research.md#decisão-dtec-030-estados-falhas-e-novas-tentativas-do-processamento)) | MVP |
+
+A exclusão de uma fonte ou matéria aciona os **participantes** registrados por cada domínio (cartões, gerações e, no final, índices e citações), na mesma transação ([DTEC 027](../research.md#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias)).
 
 ### 5.4 IA
 
@@ -155,6 +159,7 @@ trechos por estrutura (página/seção, com sobreposição)
 
 - **Interface de armazenamento** com adaptador escolhido por ambiente ([DTEC 010](../research.md#decisão-dtec-010-armazenamento-de-arquivos)): **disco local** no MVP e no desenvolvimento, **Cloudflare R2** no final acadêmico, **em memória** nos testes unitários. O banco guarda só a chave do objeto, igual nos dois adaptadores; trocar de adaptador não muda banco nem domínio.
 - **Chaves por usuário:** toda chave de objeto começa por `usuarios/{public_id_usuario}/` (ex.: `usuarios/{id}/fontes/{uuid}`), o que permite apagar todos os arquivos de uma conta excluída por prefixo, numa tarefa idempotente ([DTEC 021](../specs/001-conta-acesso/research.md#decisão-dtec-021-exclusão-da-conta-e-chaves-de-armazenamento-por-usuário)).
+- **Consistência:** no envio, o objeto é gravado antes da linha, com compensação se a transação falhar e reconciliação periódica dos órfãos; a interface de armazenamento tem `gravar`, `ler_para_arquivo`, `apagar`, `apagar_prefixo` e `listar_prefixo` ([DTEC 025](../research.md#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco)).
 - **Fontes:** nome interno (UUID) e metadados no banco. O nome enviado pelo usuário nunca compõe a chave, e o adaptador de disco recusa chaves que escapem da pasta raiz. O worker lê a fonte para um arquivo temporário durante a extração e o apaga em seguida.
 - **Imagens dos cartões (final):** Cloudflare R2 via API compatível com S3 (no desenvolvimento local, o adaptador de disco, servido por rota autenticada da API). O backend valida o tipo real (JPEG, PNG ou WebP) e o tamanho (até 3 MB) antes de gravar. A leitura usa URLs assinadas de curta duração, porque as imagens são privadas. Camada gratuita: 10 GB armazenados, 1 milhão de escritas e 10 milhões de leituras por mês, sem custo de saída.
 
@@ -164,6 +169,7 @@ trechos por estrutura (página/seção, com sobreposição)
 - Os tokens de design (cores, tipografia, espaçamento) ficam centralizados na configuração do Tailwind, com tema claro e escuro ([design](../base-specs/design.md)).
 - A trilha é um componente próprio, sem biblioteca de componentes que imponha aparência.
 - O frontend não calcula XP, agendamento, sequência nem domínio. Ele exibe o que o servidor devolve (Princípio IV).
+- Estados de trabalhos em segundo plano (processamento, geração) são acompanhados por *polling* condicional do TanStack Query, só enquanto há item em andamento ([DTEC 026](../research.md#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface)).
 
 ## 7. Operação do final acadêmico
 
@@ -181,7 +187,7 @@ trechos por estrutura (página/seção, com sobreposição)
 ## 8. Segurança (resumo)
 
 - Isolamento por estudante em toda consulta, inclusive na busca vetorial e nas URLs assinadas.
-- Validação de arquivos por conteúdo real, tamanho e quantidade, no proxy e na aplicação.
+- Validação de arquivos por conteúdo real, tamanho e quantidade, no proxy e na aplicação. A abertura e a extração rodam em subprocesso com tempo limite e teto de memória ([DTEC 024](../research.md#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis)).
 - Cabeçalhos de segurança (CSP restritiva, HSTS, `X-Content-Type-Options`) no Caddy.
 - Segredos só em `.env` (fora do git) e documentados em `.env.example`.
 - Logs sem conteúdo bruto de fontes, perguntas ou respostas.
