@@ -42,7 +42,7 @@ Atualize esta seção sempre que a fase mudar.
 
 | Tarefa | Guia |
 |---|---|
-| Criar ou avançar spec, plano, tarefas | `docs/skills/fluxo-sdd.md` |
+| Criar ou avançar spec, plano, tarefas | `docs/skills/fluxo-sdd.md` e `docs/skills/contexto-tecnico.md` (resumo das decisões aprovadas; leia-o no lugar dos planos anteriores) |
 | Qualquer sessão que altere arquivos | `docs/skills/registrar-prompt.md` |
 | Código de backend, API, IA, testes | `docs/skills/padroes-implementacao.md` |
 | Telas e componentes | `docs/skills/padroes-interface.md` |

@@ -5,6 +5,7 @@ Instruções reutilizáveis e independentes de ferramenta: servem para Claude, C
 | Guia | Quando usar |
 |---|---|
 | [`fluxo-sdd.md`](fluxo-sdd.md) | Ao criar ou avançar qualquer artefato em `docs/specs/` |
+| [`contexto-tecnico.md`](contexto-tecnico.md) | Ao planejar uma spec: resumo das DTEC, convenções e obrigações já aprovadas, no lugar da leitura de todos os planos anteriores |
 | [`registrar-prompt.md`](registrar-prompt.md) | Em toda sessão com agente que crie ou altere arquivos |
 | [`padroes-implementacao.md`](padroes-implementacao.md) | Ao escrever código de backend, API, processamento ou testes |
 | [`padroes-interface.md`](padroes-interface.md) | Ao criar ou alterar telas e componentes |
