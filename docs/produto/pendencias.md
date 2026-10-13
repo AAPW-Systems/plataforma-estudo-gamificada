@@ -301,6 +301,7 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 - Limiar de estabilidade FSRS que define "cartão dominado".
 - Meta diária padrão (proposta inicial: 20 revisões) e tamanho padrão da lição (proposta: 10 cartões).
 - Teto de tempo por cartão para o "tempo dedicado" (proposta: 60 s).
+- **Reapresentações na mesma lição (12/10/2026):** com o FSRS soberano (RN-26), um cartão marcado Errei volta na mesma lição. Se cada revisão concede XP e conta para a meta, errar de propósito renderia mais XP. Decidir se XP e meta contam revisões ou cartões distintos por dia, sem premiar a nota que o próprio estudante se atribui.
 
 **Impacto:** mudar esses valores depois do lançamento não pode alterar o XP já concedido (Princípio IV). A regra de concessão deve ser versionada.
 

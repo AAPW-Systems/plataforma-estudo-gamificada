@@ -24,9 +24,9 @@ A coluna "Origem na base" aponta para os IDs da [base de especificação](../bas
 | F-02 | Matérias e envio e gestão de fontes (acervo da matéria, exclusão definitiva com escolha sobre os cartões) | Materiais | MVP; formatos SRT, VTT, DOCX e envio múltiplo no Final | HU-02, HU-12, HU-13, RF-03, RF-04, RF-20, RN-02, RN-14, RN-23, CB-04, CB-23 | — | — |
 | F-03 | Processamento das fontes: extração e trechos (MVP); indexação para busca híbrida (Final) | Materiais | MVP; indexação no Final | HU-03, RF-05, RF-06, RN-03, CB-16 | QA-04 | — |
 | F-04 | Cartões: criação manual; geração por IA com evidência e explicação do erro (EX-03); revisão dos gerados (aceitar, editar, recusar, aceitar todos), resumo e "Gerar mais" (EX-02); cartão com imagem no Final | Flashcards | MVP; imagem no Final | HU-11, HU-14, HU-15, RF-11, RF-17, RF-22, RF-27, RN-04, RN-05, RN-08, RN-16, RN-22, CB-09, CB-14, CB-15, CB-26 | QA-04, QA-23 | — |
-| F-05 | Revisão com repetição espaçada (FSRS): lição, autoavaliação com quatro botões, explicação ao errar | Flashcards | MVP | HU-06, HU-07, HU-16, RF-21, RF-23, RN-10, RN-17, RN-20, CB-22, CB-24 | QA-24 | — |
+| F-05 | Revisão com repetição espaçada (FSRS): lição, autoavaliação com quatro botões, explicação ao errar | Flashcards | MVP | HU-06, HU-07, HU-16, RF-21, RF-23, RN-10, RN-17, RN-20, RN-26, CB-22, CB-24, CB-28, CB-29, CB-30 | QA-24 | — |
 | F-06 | Chat com as fontes da matéria (RAG com busca híbrida e citações) | Chat | **Final** | HU-18, RF-25, RN-24 | QA-16, QA-31 | — |
-| F-07 | Trilha de progressão: lições como nós (MVP); filtro e domínio por matéria (Final) | Trilha | **MVP**; filtro e domínio no Final | HU-04, RF-08, RF-28, RN-19, CB-13 | UI-05 | — |
+| F-07 | Trilha de progressão: lições como nós (MVP); filtro e domínio por matéria (Final) | Trilha | **MVP**; filtro e domínio no Final | HU-04, RF-08, RF-28, RN-19, RN-26, CB-13, CB-30 | UI-05 | — |
 | F-08 | Questões de escolha única com correção | Complemento | **Absorvida** | RN-07 e RF-09 (removidos) | — | Absorvida pelos flashcards em 29/09/2026 (QA-17) |
 | F-09 | XP e meta diária | Ritmo | MVP | RF-12, RN-18, RN-21 | QA-24 | — |
 | F-10 | Sequência diária (*streak*) | Ritmo | MVP; congelamento depois | HU-17, RF-24, RN-15, RN-21, CB-25 | QA-24 | — |

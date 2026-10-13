@@ -151,7 +151,8 @@ Ordem visual:
 - Os quatro botões são iguais para todos os cartões, operáveis por teclado (atalhos numéricos).
 - O XP e a meta exibidos vêm da resposta do servidor.
 - O tira-dúvidas (final acadêmico) é uma ação secundária, que não interrompe o fluxo principal.
-- O fechamento da lição mostra XP ganho, revisões, cartões dominados e sequência, com "Continuar" (lição extra) ou "Voltar à trilha".
+- Um cartão marcado Errei pode voltar na mesma lição alguns minutos depois (passo curto do FSRS, RN-26). A posição na lição conta cartões distintos, e a reapresentação é sinalizada discretamente ("revendo").
+- O fechamento da lição mostra XP ganho, revisões, cartões dominados e sequência, com "Continuar" (lição extra) ou "Voltar à trilha". "Continuar" só aparece se houver cartões disponíveis; sem eles, o fechamento mostra quando o próximo cartão vence.
 
 ### 9.8 Evidência
 
@@ -167,7 +168,7 @@ Dias estudados (calendário), XP total, sequência atual e recorde, cartões dom
 
 ### 9.11 Perfil
 
-Identificação, fuso, meta diária, tamanho da lição e limite de novos cartões por dia. As conquistas entram aqui quando existirem (fora do MVP).
+Identificação, fuso, meta diária, tamanho da lição, limite de novos cartões por dia e retenção desejada (com explicação em linguagem simples do efeito de aumentá-la ou reduzi-la). As conquistas entram aqui quando existirem (fora do MVP).
 
 ## 10. Validações na interface
 

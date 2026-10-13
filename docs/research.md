@@ -220,7 +220,15 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 **Decisão:** alternativa 1, com a versão fixada e os parâmetros registrados por revisão (RN-17).  
 **Justificativa:** reduz risco e mantém o agendamento idêntico ao de referência do algoritmo.  
 **Consequências:** a lógica de domínio (lição, novos por dia, dia de estudo) fica no código do projeto; só o cálculo do agendamento vem da biblioteca.  
-**Condição para revisão:** mudança incompatível da biblioteca ou necessidade de otimizar parâmetros por estudante.
+**Atualização de 12/10/2026 (FSRS soberano, [RN-26](base-specs/spec.md#rn-26-soberania-do-fsrs)):** a leitura do código da biblioteca mostrou consequências que o produto passa a seguir:
+
+- O `Card` tem os estados *Learning*, *Review* e *Relearning*, além de `step`, `stability`, `difficulty`, `due` e `last_review`. Não há estado "novo": cartão novo é *Learning* sem `last_review`. O [esquema](arquitetura/esquema-inicial.dbml) espelha esses campos em `cartoes`.
+- Os passos curtos (padrão: 1 e 10 minutos no aprendizado, 10 minutos no reaprendizado) exigem que a lição reapresente o cartão na mesma sessão.
+- O `Scheduler` recebe 21 pesos, retenção desejada (padrão 0,9), passos, intervalo máximo e *fuzzing*. Esses parâmetros ficam versionados por estudante (`parametros_fsrs`), e cada revisão aponta a versão usada.
+- A biblioteca trabalha só em UTC; a conversão para o dia de estudo (virada às 4h locais) é do domínio.
+- A biblioteca inclui um otimizador de pesos a partir do histórico de revisões. Ele fica fora do MVP; as revisões guardam o necessário para usá-lo depois.
+
+**Condição para revisão:** mudança incompatível da biblioteca.
 
 ## Decisão DTEC 013 Hospedagem e operação
 

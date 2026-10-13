@@ -44,7 +44,10 @@ O produto é apresentado em três estágios. A [arquitetura](../arquitetura/READ
 | **Origem do cartão** | *Gerado e verificado* (IA, sustentado por trechos), *editado por você* ou *criado por você* |
 | **Aguardando revisão** | Estado de um cartão gerado que o estudante ainda não aceitou nem recusou. Não entra na trilha |
 | **Revisão** | Evento em que o estudante revela o verso e se autoavalia com um dos quatro botões |
-| **Lição** | Conjunto curto de cartões montado pelo servidor a partir do FSRS (devidos primeiro, depois novos) |
+| **Lição** | Sessão de estudo curta montada pelo servidor a partir do FSRS (devidos primeiro, depois novos). Um cartão marcado Errei volta na mesma lição quando o passo curto do FSRS vence (RN-26) |
+| **Cartão novo** | Cartão ativo que nunca foi revisado |
+| **Cartão devido** | Cartão ativo cujo vencimento calculado pelo FSRS é anterior à próxima virada do dia de estudo (4h locais) |
+| **Cartão disponível** | Cartão devido, ou cartão novo dentro do limite diário de novos (RN-20) |
 | **Trilha** | Caminho visual de progressão. Cada nó é uma lição; o nó concluído permanece como marco |
 | **Cartão dominado** | Cartão cuja estabilidade no FSRS atingiu o limiar definido (QA-24) |
 | **Dia de estudo** | Dia no fuso do estudante, que vira às 4h locais |
@@ -138,9 +141,24 @@ Exigência EX-03. Todo cartão gerado pela IA traz, criada junto com ele, uma ex
 ### RN-17 Revisão com FSRS
 
 - Após revelar o verso, o estudante se autoavalia com **Errei, Difícil, Bom ou Fácil**. Os quatro botões são os mesmos para todos os cartões.
-- O servidor calcula o próximo agendamento com o FSRS e mantém, por cartão, o estado do algoritmo (novo, aprendizado, revisão, reaprendizado), a estabilidade, a dificuldade e a próxima data.
-- Cada revisão é um evento imutável, com nota, instante e duração. Os parâmetros do FSRS usados ficam registrados para reproduzir o agendamento.
+- O servidor calcula o próximo agendamento com o FSRS (RN-26) e mantém, por cartão, o estado do algoritmo (aprendizado, revisão ou reaprendizado), o passo, a estabilidade, a dificuldade, o vencimento e a última revisão. Não existe estado "novo" no algoritmo: um cartão novo é um cartão em aprendizado que nunca foi revisado.
+- Os botões correspondem às notas do FSRS: Errei (*Again*), Difícil (*Hard*), Bom (*Good*) e Fácil (*Easy*).
+- Cada revisão é um evento imutável, com nota, instante, duração, o estado do cartão antes e depois e a versão dos parâmetros do FSRS usada, o que permite reproduzir o agendamento.
 - Não há desfazer revisão no MVP (incremento posterior de F-05).
+
+### RN-26 Soberania do FSRS
+
+Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)). O FSRS é o centro do produto, e as demais regras se adaptam a ele, nunca o contrário.
+
+- O vencimento de cada cartão é calculado **exclusivamente** pelo FSRS. Nenhuma regra do produto (lição, meta, XP, sequência, filtro por matéria, exibição da dificuldade) antecipa, adia ou altera esse cálculo.
+- **Passos curtos:** em aprendizado e reaprendizado, o FSRS agenda o cartão em minutos (padrão: 1 e 10 minutos no aprendizado; 10 minutos no reaprendizado). A lição reapresenta o cartão quando o passo vence. Se a lição for interrompida, o cartão vence no instante calculado e entra na próxima lição.
+- **Dia de estudo:** o FSRS agenda instantes em UTC; um cartão é devido no dia de estudo se vencer antes da próxima virada das 4h no fuso do estudante (RN-15).
+- **Sem revisão antecipada:** cartões que ainda não venceram não entram em lições, nem nas extras.
+- **Intervalos com variação aleatória leve** (*fuzzing*) ficam ligados, para que cartões criados juntos não vençam sempre juntos.
+- **Parâmetros por estudante:** os parâmetros do FSRS (pesos, retenção desejada, passos, intervalo máximo) são versionados por estudante e nunca alterados no lugar. A **retenção desejada** é uma preferência do perfil (padrão 0,90). No MVP, todos usam os pesos padrão da biblioteca; a otimização dos pesos pelo histórico do estudante fica para depois e não exige mudança de esquema.
+- **Edição:** editar o texto de um cartão não reinicia seu estado no FSRS. Uma ação explícita de "reiniciar aprendizado" é incremento posterior de F-05.
+- **Filtro por matéria** (final acadêmico): restringe quais cartões disponíveis entram na lição, sem alterar o agendamento.
+- A **dificuldade** exibida ao estudante, se aprovada (PO-01), é uma leitura da dificuldade calculada pelo FSRS, nunca uma escolha.
 
 ### RN-18 XP
 
@@ -150,20 +168,22 @@ Exigência EX-03. Todo cartão gerado pela IA traz, criada junto com ele, uma ex
 
 ### RN-19 Lição e trilha
 
-- A lição é montada pelo servidor: primeiro os cartões devidos, depois os novos, até o tamanho da lição e respeitando o limite diário de novos cartões (RN-20).
+- A lição é uma sessão de estudo montada pelo servidor: primeiro os cartões devidos, depois os novos, até o tamanho da lição (em cartões distintos) e respeitando o limite diário de novos cartões (RN-20).
+- Um cartão em aprendizado ou reaprendizado que recebe um passo curto (minutos) volta na mesma lição quando o passo vence. A lição termina quando os cartões previstos foram revisados e nenhum deles tem passo curto pendente (RN-26).
 - **MVP:** a lição mistura cartões de todas as matérias (trilha unificada, sem filtro).
 - **Final acadêmico:** é possível filtrar a lição por matéria, e cada matéria exibe seu domínio (cartões dominados sobre o total de cartões ativos).
 - A trilha mostra as lições concluídas como nós alcançados, a lição atual e o próximo passo. Concluir uma lição acende o nó.
-- Depois da meta, o estudante pode fazer lições extras enquanto houver cartões disponíveis.
+- Depois da meta, o estudante pode fazer lições extras enquanto houver cartões **disponíveis**. Não há revisão antecipada de cartões que ainda não venceram (RN-26).
 - Sem cartões disponíveis, não há lição. A trilha mostra o próximo agendamento, sem conteúdo fictício.
 
 ### RN-20 Novos cartões por dia
 
-O estudante configura o limite diário de cartões novos que entram nas lições (valor padrão em QA-23 e QA-24). Cartões aceitos além do limite aguardam os dias seguintes, na ordem de aceitação.
+O estudante configura o limite diário de cartões novos que entram nas lições (valor padrão em QA-23 e QA-24). Cartões aceitos além do limite aguardam os dias seguintes, na ordem de aceitação. O limite decide **quando** um cartão novo é apresentado pela primeira vez; depois disso, o agendamento é do FSRS.
 
 ### RN-21 Meta diária e sequência
 
 - A meta diária é um número de revisões, configurável.
+- A meta efetiva usa os cartões **disponíveis** no dia (devidos e novos dentro do limite).
 - **Dia estudado:** dia em que a meta efetiva é cumprida.
 - Um dia sem nenhum cartão disponível é **neutro**: não conta como estudado e não quebra a sequência.
 - A sequência é o número de dias estudados consecutivos, desconsiderando os dias neutros. Lições extras não criam dias adicionais.
@@ -226,9 +246,9 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 | RF-16 | **Fora dos estágios acadêmicos:** material complementar para assuntos sem cobertura | — |
 | RF-17 | Consultar a evidência e a descrição da origem de um cartão (RN-05) | MVP |
 | RF-18 | Disponibilizar OpenAPI e Swagger UI coerentes com os contratos, incluindo autenticação, validações e erros | MVP |
-| RF-19 | Consultar e alterar o perfil e as preferências: fuso, meta diária, tamanho da lição, limite de novos cartões | MVP |
+| RF-19 | Consultar e alterar o perfil e as preferências: fuso, meta diária, tamanho da lição, limite de novos cartões e retenção desejada do FSRS (RN-26) | MVP |
 | RF-20 | Criar, renomear e excluir matérias (RN-23) | MVP |
-| RF-21 | Revisar cartões em lições com autoavaliação e agendamento FSRS (RN-17, RN-10) | MVP |
+| RF-21 | Revisar cartões em lições com autoavaliação e agendamento FSRS (RN-17, RN-26, RN-10) | MVP |
 | RF-22 | Gerar cartões por IA a partir de fontes, com revisão pelo estudante, resumo e "Gerar mais" (RN-22, EX-02) | MVP |
 | RF-23 | Exibir a explicação curta ao marcar "Errei" (RN-16, EX-03) | MVP |
 | RF-24 | Calcular meta efetiva, dia estudado e sequência (RN-21) | MVP |
@@ -277,10 +297,13 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 | CB-25 | Revisão perto das 4h, mudança de fuso ou horário de verão | Atribuir ao dia de estudo correto no fuso vigente no instante da revisão |
 | CB-26 | "Gerar mais" sem conteúdo novo na fonte | Informar que não há novos cartões a gerar, sem repetir existentes |
 | CB-27 | Exclusão de fonte com cartões em lição aberta | A lição em andamento não perde as revisões já registradas |
+| CB-28 | Lição interrompida com cartão em passo curto | O cartão mantém o vencimento calculado pelo FSRS e entra na próxima lição; o nó só acende quando a lição é concluída |
+| CB-29 | Estudante altera a retenção desejada | Uma nova versão dos parâmetros vale a partir da próxima revisão; revisões anteriores mantêm a versão usada |
+| CB-30 | Todos os cartões disponíveis do dia já foram revisados | Nenhuma lição extra; a trilha mostra o próximo vencimento, sem revisão antecipada |
 
 ## 8. Entidades conceituais
 
-Estudante, Matéria, Fonte, Trecho, Cartão, Estado FSRS do cartão, Revisão, Geração (pedido de geração e seus cartões), Lição, Evento de XP, Dia de estudo, Conversa e Mensagem (final acadêmico), Citação. A modelagem física está no [esquema inicial em DBML](../arquitetura/esquema-inicial.dbml) e no `data-model.md` de cada spec.
+Estudante, Matéria, Fonte, Trecho, Cartão, Estado FSRS do cartão, Parâmetros do FSRS, Revisão, Geração (pedido de geração e seus cartões), Lição, Evento de XP, Dia de estudo, Conversa e Mensagem (final acadêmico), Citação. A modelagem física está no [esquema inicial em DBML](../arquitetura/esquema-inicial.dbml) e no `data-model.md` de cada spec.
 
 ## 9. Requisitos de qualidade
 

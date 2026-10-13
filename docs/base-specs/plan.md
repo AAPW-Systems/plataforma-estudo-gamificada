@@ -41,7 +41,9 @@ No MVP não há embeddings: a seleção de trechos é feita pela ordem e pela co
 
 ## 4. Revisão e gamificação
 
-- Cada revisão é uma transação: registra o evento (com o identificador do cliente), atualiza o estado FSRS do cartão, concede XP e atualiza o dia de estudo. Ou tudo acontece, ou nada acontece.
+- O agendamento vem só da biblioteca `fsrs` (RN-26, DTEC 012). O domínio converte o cartão para `fsrs.Card`, chama o `Scheduler` com a versão dos parâmetros vigente do estudante e grava o resultado, sem ajustar o vencimento calculado.
+- Cada revisão é uma transação: registra o evento (com o identificador do cliente, o estado do cartão antes e depois e a versão dos parâmetros), atualiza o estado FSRS do cartão, concede XP e atualiza o dia de estudo. Ou tudo acontece, ou nada acontece.
+- A lição reapresenta cartões com passo curto vencido antes de buscar o próximo cartão inédito; os testes cobrem passos curtos, lição interrompida (CB-28) e ausência de revisão antecipada (CB-30).
 - O identificador do cliente tem restrição de unicidade por estudante (RN-10).
 - O dia de estudo é calculado no fuso do estudante, com virada às 4h (RN-15), com testes de fronteira.
 - A regra de XP é versionada (RN-18): o evento de XP guarda a versão usada.
@@ -52,7 +54,7 @@ Grupos conceituais (os caminhos finais são definidos nos contratos de cada spec
 
 ```text
 /auth          cadastro, login, logout, sessão
-/perfil        dados e preferências (fuso, meta, tamanho da lição, novos por dia)
+/perfil        dados e preferências (fuso, meta, tamanho da lição, novos por dia, retenção desejada)
 /materias      matérias
 /fontes        envio, estado, trechos, exclusão com impacto
 /geracoes      pedidos de geração, cartões aguardando revisão, resumo

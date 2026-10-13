@@ -158,9 +158,11 @@ Decisões tomadas em 29/09/2026 ([registro](../prompts/2026-09-29-brainstorming-
 
 ### Revisão e trilha (F-05, F-07)
 
-- Autoavaliação com quatro botões, iguais para todos os cartões: Errei, Difícil, Bom, Fácil. Agendamento pelo algoritmo **FSRS** (*Free Spaced Repetition Scheduler*), que é o centro do produto: todas as regras de revisão, lição, XP e sequência se adaptam a ele.
+- Autoavaliação com quatro botões, iguais para todos os cartões: Errei, Difícil, Bom, Fácil. Agendamento pelo algoritmo **FSRS** (*Free Spaced Repetition Scheduler*), que é o centro do produto e **soberano**: só ele calcula quando cada cartão volta, e todas as regras de revisão, lição, XP e sequência se adaptam a ele, nunca o contrário ([RN-26](../base-specs/spec.md#rn-26-soberania-do-fsrs)).
 - **Trilha unificada:** cada nó da trilha é uma lição montada pelo FSRS, que mistura os cartões devidos de todas as matérias e depois os novos. Concluir a lição acende o nó. **MVP sem filtro;** no final acadêmico, filtro por matéria e domínio por matéria.
-- **Formato:** lições curtas (proposta: 10 cartões), com tela de fechamento (XP ganho, sequência, cartões dominados) e a opção de continuar com lições extras. O tamanho é configurável.
+- **Formato:** lições curtas (proposta: 10 cartões distintos), com tela de fechamento (XP ganho, sequência, cartões dominados) e a opção de continuar com lições extras enquanto houver cartões disponíveis. O tamanho é configurável.
+- **A lição segue o FSRS:** um cartão marcado Errei volta na mesma lição alguns minutos depois, como o algoritmo pede. Não há revisão antecipada: quem já revisou tudo o que estava disponível vê quando o próximo cartão vence.
+- **Retenção desejada:** preferência do perfil (padrão 90%) que o FSRS usa para espaçar as revisões. A personalização dos parâmetros pelo histórico do estudante fica para depois do MVP.
 - **Novos cartões por dia:** limite configurável pelo usuário (ponto de partida: 10, reconhecidamente baixo para quem estuda muito).
 - Cada revisão enviada leva um identificador gerado no cliente. O reenvio não duplica efeitos. O mesmo identificador com conteúdo diferente gera conflito (Princípio IV).
 - Não há desfazer revisão no MVP.
