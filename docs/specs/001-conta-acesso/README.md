@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-01 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Plano aprovado |
+| Status | Plano aprovado (tarefas em revisão) |
 | Depende de | — |
 
 ## Ordem de leitura
@@ -17,7 +17,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 7. [`quickstart.md`](quickstart.md): validação local.
 
-`tasks.md` e `traceability.md` nascem nas etapas seguintes do [fluxo SDD](../../skills/fluxo-sdd.md), depois da aprovação do plano.
+8. [`tasks.md`](tasks.md): tarefas T001 a T065, por história. Em revisão (portão "Tarefas aprovadas").
+9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Em revisão, junto com as tarefas.
 
 ## Histórico
 
@@ -29,3 +30,4 @@
 | 12/10/2026 | Spec aprovada para planejamento por Artur Lins, depois da revisão individual ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |
 | 12/10/2026 | Plano, pesquisa, modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodadas com Artur Lins ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
 | 12/10/2026 | Plano aprovado por Artur Lins, com a emenda da DTEC 002 e as DTEC 015 a 023 ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
+| 12/10/2026 | Tarefas (T001 a T065) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
