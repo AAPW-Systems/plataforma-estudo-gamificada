@@ -1,6 +1,9 @@
 // Esquema inicial do banco (QA-21)
 // Atualizado em 12/10/2026. Registros: docs/prompts/2026-10-12-esquema-inicial-banco.md e
 // docs/prompts/2026-10-12-001-conta-acesso-plano.md (tentativas_acesso; nome com até 100 caracteres)
+// e docs/prompts/2026-10-13-002-materias-fontes-plano.md (fontes: codigo_falha no lugar de
+// motivo_falha, versao_extracao, total_trechos, título com até 120 caracteres e conteúdo único
+// por matéria)
 // Visualização: cole este arquivo em https://dbdiagram.io
 //
 // Este esquema é o ponto de partida do data-model.md de cada spec. A spec aprovada
@@ -46,6 +49,12 @@ Enum estado_fonte {
   processando
   concluido
   falhou
+}
+
+Enum codigo_falha_fonte {
+  falha_tecnica [note: 'Erro de infraestrutura depois das novas tentativas automáticas; o estudante pode pedir nova tentativa']
+  sem_texto [note: 'PDF sem camada de texto ou arquivo sem texto extraível (CB-23); sem nova tentativa']
+  conteudo_invalido [note: 'Arquivo que não pôde ser lido dentro dos limites de tempo e memória (DTEC 024); sem nova tentativa']
 }
 
 Enum estado_geracao {
@@ -213,22 +222,28 @@ Table fontes {
   public_id uuid [not null, unique, default: `gen_random_uuid()`]
   usuario_id bigint [not null]
   materia_id bigint [not null]
-  titulo varchar(200) [not null]
-  nome_arquivo varchar(255) [not null, note: 'Nome enviado; só exibido, nunca usado como caminho']
-  chave_objeto varchar(512) [not null, unique, note: 'Chave do objeto (disco local ou R2), com nome interno (UUID)']
+  titulo varchar(120) [not null, note: '1 a 120 caracteres; renomeável (D-005 da 002)']
+  nome_arquivo varchar(255) [not null, note: 'Nome enviado, sem caminho e sem caracteres de controle; só exibido, nunca usado como caminho']
+  chave_objeto varchar(512) [not null, unique, note: 'usuarios/{public_id_usuario}/fontes/{uuid} (DTEC 021); igual no disco local e no R2']
   tipo_midia varchar(100) [not null, note: 'Tipo real detectado pelo conteúdo (RN-02)']
   tamanho_bytes integer [not null]
-  hash_sha256 bytea [not null, note: 'Integridade do arquivo']
+  hash_sha256 bytea [not null, note: 'Integridade do arquivo e recusa de conteúdo idêntico na mesma matéria (D-004 da 002)']
   estado estado_fonte [not null, default: 'pendente']
-  motivo_falha varchar(500) [note: 'Mensagem ao estudante quando estado = falhou']
-  total_paginas integer [note: 'Só quando conhecido']
+  codigo_falha codigo_falha_fonte [note: 'Preenchido somente quando estado = falhou; a mensagem ao estudante vem do catálogo da aplicação (DTEC 030)']
+  total_paginas integer [note: 'Só quando conhecido (PDF)']
+  total_trechos integer [note: 'Gravado na mesma transação dos trechos; nulo antes de concluido']
+  versao_extracao varchar(50) [note: 'Versão do extrator e dos parâmetros de divisão que geraram os trechos (DTEC 029)']
   processada_em timestamptz
   criado_em timestamptz [not null, default: `now()`]
   atualizado_em timestamptz [not null, default: `now()`]
 
   indexes {
     (materia_id, usuario_id) [note: 'Cobre a FK composta e a listagem por matéria']
+    (materia_id, hash_sha256) [unique, name: 'fontes_conteudo_unico_por_materia', note: 'D-004 da 002; resolve envios simultâneos do mesmo arquivo']
+    usuario_id [note: 'Cota de armazenamento por estudante (D-003 da 002)']
   }
+
+  Note: 'Estado e codigo_falha são coerentes: codigo_falha só existe em falhou (CHECK na migração).'
 }
 
 Table trechos {
@@ -238,8 +253,8 @@ Table trechos {
   ordem integer [not null, note: 'Posição do trecho na fonte']
   texto text [not null]
   pagina integer [note: 'Somente quando conhecida; nunca inventada (RN-05)']
-  inicio_caractere integer [not null]
-  fim_caractere integer [not null]
+  inicio_caractere integer [not null, note: 'Deslocamento no texto normalizado da fonte inteira (DTEC 029)']
+  fim_caractere integer [not null, note: 'Maior que inicio_caractere']
   criado_em timestamptz [not null, default: `now()`]
 
   indexes {
@@ -310,7 +325,7 @@ Table evidencias_cartoes {
   id bigint [pk, increment]
   cartao_id bigint [not null]
   trecho_id bigint [note: 'Nulo depois que a fonte é excluída: o cartão exibe "fonte apagada"']
-  fonte_titulo varchar(200) [not null, note: 'Cópia da descrição da origem (RN-05), sobrevive à exclusão da fonte']
+  fonte_titulo varchar(120) [not null, note: 'Cópia da descrição da origem (RN-05), sobrevive à exclusão da fonte']
   fonte_nome_arquivo varchar(255) [not null]
   fonte_enviada_em timestamptz [not null]
   pagina integer [note: 'Somente quando conhecida']
