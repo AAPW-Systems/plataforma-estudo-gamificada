@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-05 e F-07 (parte do MVP); EX-03 e EX-05 |
 | Estágio | **MVP** |
-| Status | Plano aprovado |
+| Status | Tarefas em revisão (aguardam o portão "Tarefas aprovadas") |
 | Depende de | [001](../001-conta-acesso/README.md), [003](../003-cartoes-manuais/README.md) |
 
 ## Ordem de leitura
@@ -18,7 +18,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 7. [`quickstart.md`](quickstart.md): validação local e medição do CS-004.
 
-`tasks.md` e `traceability.md` nascem depois do portão "Plano aprovado" ([fluxo SDD](../../skills/fluxo-sdd.md)).
+8. [`tasks.md`](tasks.md): T001 a T049, por história. Em revisão.
+9. [`traceability.md`](traceability.md): matriz requisito, teste e tarefa, com a análise de consistência. Em revisão.
 
 ## Histórico
 
@@ -30,3 +31,4 @@
 | 12/10/2026 | Spec aprovada para planejamento por Artur Lins, depois da revisão individual ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |
 | 13/10/2026 | Plano, pesquisa (DTEC 049 a 056 e a transversal DTEC 048), modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodadas com Artur Lins ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 048 a 056 ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
+| 13/10/2026 | Tarefas (T001 a T049) e rastreabilidade com análise de consistência escritas; aguardam o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-005-licao-trilha-plano.md)) |
