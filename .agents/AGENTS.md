@@ -64,6 +64,7 @@ docs/
 ├── specs/NNN-nome-curto/  # uma pasta por funcionalidade (spec, plan, tasks...)
 ├── skills/                # guias de agente por tarefa, independentes de ferramenta
 ├── prompts/               # registro obrigatório de toda sessão com agente
+├── reunioes/              # atas das reuniões da equipe (AAAA-MM-DD.md)
 └── sdd_guidelines/        # material da disciplina: SOMENTE LEITURA
 ```
 
