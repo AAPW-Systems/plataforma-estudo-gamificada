@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 006-xp-meta-sequencia (XP, meta diária e sequência)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-006-xp-meta-sequencia-plano.md))  
-**Status:** aguardando o portão "Tarefas aprovadas", junto com as [tarefas](tasks.md)
+**Status:** aprovada em 13/10/2026 por Artur Lins (equipe), junto com as [tarefas](tasks.md)
 
 Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo comportamento. Os nomes de teste são planejados e passam a ser links quando a implementação existir (T045). Os caminhos de teste são relativos a `backend/tests/`, salvo os do frontend. Todo teste com instante usa o relógio injetável (T007 da 005).
 
