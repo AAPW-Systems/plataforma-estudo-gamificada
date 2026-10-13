@@ -126,6 +126,23 @@ plano aprovado, siga para tarefas e rastreabilidade
 | `docs/specs/006-xp-meta-sequencia/quickstart.md` | criado |
 | `docs/specs/006-xp-meta-sequencia/README.md` | alterado: ordem de leitura e histórico |
 
+### Aprovação do plano
+
+| Artefato | Ação |
+|---|---|
+| `docs/specs/006-xp-meta-sequencia/plan.md`, `research.md`, `README.md` | alterados: status aprovado |
+| `docs/research.md` | alterado: DTEC 057 aprovada |
+| `docs/skills/contexto-tecnico.md` | alterado: spec 006 e migração `0007`, próxima migração `0008`, DTEC 057 a 063, próxima DTEC 064, nenhum código de erro novo, gamificação no backend e no frontend, obrigações da 006 removidas e novas obrigações para a 007, a 012 e quem altera a disponibilidade |
+| `docs/specs/README.md`, `.agents/AGENTS.md` | alterados: 006 em `Plano aprovado` |
+
+### Etapas 6 e 7 (tarefas e rastreabilidade)
+
+| Artefato | Ação |
+|---|---|
+| `docs/specs/006-xp-meta-sequencia/tasks.md` | criado: T001 a T045 por história |
+| `docs/specs/006-xp-meta-sequencia/traceability.md` | criado: matriz e análise de consistência |
+| `docs/specs/006-xp-meta-sequencia/README.md` | alterado: ordem de leitura e histórico |
+
 ## Alterações humanas
 
 Pendente de revisão.
@@ -136,6 +153,7 @@ Pendente de revisão.
 - Script de comparação entre os contratos: o da 006 é superconjunto do da 005 nos caminhos e esquemas comuns (nenhum campo, código de resposta ou valor de enum removido).
 - Links relativos e âncoras dos arquivos alterados conferidos por script: nenhum quebrado.
 - Exigências do PO conferidas: nenhuma toca a 006.
+- Tarefas: IDs T001 a T045 sequenciais e todas presentes no `traceability.md`, conferido por script.
 - Nenhum código implementado (decisão de 13/10/2026).
 
 ## Pendências
