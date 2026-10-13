@@ -36,6 +36,7 @@ A coluna "Origem na base" aponta para os IDs da [base de especificação](../bas
 | F-14 | Plano de estudos a partir de um edital | Trilha | Não | Nova; relaciona-se com RN-06 | A abrir | — |
 | F-15 | Criar flashcard a partir de uma resposta do chat | Chat | Não | Nova | A abrir | — |
 | F-16 | Tira-dúvidas a partir de um cartão: durante a lição, o estudante abre o chat com o cartão como contexto e pede explicações, com referência (EX-04). Caminho opcional, fora do fluxo principal | Chat | **Final**; consulta externa (EX-01) em pauta com o PO | HU-19, RF-26, RN-24 | QA-16, QA-31; [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) | — |
+| F-17 | Painel administrativo simples, com acesso restrito ao papel administrador (RN-27). Escopo definido na spec | Base | **Final**; validação com o PO pendente | HU-20, RF-29, RN-27 | QA-32; [PO-06](pauta-po.md#po-06-painel-administrativo) | — |
 
 ## Exigências do PO
 
@@ -105,6 +106,7 @@ Se algo precisar sair por prazo, o primeiro corte é o painel de evolução, red
 | F-07 | Filtro da lição por matéria e domínio por matéria |
 | F-12 | Painel completo (tempo dedicado, por matéria) |
 | F-01 | Recuperação de senha por e-mail |
+| F-17 | Painel administrativo simples (escopo na spec, QA-32) |
 
 ### Fora dos estágios acadêmicos
 

@@ -21,6 +21,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | Respondida em 12/10/2026: [esquema inicial](../arquitetura/esquema-inicial.dbml) |
 | [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy do final acadêmico | Equipe | Parcial: DTEC 013; VPS e domínio pendentes |
 | [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
+| [QA-32](#qa-32-escopo-do-painel-administrativo) | Escopo do painel administrativo | Produto | Spec de F-17 | Equipe e professor | Aberta (12/10/2026); [PO-06](pauta-po.md#po-06-painel-administrativo) |
 | [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026 (revisão pelo estudante); valor padrão do limite na spec |
 | [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 (final acadêmico) | Equipe e professor | Provisória |
 | [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Aberta; na spec de F-09 |
@@ -251,6 +252,15 @@ Entidades que as decisões já tomadas implicam (proposta, sem nomes finais):
 - **Proteção da `main` no GitHub:** exigir pull request e a verificação da integração contínua aprovada antes do merge, e bloquear `push --force`. Definir se o pull request exige revisão de outro integrante.
 - **Merge direto:** a regra 14 aceita "pull request ou merge". Com a proteção ativa, o merge direto na `main` fica bloqueado. A equipe precisa decidir se aceita só pull request, que deixa a verificação registrada e visível na avaliação.
 - **Documentação:** com a `main` protegida, decidir se as alterações de documentação (specs, planos, registros de prompts) também passam pela `develop` ou continuam indo direto para a `main`. As regras 14 a 17 tratam apenas da fase de desenvolvimento.
+
+### QA-32 Escopo do painel administrativo
+
+Aberta em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)). O papel de administrador existe no esquema (RN-27), e o painel simples entra no final acadêmico (F-17). A spec de F-17 decide:
+
+- **O que o painel mostra:** candidatos são contagens de uso (estudantes, fontes, cartões, revisões), consumo e falhas da IA (`consumo_ia`) e estado das filas de processamento e geração.
+- **O que o painel faz:** candidatos são desativar uma conta e reprocessar uma fonte que falhou.
+- **Limite de privacidade:** se o administrador vê dados individuais de estudantes e, nesse caso, quais. A posição inicial é não exibir conteúdo de fontes, cartões ou conversas (RN-01, Princípio II).
+- **Como uma conta vira administradora:** comando de linha de comando executado no servidor, nunca uma rota pública.
 
 ### QA-31 Framework de agentes do final acadêmico
 

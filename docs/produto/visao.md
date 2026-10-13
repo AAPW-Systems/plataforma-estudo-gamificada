@@ -20,7 +20,7 @@ Uma plataforma web que funde **repetição espaçada** com uma **trilha visual d
 | Estágio | O que entrega |
 |---|---|
 | **MVP** (local) | Matérias, fontes, cartões manuais e gerados pela IA com revisão do estudante, trilha unificada com FSRS, XP, meta, sequência e evolução mínima |
-| **Final acadêmico** (publicado) | MVP + chat com as fontes da matéria, tira-dúvidas do cartão, cartão com imagem, filtro e domínio por matéria, mais formatos de fonte |
+| **Final acadêmico** (publicado) | MVP + chat com as fontes da matéria, tira-dúvidas do cartão, cartão com imagem, filtro e domínio por matéria, mais formatos de fonte, painel administrativo simples |
 | **Referência pós-acadêmica** (documentada) | Evolução técnica que o produto adotaria se crescesse ([referência](../arquitetura/referencia-pos-academica.md)) |
 
 ## Diferencial
@@ -48,7 +48,7 @@ As specs de F-05, F-09, F-10 e F-12 citam este princípio como critério para ca
 
 ## Usuário prioritário
 
-Estudante individual (concurseiro, universitário ou autodidata) que possui materiais próprios e quer estudar com regularidade. Papéis adicionais, como professor ou administrador, não estão previstos.
+Estudante individual (concurseiro, universitário ou autodidata) que possui materiais próprios e quer estudar com regularidade. Um papel de **administrador**, na mesma conta e login, opera um painel administrativo simples no final acadêmico (F-17). Outros papéis, como professor, não estão previstos.
 
 ## Pilares da plataforma completa
 
@@ -98,7 +98,7 @@ No final acadêmico, o estudante conversa com as fontes ao lado delas, na págin
 - Pagamentos, assinaturas e comércio de conteúdo.
 - Aplicativos móveis nativos e modo offline.
 - Tutoria por voz e provas oficiais certificadas.
-- Painel administrativo.
+- Painel administrativo completo (um painel simples entra no final acadêmico, F-17).
 
 > Itens do escopo incluído **não** estão automaticamente no MVP. O recorte do MVP (QA-12) está no [backlog](backlog.md#recorte-do-mvp).
 

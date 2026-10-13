@@ -20,7 +20,7 @@ O produto é apresentado em três estágios. A [arquitetura](../arquitetura/READ
 | Estágio | Prazo | Onde roda | O que entrega |
 |---|---|---|---|
 | **MVP** | ~20/10/2026 | Localmente (Docker Compose) | Matérias, fontes (PDF com texto, TXT, MD), cartões manuais e gerados pela IA com revisão do estudante, trilha unificada com FSRS, XP, meta diária, sequência e evolução mínima |
-| **Final acadêmico** | Novembro de 2026 | VPS com HTTPS (deploy obrigatório) | MVP + chat com as fontes da matéria (RAG com busca híbrida e citações), tira-dúvidas do cartão, cartão com imagem, filtro da trilha por matéria e domínio por matéria, formatos SRT, VTT e DOCX |
+| **Final acadêmico** | Novembro de 2026 | VPS com HTTPS (deploy obrigatório) | MVP + chat com as fontes da matéria (RAG com busca híbrida e citações), tira-dúvidas do cartão, cartão com imagem, filtro da trilha por matéria e domínio por matéria, formatos SRT, VTT e DOCX, painel administrativo simples |
 | **Referência pós-acadêmica** | Sem prazo | — | Evolução documentada, não implementada: ver [referência](../arquitetura/referencia-pos-academica.md) |
 
 ### 2.1 Fora de todos os estágios acadêmicos
@@ -30,7 +30,7 @@ O produto é apresentado em três estágios. A [arquitetura](../arquitetura/READ
 - Aplicativos nativos e funcionamento offline.
 - Quizzes e questões de múltipla escolha (absorvidos pelos flashcards, QA-17).
 - OCR de PDF digitalizado, XLSX e PPTX (referência pós-acadêmica, por custo de VPS).
-- Painel administrativo.
+- Painel administrativo completo. Um painel **simples** entra no final acadêmico (F-17, RN-27), com escopo definido na spec dele.
 - Pesquisa externa (EX-01): **em pauta com o PO** ([pauta](../produto/pauta-po.md)); até a resposta, fora.
 
 ## 3. Glossário
@@ -213,6 +213,15 @@ O estudante cria, renomeia e exclui matérias (nome de 1 a 60 caracteres, único
 - O tira-dúvidas abre o chat com o cartão como contexto (EX-04).
 - O escopo do histórico e os limites de uso estão em QA-16.
 
+### RN-27 Papéis
+
+Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)).
+
+- Toda conta tem um papel: **estudante** (padrão) ou **administrador**. Os dois usam a mesma conta e o mesmo login.
+- O cadastro público cria apenas estudantes. O papel de administrador nunca é atribuído por uma requisição do próprio usuário; a forma de concedê-lo é definida na spec de F-17.
+- O MVP não tem funcionalidade de administrador. O painel administrativo simples entra no final acadêmico (F-17).
+- O papel de administrador não suspende o isolamento (RN-01) por padrão: o que o painel pode ver dos dados dos estudantes é decidido na spec de F-17 ([QA-32](../produto/pendencias.md#qa-32-escopo-do-painel-administrativo)) e nunca inclui o conteúdo das fontes ou das conversas sem justificativa registrada.
+
 ### RN-25 Evolução
 
 Calculados no servidor, por matéria e no total:
@@ -228,7 +237,7 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 
 | ID | Requisito | Estágio |
 |---|---|---|
-| RF-01 | Cadastrar estudantes com nome, e-mail e senha e autenticá-los; perfil único de estudante. Recuperação de senha por e-mail no final acadêmico | MVP |
+| RF-01 | Cadastrar estudantes com nome, e-mail e senha e autenticá-los. Estudantes e administradores usam a mesma conta e o mesmo login, distinguidos pelo papel (RN-27). Recuperação de senha por e-mail no final acadêmico | MVP |
 | RF-02 | Restringir dados e operações ao estudante proprietário (RN-01) | MVP |
 | RF-03 | Enviar fontes a uma matéria (RN-02) | MVP |
 | RF-04 | Listar, consultar e excluir fontes definitivamente, com escolha sobre os cartões (RN-14) | MVP |
@@ -256,6 +265,7 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 | RF-26 | Tira-dúvidas a partir de um cartão, com referência (RN-24, EX-04) | Final |
 | RF-27 | Criar cartões com imagem na frente (RN-08) | Final |
 | RF-28 | Filtrar a lição por matéria e exibir o domínio por matéria (RN-19) | Final |
+| RF-29 | Painel administrativo simples, acessível só ao papel administrador (RN-27) | Final |
 
 ## 6. Histórias de usuário
 
@@ -280,6 +290,7 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 | HU-17 | Como estudante, quero manter minha sequência sem ser punido em dias sem cartões. | MVP |
 | HU-18 | Como estudante, quero conversar com as fontes de uma matéria e ver as citações. | Final |
 | HU-19 | Como estudante, quero tirar dúvidas sobre um cartão durante a revisão. | Final |
+| HU-20 | Como administrador, quero acompanhar e operar a plataforma num painel simples. | Final |
 
 ## 7. Casos de borda
 
