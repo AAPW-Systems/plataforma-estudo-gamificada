@@ -75,3 +75,4 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 003](2026-10-13-003-cartoes-manuais-plano.md) | Planejar | Artur Lins |
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 004](2026-10-13-004-geracao-cartoes-plano.md) | Planejar | Artur Lins |
 | 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 005](2026-10-13-005-licao-trilha-plano.md) | Planejar | Artur Lins |
+| 2026-10-13 | [Plano, tarefas e rastreabilidade da spec 006](2026-10-13-006-xp-meta-sequencia-plano.md) | Planejar | Artur Lins |
