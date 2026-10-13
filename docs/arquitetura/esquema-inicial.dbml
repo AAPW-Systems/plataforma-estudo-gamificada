@@ -8,7 +8,10 @@
 // FK composta da referência) e docs/prompts/2026-10-13-004-geracao-cartoes-plano.md (geracoes:
 // codigo_falha no lugar de motivo_falha, FK composta para a fonte, uma em andamento por fonte;
 // geracoes_trechos, cartoes_descartados e ciencias_aviso_ia; cartoes: motivo_recusa; evidencias:
-// deslocamentos da citação)
+// deslocamentos da citação) e docs/prompts/2026-10-13-005-licao-trilha-plano.md (licoes: numero na
+// conclusão, encerrada_em, uma aberta por estudante; licoes_cartoes e apresentacoes; revisoes:
+// apresentação, semente do fuzz, primeira do dia, tornou dominado, versão das regras; FKs
+// compostas com o dono)
 // Visualização: cole este arquivo em https://dbdiagram.io
 //
 // Este esquema é o ponto de partida do data-model.md de cada spec. A spec aprovada
@@ -174,6 +177,8 @@ TableGroup cartoes_e_ia [color: #F59E0B] {
 TableGroup revisao_fsrs [color: #8B5CF6] {
   parametros_fsrs
   licoes
+  licoes_cartoes
+  apresentacoes
   revisoes
 }
 
@@ -371,7 +376,7 @@ Table cartoes {
   dificuldade "double precision" [note: 'Card.difficulty, de 1 a 10: nula até a primeira revisão']
   vencimento timestamptz [not null, default: `now()`, note: 'Card.due: instante UTC em que o cartão vence']
   ultima_revisao timestamptz [note: 'Card.last_review: nula = cartão novo']
-  dominado_em timestamptz [note: 'Primeira vez que a estabilidade passou do limiar (QA-24); garante bônus único. Criada pela spec 005']
+  dominado_em timestamptz [note: 'Primeira vez que estabilidade >= limiar das regras versionadas (21 dias, D-003 da 005); nunca volta a nulo; garante bônus único. Criada pela spec 005']
   criado_em timestamptz [not null, default: `now()`]
   atualizado_em timestamptz [not null, default: `now()`]
 
@@ -381,6 +386,7 @@ Table cartoes {
     (materia_id, usuario_id, criado_em, id) [name: 'cartoes_materia', note: 'Cobre a FK composta e a listagem paginada por cursor da matéria (DTEC 034)']
     fonte_id [note: 'Impacto e marcação na exclusão da fonte (DTEC 027)']
     geracao_id [note: 'Criado pela spec 004']
+    (id, usuario_id) [unique, name: 'cartoes_id_usuario', note: 'Alvo das FKs compostas de licoes_cartoes, apresentacoes e revisoes (DTEC 019). Criado pela spec 005']
   }
 
   Note: '''
@@ -493,18 +499,63 @@ Table licoes {
   id bigint [pk, increment]
   public_id uuid [not null, unique, default: `gen_random_uuid()`]
   usuario_id bigint [not null]
-  numero integer [not null, note: 'Posição do nó na trilha']
-  dia_estudo date [not null]
-  extra boolean [not null, default: false, note: 'Iniciada depois de cumprida a meta do dia']
-  tamanho_alvo smallint [not null, note: 'Cartões distintos previstos']
+  numero integer [note: 'Posição do nó na trilha; atribuída só na conclusão (sem buracos pelas lições encerradas)']
+  dia_estudo date [not null, note: 'Dia de estudo do início']
+  extra boolean [not null, default: false, note: 'Já havia lição concluída no mesmo dia de estudo (RF-012)']
+  tamanho_alvo smallint [not null, note: 'Cartões distintos previstos: usuarios.tamanho_licao no início']
   iniciada_em timestamptz [not null, default: `now()`]
-  concluida_em timestamptz [note: 'Preenchida quando os cartões previstos foram revisados e nenhum tem passo curto pendente; acende o nó']
+  concluida_em timestamptz [note: 'Todos os previstos revisados ou retirados e nenhum passo curto vencido pendente (D-004); acende o nó']
+  encerrada_em timestamptz [note: 'Encerrada sem acender o nó: aberta de um dia de estudo anterior (D-005)']
 
   indexes {
-    (usuario_id, numero) [unique]
+    (usuario_id, numero) [unique, name: 'licoes_numero', note: 'Parcial: where numero is not null; paginação da trilha']
+    usuario_id [unique, name: 'licoes_uma_aberta', note: 'Parcial: where concluida_em is null and encerrada_em is null']
+    (id, usuario_id) [unique, note: 'Alvo das FKs compostas']
   }
 
-  Note: 'Sessão de estudo e nó da trilha (RN-19). Um cartão marcado Errei volta na mesma lição quando o passo curto do FSRS vence.'
+  Note: '''
+  Sessão de estudo e nó da trilha (RN-19). Um cartão marcado Errei volta na mesma lição quando o
+  passo curto do FSRS vence (spec 005, DTEC 054).
+  CHECKs: concluida_em e encerrada_em nunca juntas; numero presente se e somente se concluida_em.
+  '''
+}
+
+Table licoes_cartoes {
+  licao_id bigint [pk]
+  cartao_id bigint [pk]
+  usuario_id bigint [not null]
+  posicao smallint [not null, note: 'Ordem de montagem: devidos (vencimento mais antigo primeiro), depois novos (entrada_estudo_em)']
+  novo boolean [not null, note: 'Sem revisão anterior na montagem; conta no limite só na primeira revisão (D-007)']
+  revisado_em timestamptz [note: 'Primeira revisão nesta lição']
+  retirado_em timestamptz [note: 'Saiu sem revisão: suspenso ou fora de ativo, ou limite de novos atingido']
+
+  indexes {
+    (licao_id, posicao) [unique]
+  }
+
+  Note: 'Cartões previstos da lição (spec 005, DTEC 049). Plano da sessão, não histórico: sai em cascata com o cartão (exceção registrada no plano da 005).'
+}
+
+Table apresentacoes {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  licao_id bigint [not null]
+  cartao_id bigint [not null]
+  revendo boolean [not null, note: 'Reapresentação por passo curto vencido (RF-006)']
+  exibida_em timestamptz [not null, default: `now()`]
+  revelada_em timestamptz [note: 'Primeiro pedido de revelação (RF-003)']
+  avaliada_em timestamptz
+
+  indexes {
+    licao_id [unique, name: 'apresentacoes_uma_pendente', note: 'Parcial: where avaliada_em is null']
+    cartao_id
+  }
+
+  Note: '''
+  Cada exibição de um cartão na lição (spec 005, DTEC 052). O verso só sai depois de revelada_em;
+  a avaliação exige revelada_em. CHECK: avaliada_em só com revelada_em.
+  '''
 }
 
 Table revisoes {
@@ -512,19 +563,24 @@ Table revisoes {
   usuario_id bigint [not null]
   cartao_id bigint [note: 'Nulo se o cartão for excluído: a revisão nunca é apagada (RN-14)']
   licao_id bigint [not null]
+  apresentacao_public_id uuid [not null, note: 'Apresentação avaliada; valor copiado, sem FK, para sobreviver à exclusão do cartão. Uma revisão por apresentação (CB-24)']
   parametros_fsrs_id bigint [not null]
   chave_idempotencia uuid [not null, note: 'Gerada no cliente (RN-10)']
   nota nota_revisao [not null]
   revisada_em timestamptz [not null, note: 'ReviewLog.review_datetime']
-  duracao_ms integer [note: 'ReviewLog.review_duration']
+  duracao_ms integer [not null, note: 'Medida no cliente, da exibição da frente à nota (D-006), limitada pelo servidor (DTEC 052)']
   dia_estudo date [not null, note: 'Dia de estudo no fuso vigente no instante da revisão (CB-25)']
+  semente_fuzz bigint [not null, note: 'Semente do fuzz desta revisão (CS-001, DTEC 053)']
+  versao_regras smallint [not null, note: 'Versão das regras da revisão (limiar de dominado), DTEC 055']
+  primeira_do_dia boolean [not null, note: 'Primeira revisão do cartão no dia de estudo; base do XP da 006 (RN-18)']
+  tornou_dominado boolean [not null, note: 'Esta revisão preencheu cartoes.dominado_em; base do bônus da 006']
   // Estado do cartão antes da revisão
   estado_antes estado_fsrs [not null]
   passo_antes smallint
   estabilidade_antes "double precision"
   dificuldade_antes "double precision"
   vencimento_antes timestamptz [not null]
-  ultima_revisao_antes timestamptz
+  ultima_revisao_antes timestamptz [note: 'Nula = primeira revisão do cartão (conta no limite de novos, D-007)']
   // Estado do cartão depois da revisão
   estado_depois estado_fsrs [not null]
   passo_depois smallint
@@ -534,12 +590,15 @@ Table revisoes {
 
   indexes {
     (usuario_id, chave_idempotencia) [unique]
+    apresentacao_public_id [unique]
     (usuario_id, dia_estudo)
+    (usuario_id, dia_estudo) [name: 'revisoes_novos_dia', note: 'Parcial: where ultima_revisao_antes is null; limite de novos (RF-002)']
+    (usuario_id, cartao_id, dia_estudo) [unique, name: 'revisoes_primeira_do_dia', note: 'Parcial: where primeira_do_dia']
     cartao_id
     licao_id
   }
 
-  Note: 'Evento imutável (RN-17). O estado antes e depois permite auditar, reproduzir o agendamento, alimentar o otimizador e implementar o desfazer futuro sem mudar o esquema.'
+  Note: 'Evento imutável (RN-17). O estado antes e depois, a versão dos parâmetros e a semente permitem auditar e reproduzir o agendamento (RQ-004), alimentar o otimizador e implementar o desfazer futuro sem mudar o esquema.'
 }
 
 Table eventos_xp {
@@ -698,9 +757,14 @@ Ref: ciencias_aviso_ia.usuario_id > usuarios.id
 // Revisão e FSRS
 Ref: parametros_fsrs.usuario_id > usuarios.id
 Ref: licoes.usuario_id > usuarios.id
+Ref: licoes_cartoes.(licao_id, usuario_id) > licoes.(id, usuario_id) [delete: cascade]
+Ref: licoes_cartoes.(cartao_id, usuario_id) > cartoes.(id, usuario_id) [delete: cascade]
+Ref: apresentacoes.(licao_id, usuario_id) > licoes.(id, usuario_id) [delete: cascade]
+Ref: apresentacoes.(cartao_id, usuario_id) > cartoes.(id, usuario_id) [delete: cascade]
 Ref: revisoes.usuario_id > usuarios.id
-Ref: revisoes.cartao_id > cartoes.id [delete: set null]
-Ref: revisoes.licao_id > licoes.id
+// Na migração: ON DELETE SET NULL (cartao_id), preservando usuario_id (PostgreSQL 15+)
+Ref: revisoes.(cartao_id, usuario_id) > cartoes.(id, usuario_id) [delete: set null]
+Ref: revisoes.(licao_id, usuario_id) > licoes.(id, usuario_id)
 Ref: revisoes.parametros_fsrs_id > parametros_fsrs.id
 
 // Gamificação
