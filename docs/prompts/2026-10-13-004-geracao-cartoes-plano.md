@@ -144,7 +144,7 @@ plano aprovado, siga com as tarefas e a rastreabilidade
 
 ## Saída aceita
 
-Etapa 5 (planejar), aguardando o portão "Plano aprovado":
+Etapa 5 (planejar), aprovada por Artur Lins em 13/10/2026 (prompt 2), e etapas 6 e 7, aguardando o portão "Tarefas aprovadas":
 
 | Artefato | Ação |
 |---|---|
@@ -158,6 +158,9 @@ Etapa 5 (planejar), aguardando o portão "Plano aprovado":
 | `docs/specs/004-geracao-cartoes/quickstart.md` | criado |
 | `docs/specs/004-geracao-cartoes/README.md` | alterado: status e ordem de leitura |
 | `docs/specs/003-cartoes-manuais/README.md`, `data-model.md` | alterados: propagação da DTEC 045 (selo derivado da fonte da geração), com registro no histórico |
+| `docs/specs/004-geracao-cartoes/tasks.md` | criado: T001 a T059, por história (US1 e US4 como P1, depois US3 e US2), mais a fase do conjunto de avaliação |
+| `docs/specs/004-geracao-cartoes/traceability.md` | criado: matriz e análise de consistência |
+| `docs/specs/README.md`, `.agents/AGENTS.md` | alterados: 004 em `Plano aprovado` e estado atual |
 
 ## Alterações humanas
 
@@ -169,10 +172,11 @@ Pendente de revisão.
 - Links relativos e âncoras dos arquivos alterados conferidos por script (0 problemas).
 - Documentação do PydanticAI (`UsageLimits`, `RunUsage`, `FunctionModel`, `TestModel`, `ALLOW_MODEL_REQUESTS`) e do pydantic-evals (`Dataset`, `Case`, avaliadores) consultada pelo Context7 em 13/10/2026.
 - Semântica de `max_attempts` do Procrastinate conferida contra a DTEC 030 (`max_attempts=2` = até 2 novas tentativas).
+- Tarefas: numeração contínua de T001 a T059 e presença de todas na rastreabilidade conferidas por script (nenhuma faltando); links de `tasks.md` e `traceability.md` conferidos (0 problemas).
 
 ## Pendências
 
-- Portão "Plano aprovado" (Artur Lins).
-- Depois do portão: `tasks.md` (etapa 6) e `traceability.md` com análise de consistência (etapa 7).
+- Portão "Tarefas aprovadas" (Artur Lins).
+- Prompt da spec 005 para uma nova sessão, depois do portão.
 - Nome da pessoa responsável pela implementação e revisora do conjunto de avaliação (RQ-007), registrado no plano no início da implementação.
 - Modelo padrão do provedor conferido na implementação contra a camada gratuita vigente.
