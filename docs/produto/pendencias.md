@@ -10,7 +10,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 
 ## Prazos de referência
 
-- **MVP:** 3 semanas a partir de 29/09/2026 (estimativa: 20/10/2026), rodando localmente.
+- **MVP:** apresentação possível em 15/10, 20/10 ou 22/10/2026, rodando localmente. A equipe mira 15/10, com 20/10 como alternativa (12/10/2026).
 - **Final acadêmico:** novembro de 2026, com deploy obrigatório (URL com HTTPS).
 - **Caminho crítico (12/10/2026):** aprovação da primeira spec. O esquema inicial em DBML (QA-21) foi escrito em 12/10/2026. A arquitetura foi aprovada em 12/10/2026 (VAL-06).
 

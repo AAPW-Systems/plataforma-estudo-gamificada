@@ -19,7 +19,7 @@ O produto é apresentado em três estágios. A [arquitetura](../arquitetura/READ
 
 | Estágio | Prazo | Onde roda | O que entrega |
 |---|---|---|---|
-| **MVP** | ~20/10/2026 | Localmente (Docker Compose) | Matérias, fontes (PDF com texto, TXT, MD), cartões manuais e gerados pela IA com revisão do estudante, trilha unificada com FSRS, XP, meta diária, sequência e evolução mínima |
+| **MVP** | 15/10, 20/10 ou 22/10/2026 (meta da equipe: 15/10) | Localmente (Docker Compose) | Matérias, fontes (PDF com texto, TXT, MD), cartões manuais e gerados pela IA com revisão do estudante, trilha unificada com FSRS, XP, meta diária, sequência e evolução mínima |
 | **Final acadêmico** | Novembro de 2026 | VPS com HTTPS (deploy obrigatório) | MVP + chat com as fontes da matéria (RAG com busca híbrida e citações), tira-dúvidas do cartão, cartão com imagem, filtro da trilha por matéria e domínio por matéria, formatos SRT, VTT e DOCX, painel administrativo simples |
 | **Referência pós-acadêmica** | Sem prazo | — | Evolução documentada, não implementada: ver [referência](../arquitetura/referencia-pos-academica.md) |
 

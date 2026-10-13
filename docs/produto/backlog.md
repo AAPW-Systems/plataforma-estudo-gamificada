@@ -12,7 +12,7 @@ A coluna "Origem na base" aponta para os IDs da [base de especificação](../bas
 
 | Estágio | Prazo | Onde roda |
 |---|---|---|
-| **MVP** | ~20/10/2026 | Localmente |
+| **MVP** | Apresentação em 15/10, 20/10 ou 22/10/2026; meta da equipe: 15/10 (alternativa: 20/10) | Localmente |
 | **Final** (final acadêmico) | Novembro de 2026 | VPS com HTTPS (deploy obrigatório) |
 | **Referência** (pós-acadêmica) | — | Documentada, não implementada ([referência](../arquitetura/referencia-pos-academica.md)) |
 
@@ -68,7 +68,7 @@ Os itens abaixo não são funcionalidades isoladas. Eles se aplicam a todas as s
 ## Recorte do MVP
 
 **Proposto em:** 29/09/2026; revisto em 12/10/2026 ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)). **Validação com o professor:** aprovado em 12/10/2026 ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)).
-**Prazo:** ~20/10/2026. Roda localmente.
+**Prazo:** a apresentação do MVP pode ser em 15/10, 20/10 ou 22/10/2026. A equipe mira 15/10, com 20/10 como alternativa (informado por Artur Lins em 12/10/2026). Roda localmente.
 
 As guidelines limitam o MVP a uma persona, uma jornada principal e até três capacidades essenciais (`sdd_guidelines/detalhes_projeto.md`, "Acordo do MVP com o PO").
 
