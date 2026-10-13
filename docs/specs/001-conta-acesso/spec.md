@@ -24,6 +24,9 @@
 - Isolamento: cada estudante acessa somente os próprios recursos (RN-01).
 - Consulta e alteração do perfil e das preferências: nome, fuso, meta diária, tamanho da lição, limite de novos cartões por dia e retenção desejada (RF-19).
 - Valores padrão das preferências para quem acaba de se cadastrar.
+- Aviso curto de privacidade no cadastro (D-007).
+- Alteração da senha com a sessão aberta (D-004).
+- Exclusão da própria conta, com todos os dados (D-003).
 
 ### Fora do escopo
 
@@ -31,7 +34,7 @@
 - Login social, autenticação em dois fatores e login institucional.
 - Funcionalidades de administrador: final acadêmico, em [016-painel-administrativo](../016-painel-administrativo/spec.md). O MVP só registra o papel.
 - Troca de e-mail.
-- Exclusão da conta pelo próprio estudante e alteração de senha com a sessão aberta: em aberto (Q-001 e Q-002).
+- Confirmação do e-mail no cadastro: fora do MVP; o estágio (final acadêmico ou referência pós-acadêmica) está em discussão na equipe ([QA-33](../../produto/pendencias.md#qa-33-confirmação-de-e-mail-no-cadastro)).
 
 ## Cenários de usuário e testes
 
@@ -46,6 +49,8 @@ Como estudante, quero criar minha conta e entrar nela, para guardar meus estudos
 
 1. **Dado** um e-mail ainda não cadastrado, **quando** o estudante informa nome, e-mail e uma senha válida, **então** a conta é criada com o papel estudante, as preferências padrão e o fuso detectado no navegador (ou `America/Sao_Paulo`, se não for possível detectar), e o estudante já entra na plataforma.
 2. **Dado** uma senha com menos de 8 caracteres ou presente na lista de senhas comuns, **quando** o estudante tenta se cadastrar, **então** o cadastro é recusado com a explicação junto do campo, e os demais valores digitados são preservados.
+7. **Dado** um e-mail que já tem conta (sem diferenciar maiúsculas e minúsculas), **quando** alguém tenta se cadastrar com ele, **então** o cadastro é recusado com a mensagem de que o e-mail já está em uso, e nenhuma conta é criada (D-005).
+8. **Dado** a tela de cadastro, **quando** o estudante a abre, **então** vê um aviso curto de privacidade: quais dados a plataforma guarda e que, ao pedir cartões gerados pela IA, trechos das fontes são enviados a um provedor externo.
 3. **Dado** uma conta existente, **quando** o estudante entra com e-mail e senha corretos, **então** uma sessão é iniciada e ele chega à trilha.
 4. **Dado** uma senha errada ou um e-mail inexistente, **quando** o estudante tenta entrar, **então** a mensagem é a mesma nos dois casos e não revela se o e-mail tem conta.
 5. **Dado** uma sessão aberta, **quando** o estudante sai, **então** a sessão deixa de valer no servidor, e uma requisição posterior com ela é tratada como não autenticada.
@@ -78,6 +83,20 @@ Como estudante, quero ajustar meu fuso e meu ritmo de estudo, para que a meta e 
 3. **Dado** uma nova retenção desejada, **quando** o estudante salva, **então** uma nova versão dos parâmetros de agendamento passa a valer a partir da próxima revisão, e as revisões anteriores mantêm a versão que usaram (CB-29 da base).
 4. **Dado** um novo fuso, **quando** o estudante salva, **então** os próximos dias de estudo passam a virar às 4h no novo fuso, e os dias já registrados não mudam.
 
+### História de usuário 4 Proteger e encerrar a conta P3
+
+Como estudante, quero trocar minha senha e, se quiser, excluir minha conta com todos os meus dados, para manter o controle sobre eles.
+
+**Motivo da prioridade:** proteção e direito previsto na LGPD; não bloqueiam a jornada principal.
+**Teste independente:** trocar a senha de uma conta fictícia com duas sessões abertas e confirmar que só a sessão atual continua válida; excluir outra conta fictícia com matérias, fontes e cartões e confirmar que nenhum dado dela permanece e que o e-mail pode ser usado num novo cadastro.
+
+**Cenários de aceitação**
+
+1. **Dado** uma sessão aberta, **quando** o estudante informa a senha atual e uma nova senha válida, **então** a senha é trocada, e todas as outras sessões da conta são encerradas.
+2. **Dado** uma senha atual errada, **quando** o estudante tenta trocar a senha, **então** nada muda, e a tentativa conta para o limite de tentativas da conta.
+3. **Dado** o pedido de exclusão da conta, **quando** o estudante abre a ação, **então** um diálogo explica que a exclusão é definitiva e apaga matérias, fontes, cartões, revisões, XP e sequência, e exige a senha atual para confirmar.
+4. **Dado** a confirmação com a senha correta, **quando** a exclusão termina, **então** todos os dados e arquivos da conta são apagados, todas as sessões são encerradas e o e-mail fica livre para um novo cadastro.
+
 ## Casos de borda
 
 - E-mail com maiúsculas, espaços nas extremidades ou já cadastrado com outra caixa: tratado como o mesmo e-mail.
@@ -87,7 +106,9 @@ Como estudante, quero ajustar meu fuso e meu ritmo de estudo, para que a meta e 
 - Duas abas: sair numa aba invalida a sessão nas duas.
 - Tentativas de entrada distribuídas entre muitas contas a partir do mesmo endereço de rede.
 - Requisição com identificador de outro estudante em qualquer recurso, inclusive em listagens e filtros.
-- Cadastro com um e-mail já existente (Q-003).
+- Cadastro com um e-mail já existente: recusado com a mensagem de e-mail em uso (D-005); muitas tentativas de cadastro do mesmo endereço de rede são limitadas (RQ-003).
+- Exclusão da conta com fontes em processamento ou geração em andamento: os processamentos são interrompidos, e nada da conta permanece.
+- Exclusão da conta pedida duas vezes (duas abas): um único efeito.
 
 ## Requisitos funcionais
 
@@ -102,6 +123,10 @@ Como estudante, quero ajustar meu fuso e meu ritmo de estudo, para que a meta e 
 - **RF-009:** No cadastro, o sistema deverá usar o fuso detectado no navegador quando ele for um nome IANA válido; caso contrário, `America/Sao_Paulo` (deriva de RN-15 da base).
 - **RF-010:** A alteração da retenção desejada deverá criar uma nova versão dos parâmetros de agendamento, sem alterar as versões anteriores (deriva de RN-26 e CB-29 da base).
 - **RF-011:** Requisições que alteram dados deverão exigir proteção contra falsificação de requisição entre sites.
+- **RF-012:** No cadastro, o sistema deverá verificar se o e-mail já está em uso e, nesse caso, recusar o cadastro informando que o e-mail já está em uso (D-005).
+- **RF-013:** A tela de cadastro deverá exibir um aviso curto de privacidade, sem caixa de aceite (D-007).
+- **RF-014:** O estudante deverá conseguir trocar a senha informando a senha atual. A troca deverá encerrar todas as outras sessões da conta (D-004).
+- **RF-015:** O estudante deverá conseguir excluir a própria conta, confirmando com a senha atual. A exclusão deverá apagar definitivamente todos os dados e arquivos da conta e encerrar todas as sessões (D-003).
 
 ## Entidades principais
 
@@ -113,32 +138,50 @@ Como estudante, quero ajustar meu fuso e meu ritmo de estudo, para que a meta e 
 
 - **CS-001:** Em teste guiado com três pessoas, cada uma cria a conta e chega à trilha em até 2 minutos, sem ajuda.
 - **CS-002:** Em 100% das operações expostas pela API, o teste com duas contas confirma que a conta B não lê, altera nem descobre recursos da conta A.
-- **CS-003:** Nenhuma resposta de entrada ou de erro permite distinguir um e-mail cadastrado de um não cadastrado (exceto o cadastro, ver Q-003).
+- **CS-003:** Nenhuma resposta de entrada ou de erro permite distinguir um e-mail cadastrado de um não cadastrado, exceto a recusa do cadastro por e-mail em uso, decidida em D-005.
+- **CS-004:** Depois da exclusão de uma conta fictícia, nenhum registro nem arquivo ligado a ela é encontrado no banco ou no armazenamento.
 
 ## Requisitos de qualidade
 
 - **RQ-001:** A senha nunca é armazenada nem registrada em texto legível, e a credencial da sessão não fica acessível a scripts da página.
 - **RQ-002:** Logs não registram senha, credencial de sessão nem o corpo das requisições de cadastro e de entrada.
-- **RQ-003:** Bloqueio temporário de 15 minutos após 5 falhas de entrada por conta em 15 minutos, e após 20 falhas por endereço de rede em 15 minutos. Valores configuráveis por ambiente.
+- **RQ-003:** Bloqueio temporário de 15 minutos após 5 falhas de entrada por conta em 15 minutos, e após 20 falhas por endereço de rede em 15 minutos; no máximo 10 tentativas de cadastro por endereço de rede por hora. Valores configuráveis por ambiente.
 - **RQ-004:** Cadastro, entrada e perfil atendem WCAG 2.2 AA, operam por teclado e funcionam a partir de 320 px (RQ-06 da base).
 - **RQ-005:** Os contratos de cadastro, entrada, saída e perfil estão documentados em OpenAPI, inclusive os erros (RQ-08 da base).
 
 ## Suposições e dependências
 
-- **Suposição:** os prazos de expiração da sessão (14 dias sem uso e 30 dias no máximo) e os limites de nome são propostos pelo agente, configuráveis por ambiente, e confirmados na revisão da spec.
+- **Suposição:** os limites de nome e o limite de tentativas de cadastro são propostos pelo agente, configuráveis por ambiente, e confirmados na revisão da spec.
 - **Suposição:** frontend e API ficam na mesma origem ([arquitetura](../../arquitetura/README.md#52-autenticação-e-sessão)).
 - **Dependência:** nenhuma funcionalidade anterior. Todas as outras specs dependem desta.
 
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E1:** O MVP permite excluir a própria conta? → Sim, com confirmação pela senha e apagamento definitivo (D-003).
+- **E2:** O MVP permite alterar a senha com a sessão aberta? → Sim, informando a atual e encerrando as outras sessões (D-004).
+- **E3:** Como o cadastro trata um e-mail já cadastrado? → Verifica no banco e informa que o e-mail está em uso; sem confirmação de conta por e-mail nem recuperação de senha no MVP (D-005). O estágio da confirmação por e-mail fica em [QA-33](../../produto/pendencias.md#qa-33-confirmação-de-e-mail-no-cadastro).
+- **E4:** Qual a duração da sessão? → 14 dias sem uso e, no máximo, 30 dias após a entrada, sem "manter conectado" (D-006).
+- **E5:** O cadastro exibe um aviso de privacidade? → Sim, um texto curto, sem caixa de aceite (D-007).
+
 ## Questões abertas
 
-- **Q-001:** O MVP deve permitir que o estudante exclua a própria conta, apagando definitivamente todos os seus dados? **Recomendação:** sim, com confirmação pela senha, porque é um direito previsto na LGPD e o esquema já apaga em cascata. — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-002:** O MVP deve permitir alterar a senha com a sessão aberta (informando a senha atual e encerrando as outras sessões)? **Recomendação:** sim, porque sem isso uma senha vazada só pode ser trocada no final acadêmico, quando chega a recuperação de senha. — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-003:** Sem envio de e-mail no MVP, o cadastro não consegue ser neutro: ao usar um e-mail já cadastrado, ele precisa dizer que o e-mail não pode ser usado. Isso permite descobrir contas, risco reduzido pelo limite de tentativas. **Recomendação:** aceitar o risco no MVP e rever no final acadêmico, quando houver e-mail ([008](../008-recuperacao-senha/spec.md), Q-002). — **Responsável:** equipe — **Prazo:** 14/10/2026
+- **Q-001:** ~~Excluir a própria conta no MVP?~~ Resolvida em 12/10/2026 (D-003).
+- **Q-002:** ~~Alterar a senha com a sessão aberta no MVP?~~ Resolvida em 12/10/2026 (D-004).
+- **Q-003:** ~~Cadastro sem envio de e-mail não pode ser neutro.~~ Resolvida em 12/10/2026 (D-005).
+
+Nenhuma questão aberta impede o planejamento.
 
 ## Decisões confirmadas
 
 - **D-001:** Preferências padrão e limites: meta diária de 20 cartões distintos (de 1 a 200); lição de 10 cartões distintos (de 5 a 50); 20 cartões novos por dia, num limite global e não por matéria (de 0 a 100); retenção desejada de 0,90 (de 0,70 a 0,97). Os valores ficam numa configuração versionada (QA-24 e QA-23). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-002:** Política de senha: de 8 a 128 caracteres, com recusa de senhas comuns ou vazadas e sem regras de composição; limite de tentativas; mensagem de erro de entrada neutra. — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
+- **D-003:** O estudante pode excluir a própria conta no MVP, confirmando com a senha atual; a exclusão apaga definitivamente todos os dados e arquivos da conta. — **Confirmada por:** Artur Lins (equipe), esclarecimento E1 — **Data:** 12/10/2026
+- **D-004:** O estudante pode alterar a senha com a sessão aberta, informando a atual; a troca encerra as outras sessões. — **Confirmada por:** Artur Lins (equipe), esclarecimento E2 — **Data:** 12/10/2026
+- **D-005:** No MVP, o cadastro verifica no banco se o e-mail já está em uso e, nesse caso, informa o estudante. Não há confirmação de conta por e-mail nem recuperação de senha no MVP. O estágio da confirmação por e-mail será decidido pela equipe ([QA-33](../../produto/pendencias.md#qa-33-confirmação-de-e-mail-no-cadastro)). — **Confirmada por:** Artur Lins (equipe), esclarecimento E3 — **Data:** 12/10/2026
+- **D-006:** A sessão expira após 14 dias sem uso e, em qualquer caso, 30 dias após a entrada, sem opção "manter conectado"; valores configuráveis por ambiente. — **Confirmada por:** Artur Lins (equipe), esclarecimento E4 — **Data:** 12/10/2026
+- **D-007:** O cadastro exibe um aviso curto de privacidade, sem caixa de aceite: quais dados a plataforma guarda e que trechos das fontes vão a um provedor de IA externo quando o estudante pede cartões. — **Confirmada por:** Artur Lins (equipe), esclarecimento E5 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
@@ -149,9 +192,9 @@ Nenhuma exigência (EX-01 a EX-05) toca esta funcionalidade.
 | Princípio | Como a spec atende |
 |---|---|
 | I Fontes exclusivas | Não se aplica: não há conteúdo gerado |
-| II Proteção e isolamento | US2, RF-007, RQ-001 e RQ-002 |
-| III Verificação humana | Q-001 a Q-003 ficam com a equipe |
+| II Proteção e isolamento | US2, US4, RF-007, RQ-001 a RQ-003; aviso de privacidade (RF-013) |
+| III Verificação humana | Decisões do esclarecimento registradas pela equipe (D-003 a D-007); exclusão da conta com confirmação explícita (US4) |
 | IV Servidor autoritativo | Sessão e preferências validadas e guardadas no servidor; datas em UTC com o fuso do estudante |
 | V Qualidade verificável | Cenários Dado/Quando/Então, RQ-004 e RQ-005 |
-| VI Entrega incremental | US1 pode ser demonstrada sozinha |
+| VI Entrega incremental | US1 pode ser demonstrada sozinha; a US4 amplia |
 | VII Rastreabilidade | IDs da base citados; sessão registrada |

@@ -22,6 +22,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy do final acadêmico | Equipe | Parcial: DTEC 013; VPS e domínio pendentes |
 | [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
 | [QA-32](#qa-32-escopo-do-painel-administrativo) | Escopo do painel administrativo | Produto | Spec de F-17 | Equipe | Aberta (12/10/2026); proposta na spec [016](../specs/016-painel-administrativo/spec.md); saiu da pauta com o PO em 12/10/2026 |
+| [QA-33](#qa-33-confirmação-de-e-mail-no-cadastro) | Confirmação de e-mail no cadastro: final acadêmico ou referência pós-acadêmica | Produto | Spec de F-01 do estágio escolhido | Equipe | Aberta (12/10/2026) |
 | [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026 (revisão pelo estudante); limite padrão de 20 novos por dia, global, proposto em [001](../specs/001-conta-acesso/spec.md) (D-001), aguardando a aprovação da spec |
 | [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 (final acadêmico) | Equipe e professor | Provisória |
 | [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Valores propostos em 12/10/2026 nas specs [001](../specs/001-conta-acesso/spec.md), [005](../specs/005-licao-trilha/spec.md), [006](../specs/006-xp-meta-sequencia/spec.md) e [013](../specs/013-evolucao-completa/spec.md), aguardando a aprovação das specs |
@@ -276,6 +277,23 @@ Aberta em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)
 ---
 
 ## Produto
+
+### QA-33 Confirmação de e-mail no cadastro
+
+Aberta em 12/10/2026 no esclarecimento da spec [001](../specs/001-conta-acesso/spec.md) ([registro](../prompts/2026-10-12-esclarecimento-specs-mvp.md)).
+
+**Decidido para o MVP:** não há confirmação de conta por e-mail nem recuperação de senha. O cadastro verifica no banco se o e-mail já está em uso e, nesse caso, informa o estudante (D-005 da spec 001). A entrada (login) continua com mensagem neutra.
+
+**Pendente, a discutir com a equipe:** a confirmação do e-mail no cadastro entra no **final acadêmico** (junto da recuperação de senha, [spec 008](../specs/008-recuperacao-senha/spec.md)) ou fica na **referência pós-acadêmica**?
+
+| Final acadêmico | Referência pós-acadêmica |
+|---|---|
+| O cadastro passa a ser neutro (não revela se o e-mail já tem conta), fechando a enumeração de contas | O cadastro continua informando "e-mail já em uso" na versão publicada |
+| Garante que o e-mail da conta existe e pertence ao estudante, o que torna a recuperação de senha confiável | A recuperação de senha pode ser pedida para um e-mail digitado errado no cadastro, sem o estudante perceber |
+| Reaproveita o envio de e-mail e o link de uso único da recuperação de senha | Menos fluxos para implementar e testar em novembro |
+| Um passo a mais no cadastro, com risco de o e-mail cair no spam | Sem dependência de entrega de e-mail para começar a usar |
+
+**Recomendação do agente:** final acadêmico, porque a recuperação de senha já está lá e usa o mesmo envio de e-mail.
 
 ### QA-23 Publicação automática e limite de novos cartões
 

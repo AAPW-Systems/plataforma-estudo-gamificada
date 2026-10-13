@@ -28,7 +28,7 @@
 ### Fora do escopo
 
 - Recuperação por SMS, perguntas secretas ou atendimento humano.
-- Verificação de e-mail no cadastro (Q-002).
+- Verificação de e-mail no cadastro: estágio em discussão em [QA-33](../../produto/pendencias.md#qa-33-confirmação-de-e-mail-no-cadastro).
 - Troca de e-mail.
 
 ## Cenários de usuário e testes
@@ -91,7 +91,7 @@ Como estudante, quero redefinir minha senha pelo e-mail, para recuperar o acesso
 ## Questões abertas
 
 - **Q-001:** O aviso de senha alterada deve trazer um caminho para o estudante informar que não foi ele? **Recomendação:** sim, com um link que encerra todas as sessões e inicia uma nova recuperação. — **Responsável:** equipe — **Prazo:** 31/10/2026
-- **Q-002:** Com o envio de e-mail disponível, o cadastro passa a exigir a confirmação do e-mail e a responder de forma neutra a e-mails já cadastrados (fechando Q-003 de [001](../001-conta-acesso/spec.md))? **Recomendação:** sim, com a conta utilizável só depois da confirmação. — **Responsável:** equipe — **Prazo:** 31/10/2026
+- **Q-002:** ~~Com o envio de e-mail disponível, o cadastro passa a exigir a confirmação do e-mail?~~ Movida em 12/10/2026 para [QA-33](../../produto/pendencias.md#qa-33-confirmação-de-e-mail-no-cadastro), que decide se a confirmação entra no final acadêmico ou na referência pós-acadêmica ([esclarecimento da 001](../001-conta-acesso/spec.md#esclarecimentos), E3).
 
 ## Decisões confirmadas
 
