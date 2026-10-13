@@ -86,3 +86,4 @@ Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2
 | 2026-10-13 | [Continuação da implementação da spec 001 até S1](2026-10-13-001-conta-acesso-implementacao-2.md) | Implementar | A confirmar |
 | 2026-10-13 | [Retomada da spec 001 a partir da T024](2026-10-13-001-conta-acesso-implementacao-3.md) | Implementar | A confirmar |
 | 2026-10-13 | [Conversão dos prompts de retomada da spec 001](2026-10-13-001-conta-acesso-retomadas-markdown.md) | Implementar |  |
+| 2026-10-13 | [Revisão do prompt de retomada da spec 001](2026-10-13-001-conta-acesso-retomada-revisao.md) | Implementar |  |
