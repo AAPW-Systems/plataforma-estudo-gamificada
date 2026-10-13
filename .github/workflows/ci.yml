@@ -25,7 +25,7 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 16)|" .env
-          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -base64 48 | tr -d '\n')|" .env
+          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -hex 32)|" .env
       - name: Construir a imagem dev
         run: docker compose build api
       - name: Subir o banco
@@ -54,7 +54,7 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 16)|" .env
-          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -base64 48 \| tr -d '\n')|" .env
+          sed -i "s|^SEGREDO_APLICACAO=.*|SEGREDO_APLICACAO=$(openssl rand -hex 32)|" .env
       - name: Construir a imagem dev
         run: docker compose build web
       - name: Formatação
