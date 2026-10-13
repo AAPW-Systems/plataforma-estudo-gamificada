@@ -1,5 +1,6 @@
 // Esquema inicial do banco (QA-21)
-// Atualizado em 12/10/2026. Registro: docs/prompts/2026-10-12-esquema-inicial-banco.md
+// Atualizado em 12/10/2026. Registros: docs/prompts/2026-10-12-esquema-inicial-banco.md e
+// docs/prompts/2026-10-12-001-conta-acesso-plano.md (tentativas_acesso; nome com até 100 caracteres)
 // Visualização: cole este arquivo em https://dbdiagram.io
 //
 // Este esquema é o ponto de partida do data-model.md de cada spec. A spec aprovada
@@ -90,6 +91,12 @@ Enum tipo_evento_xp {
   cartao_dominado [note: 'Bônus único quando o cartão é dominado pela primeira vez']
 }
 
+Enum tipo_tentativa_acesso {
+  falha_entrada
+  falha_senha_atual [note: 'Senha atual errada na troca de senha ou na exclusão da conta']
+  cadastro
+}
+
 Enum papel_mensagem {
   estudante
   assistente
@@ -102,6 +109,7 @@ Enum papel_mensagem {
 TableGroup identidade [color: #3B82F6] {
   usuarios
   sessoes
+  tentativas_acesso
 }
 
 TableGroup acervo [color: #10B981] {
@@ -131,7 +139,7 @@ TableGroup gamificacao [color: #EF4444] {
 Table usuarios {
   id bigint [pk, increment]
   public_id uuid [not null, unique, default: `gen_random_uuid()`]
-  nome varchar(120) [not null]
+  nome varchar(100) [not null, note: '1 a 100 caracteres, sem espaços nas extremidades (RF-001 da spec 001)']
   email varchar(254) [not null, note: 'Único sem diferenciar maiúsculas (índice em lower(email))']
   senha_hash varchar(255) [not null, note: 'Argon2id (DTEC 003)']
   papel papel_usuario [not null, default: 'estudante']
@@ -169,6 +177,21 @@ Table sessoes {
   }
 
   Note: 'Sessão opaca em cookie HttpOnly (DTEC 003).'
+}
+
+Table tentativas_acesso {
+  id bigint [pk, increment]
+  tipo tipo_tentativa_acesso [not null]
+  chave_conta bytea [note: 'HMAC-SHA-256 do e-mail normalizado; nula em cadastro. Vale também para e-mails sem conta (CS-003)']
+  ip inet [not null]
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (chave_conta, criado_em)
+    (ip, tipo, criado_em)
+  }
+
+  Note: 'Limites de tentativas da RQ-003 da spec 001 (DTEC 020). Sem FK nem e-mail em claro; linhas com mais de 24 horas são apagadas por tarefa periódica.'
 }
 
 Table materias {
