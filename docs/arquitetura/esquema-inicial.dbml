@@ -3,7 +3,9 @@
 // docs/prompts/2026-10-12-001-conta-acesso-plano.md (tentativas_acesso; nome com até 100 caracteres)
 // e docs/prompts/2026-10-13-002-materias-fontes-plano.md (fontes: codigo_falha no lugar de
 // motivo_falha, versao_extracao, total_trechos, título com até 120 caracteres e conteúdo único
-// por matéria)
+// por matéria) e docs/prompts/2026-10-13-003-cartoes-manuais-plano.md (cartoes: referência da fonte
+// com cópia da origem, entrada_estudo_em no lugar de aceito_em, índice da listagem; fontes: alvo da
+// FK composta da referência)
 // Visualização: cole este arquivo em https://dbdiagram.io
 //
 // Este esquema é o ponto de partida do data-model.md de cada spec. A spec aprovada
@@ -32,6 +34,10 @@ Project plataforma_estudo_gamificada {
   - O FSRS é soberano (DTEC 012): os campos de estado do cartão espelham o `Card` da
     biblioteca `fsrs`, e nenhuma regra do produto altera o agendamento que ele calcula.
   - As tabelas da fila (Procrastinate) são criadas pela própria biblioteca e não aparecem aqui.
+  - Extensões: `unaccent` desde a spec 003 (busca dos cartões, DTEC 033); `vector` no final
+    acadêmico (DTEC 005).
+  - Cada spec cria só as tabelas, colunas e valores de enum que usa. As notas indicam a spec que
+    cria cada coluna quando ela não nasce com a tabela.
   '''
 }
 
@@ -71,10 +77,10 @@ Enum origem_cartao {
 }
 
 Enum situacao_cartao {
-  aguardando_revisao [note: 'Gerado, ainda não aceito; fora das lições']
-  ativo
-  suspenso [note: 'Fora das lições; estado do FSRS preservado']
-  recusado [note: 'Invisível ao estudante; conta para a taxa de aceitação e para "Gerar mais"']
+  aguardando_revisao [note: 'Gerado, ainda não aceito; fora das lições. Acrescentado pela spec 004']
+  ativo [note: 'Criado pela spec 003']
+  suspenso [note: 'Fora das lições; estado do FSRS preservado. Criado pela spec 003']
+  recusado [note: 'Invisível ao estudante; conta para a taxa de aceitação e para "Gerar mais". Acrescentado pela spec 004']
 }
 
 Enum estado_fsrs {
@@ -241,6 +247,7 @@ Table fontes {
     (materia_id, usuario_id) [note: 'Cobre a FK composta e a listagem por matéria']
     (materia_id, hash_sha256) [unique, name: 'fontes_conteudo_unico_por_materia', note: 'D-004 da 002; resolve envios simultâneos do mesmo arquivo']
     usuario_id [note: 'Cota de armazenamento por estudante (D-003 da 002)']
+    (id, materia_id, usuario_id) [unique, name: 'fontes_id_materia_usuario', note: 'Alvo da FK composta da referência do cartão manual: mesma matéria e mesmo dono (spec 003)']
   }
 
   Note: 'Estado e codigo_falha são coerentes: codigo_falha só existe em falhou (CHECK na migração).'
@@ -292,33 +299,47 @@ Table cartoes {
   public_id uuid [not null, unique, default: `gen_random_uuid()`]
   usuario_id bigint [not null]
   materia_id bigint [not null]
-  geracao_id bigint [note: 'Nula em cartões criados manualmente']
+  geracao_id bigint [note: 'Nula em cartões criados manualmente. Criada pela spec 004']
   frente text [not null, note: 'Pergunta']
-  chave_imagem varchar(512) [note: 'Chave da imagem opcional da frente (final acadêmico, RF-27)']
+  chave_imagem varchar(512) [note: 'Chave da imagem opcional da frente (final acadêmico, RF-27). Criada pela spec 011']
   verso text [not null, note: 'Resposta']
-  explicacao text [note: 'Explicação curta exibida ao marcar Errei (RN-16). Obrigatória nos gerados, validada na aplicação']
+  explicacao text [note: 'Explicação curta exibida ao marcar Errei (RN-16). Opcional nos manuais, obrigatória nos gerados (validada na aplicação); nula quando vazia']
   origem origem_cartao [not null]
   situacao situacao_cartao [not null]
-  aceito_em timestamptz [note: 'Ordem de entrada dos novos nas lições (RN-20)']
+  entrada_estudo_em timestamptz [note: 'Entrada no estudo: criação (manual) ou aceitação (gerado). Ordem dos novos nas lições (RN-20); presente se e somente se ativo ou suspenso']
+  // Referência opcional de um cartão manual a uma fonte da matéria (spec 003, RF-002)
+  fonte_id bigint [note: 'Fonte citada como referência; nula sem referência ou depois que a fonte é excluída ("Fonte apagada")']
+  referencia_titulo varchar(120) [note: 'Cópia da descrição da origem (RN-05); sobrevive à exclusão e à renomeação da fonte']
+  referencia_nome_arquivo varchar(255)
+  referencia_enviada_em timestamptz
   // Estado do FSRS: espelha fsrs.Card
   estado_fsrs estado_fsrs [not null, default: 'aprendizado']
-  passo smallint [note: 'Card.step: passo de aprendizado ou reaprendizado; nulo em revisao']
+  passo smallint [note: 'Card.step: passo de aprendizado ou reaprendizado (0 no cartão novo); nulo em revisao']
   estabilidade "double precision" [note: 'Card.stability: nula até a primeira revisão']
   dificuldade "double precision" [note: 'Card.difficulty, de 1 a 10: nula até a primeira revisão']
   vencimento timestamptz [not null, default: `now()`, note: 'Card.due: instante UTC em que o cartão vence']
   ultima_revisao timestamptz [note: 'Card.last_review: nula = cartão novo']
-  dominado_em timestamptz [note: 'Primeira vez que a estabilidade passou do limiar (QA-24); garante bônus único']
+  dominado_em timestamptz [note: 'Primeira vez que a estabilidade passou do limiar (QA-24); garante bônus único. Criada pela spec 005']
   criado_em timestamptz [not null, default: `now()`]
   atualizado_em timestamptz [not null, default: `now()`]
 
   indexes {
     (usuario_id, situacao, vencimento) [name: 'cartoes_devidos', note: 'Monta a lição: cartões ativos com vencimento antes da próxima virada das 4h']
-    (usuario_id, situacao, aceito_em) [name: 'cartoes_novos', note: 'Cartões novos na ordem de aceitação']
-    (materia_id, usuario_id) [note: 'Cobre a FK composta e o filtro do deck por matéria']
-    geracao_id
+    (usuario_id, situacao, entrada_estudo_em) [name: 'cartoes_novos', note: 'Cartões novos na ordem de entrada no estudo']
+    (materia_id, usuario_id, criado_em, id) [name: 'cartoes_materia', note: 'Cobre a FK composta e a listagem paginada por cursor da matéria (DTEC 034)']
+    fonte_id [note: 'Impacto e marcação na exclusão da fonte (DTEC 027)']
+    geracao_id [note: 'Criado pela spec 004']
   }
 
-  Note: 'O deck do estudante é o conjunto dos seus cartões, filtrável por matéria; não há tabela de deck. Editar o conteúdo não altera o estado do FSRS.'
+  Note: '''
+  O deck do estudante é o conjunto dos seus cartões, filtrável por matéria; não há tabela de deck.
+  Editar o conteúdo não altera o estado do FSRS (RN-26).
+  CHECKs (spec 003): frente, verso e explicação dentro dos tetos absolutos (4.000, 8.000 e 4.000
+  caracteres; os limites vigentes são configuráveis e menores, D-004); as três cópias da referência
+  presentes juntas ou ausentes juntas; fonte_id só com as cópias; referência só com origem = criado;
+  entrada_estudo_em presente se e somente se situação ativo ou suspenso.
+  Busca por frente e verso com lower(unaccent(...)) (DTEC 033).
+  '''
 }
 
 Table evidencias_cartoes {
@@ -571,6 +592,9 @@ Ref: geracoes.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: casc
 Ref: geracoes.fonte_id > fontes.id [delete: set null]
 Ref: cartoes.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: restrict]
 Ref: cartoes.geracao_id > geracoes.id [delete: set null]
+// Referência do cartão manual: restrict faz a exclusão da fonte falhar se o participante dos cartões
+// não anular fonte_id antes (DTEC 027); fonte_id nulo desliga a verificação (MATCH SIMPLE)
+Ref: cartoes.(fonte_id, materia_id, usuario_id) > fontes.(id, materia_id, usuario_id) [delete: restrict]
 Ref: evidencias_cartoes.cartao_id > cartoes.id [delete: cascade]
 Ref: evidencias_cartoes.trecho_id > trechos.id [delete: set null]
 Ref: consumo_ia.usuario_id > usuarios.id
