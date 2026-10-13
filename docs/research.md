@@ -442,12 +442,13 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 **Justificativa:** a 002 entrega o mecanismo, as próprias contagens (fontes e trechos) e testes com um participante falso; cada spec seguinte só registra o seu participante, e a exclusão continua sendo uma única transação.  
 **Consequências:**
 
-- **Contagens padronizadas** (`ContagensAcervo`): `cartoes_ativos`, `cartoes_aguardando_revisao`, `cartoes_gerados_aceitos` (afetados pela escolha "Manter" ou "Excluir"), `cartoes_referencia` (criados pelo estudante e sempre mantidos, D-009 da 002). Campos ausentes valem zero; antes da 003, todas as contagens de cartões são zero.
+- **Sentido das dependências:** o serviço de `materias` organiza a exclusão da matéria, e o de `fontes`, a da fonte. O próprio domínio `fontes` é **participante** da matéria: conta as fontes e, na exclusão da matéria, apaga os objetos e as linhas das fontes. Assim `fontes` depende de `materias` (para verificar o dono), e `materias` não importa nada de `fontes`.
+- **Contagens padronizadas** (`ContagensAcervo`): `fontes`, `cartoes_ativos`, `cartoes_aguardando_revisao`, `cartoes_gerados_aceitos` (afetados pela escolha "Manter" ou "Excluir"), `cartoes_referencia` (criados pelo estudante e sempre mantidos, D-009 da 002). Campos ausentes valem zero; antes da 003, todas as contagens de cartões são zero.
 - **Obrigações das próximas specs:**
   - A **003** registra o participante dos cartões criados à mão (contagem e marcação "Fonte apagada" dos que citam a fonte).
   - A **004** registra o participante dos cartões gerados e das gerações: apaga os aguardando revisão, aplica o modo escolhido aos aceitos (manter com "Fonte apagada" e sem selo de verificado, ou apagar) e interrompe as gerações em andamento da fonte (CB-16).
   - A **014** registra o participante dos índices e das citações.
-- **Ordem:** os participantes rodam **antes** de a fonte ou a matéria ter as linhas apagadas, na ordem de registro, porque as FKs de cartões para matérias usam `restrict`.
+- **Ordem:** cada participante declara uma prioridade. Os de cartões e gerações rodam primeiro e o de `fontes` por último, todos antes de a matéria ou a fonte ter as linhas apagadas, porque as FKs de cartões e de fontes para matérias usam `restrict`.
 - **Testes:** um participante falso cobre o mecanismo na 002. Cada spec seguinte acrescenta testes do seu participante e reexecuta os testes funcionais da exclusão (US2 e US3 da 002) com dados reais.
 
 **Condição para revisão:** um participante que precise de efeito fora do banco (ex.: apagar imagens dos cartões na 011), que seguirá a DTEC 025: objetos antes das linhas, na mesma transação.
