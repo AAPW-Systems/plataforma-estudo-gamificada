@@ -9,7 +9,7 @@
 - Implementação e revisão do conjunto de avaliação (RQ-007, D-012): qualquer pessoa da equipe pode assumir. Quem assumir registra o nome abaixo antes da primeira execução do conjunto de avaliação (tarefa de abertura).
   - **Responsável pela implementação e revisor do conjunto de avaliação:** *a definir no início da implementação*.
 
-**Status:** em revisão; aguardando o portão "Plano aprovado", com as DTEC 039 a 047
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 039 a 047
 
 Este plano **reaproveita sem redefinir** o que as specs anteriores já definiram:
 

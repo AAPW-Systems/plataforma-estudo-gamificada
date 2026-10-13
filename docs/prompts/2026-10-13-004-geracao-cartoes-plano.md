@@ -136,6 +136,12 @@ pydantic-evals fora do merge; (14) interface da revisão sem atalhos de uma letr
 -> sobre a 1, qualquer membro da equipe poderá fazer a implementação. nessa fase de documentação, eu farei as aprovações necessárias. nas demais, pode seguir as recomendações
 ```
 
+### Prompt 2
+
+```text
+plano aprovado, siga com as tarefas e a rastreabilidade
+```
+
 ## Saída aceita
 
 Etapa 5 (planejar), aguardando o portão "Plano aprovado":

@@ -35,8 +35,8 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Aprovada em 13/10/2026 com o plano da 002; emenda de 13/10/2026 (`cartoes_suspensos`) aprovada com o plano da 003 |
 | [DTEC 033](#decisão-dtec-033-busca-sem-diferenciar-maiúsculas-e-acentos) | Busca sem diferenciar maiúsculas e acentos | Aprovada em 13/10/2026 com o plano da 003 |
 | [DTEC 034](#decisão-dtec-034-paginação-das-listagens-por-cursor) | Paginação das listagens por cursor | Aprovada em 13/10/2026 com o plano da 003 |
-| [DTEC 039](#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo) | Aviso e ciência do uso de provedor de IA externo | Proposta em 13/10/2026 com o plano da 004 |
-| [DTEC 040](#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia) | Consumo, orçamento e limites operacionais da IA | Proposta em 13/10/2026 com o plano da 004 |
+| [DTEC 039](#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo) | Aviso e ciência do uso de provedor de IA externo | Aprovada em 13/10/2026 com o plano da 004 |
+| [DTEC 040](#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia) | Consumo, orçamento e limites operacionais da IA | Aprovada em 13/10/2026 com o plano da 004 |
 
 A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), e as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 

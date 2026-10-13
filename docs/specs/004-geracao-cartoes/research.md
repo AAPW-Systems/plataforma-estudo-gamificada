@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 004-geracao-cartoes (geração de cartões pela IA e revisão dos gerados)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md))  
-**Status:** DTEC 041 a 047 propostas com o plano, aguardando o portão "Plano aprovado"
+**Status:** DTEC 041 a 047 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra só as dúvidas técnicas **novas** da spec 004. As decisões já tomadas não são reabertas:
 
