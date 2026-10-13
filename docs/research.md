@@ -38,8 +38,9 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 039](#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo) | Aviso e ciência do uso de provedor de IA externo | Aprovada em 13/10/2026 com o plano da 004 |
 | [DTEC 040](#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia) | Consumo, orçamento e limites operacionais da IA | Aprovada em 13/10/2026 com o plano da 004 |
 | [DTEC 048](#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) | Dia de estudo calculado num único ponto | Aprovada em 13/10/2026 com o plano da 005 |
+| [DTEC 057](#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo) | Disponibilidade de cartões e ganchos de alteração no núcleo | Proposta em 13/10/2026 com o plano da 006; aprovação com o plano |
 
-A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md), e as da spec 005 (DTEC 049 a 056), no [`research.md` da 005](specs/005-licao-trilha/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md), as da spec 005 (DTEC 049 a 056), no [`research.md` da 005](specs/005-licao-trilha/research.md), e as da spec 006 (DTEC 058 a 063), no [`research.md` da 006](specs/006-xp-meta-sequencia/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -615,6 +616,41 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - **Propagação:** a 004 (ainda não implementada) passa a usar este módulo no limite de gerações e no orçamento, sem mudança de comportamento; a 006 o usa na meta e na sequência. Quem implementar primeiro (004 ou 005) cria o módulo e os testes dele.
 
 **Condição para revisão:** virada configurável por estudante, que mudaria a assinatura das funções.
+
+## Decisão DTEC 057 Disponibilidade de cartões e ganchos de alteração no núcleo
+
+**Questão:** a spec 006 precisa saber quantos cartões ainda estão disponíveis hoje (meta efetiva, RF-005) e desde quando havia cartão disponível nos dias sem revisão (dia neutro, RF-007). Essas respostas dependem da elegibilidade da DTEC 051, que pertence ao domínio `revisao`. Ao mesmo tempo, `revisao` compõe os campos de gamificação nas suas respostas, e nenhum domínio importa `revisao`. Além disso, a disponibilidade muda por ações de outros domínios: suspender, reativar ou excluir cartões (003), excluir fonte ou matéria (002, pelos participantes da DTEC 027) e mudar a meta, o limite de novos ou o fuso (001). Como dar à 006 essas informações e esses momentos sem ciclo entre domínios e sem tarefa periódica?  
+**Critérios:**
+
+- uma única regra de elegibilidade (DTEC 051), sem cópia em outro domínio;
+- direção das dependências preservada (`revisao` → `cartoes`; ninguém importa `revisao`);
+- efeitos na mesma transação de quem altera, como os participantes (DTEC 027) e o evento de revisão (DTEC 055);
+- nenhuma tarefa periódica, já que no MVP local a máquina fica desligada por dias.
+
+**Alternativas consideradas:**
+
+1. **Módulo `nucleo/disponibilidade.py` com um provedor e dois ganchos.** `revisao` registra o provedor, que responde com a regra da DTEC 051. `gamificacao` registra os ouvintes dos ganchos. Quem altera a disponibilidade chama os ganchos na própria transação, antes e depois da alteração.
+2. **`gamificacao` importa `revisao`:** ciclo, porque `revisao` precisa do resumo da gamificação nas respostas.
+3. **Elegibilidade copiada em `gamificacao`:** duas regras que podem divergir; o dia neutro e a meta efetiva deixariam de bater com o que a lição oferece.
+4. **Tarefa periódica que registra a disponibilidade na virada de cada estudante:** com a máquina desligada, os dias ficariam sem registro, e a reconstrução seria necessária de qualquer forma (dois mecanismos).
+
+**Decisão:** alternativa 1.  
+**Justificativa:** repete o padrão já aprovado dos registros do núcleo (participantes da DTEC 027, evento da DTEC 055): o núcleo define o contrato, e os domínios se registram ao iniciar a aplicação.  
+**Consequências:**
+
+- **Provedor (registrado por `revisao`, um único):**
+  - `restantes_hoje(sessao, usuario_id, agora)`: cartões elegíveis agora pela DTEC 051 (devidos, passos curtos vencidos e novos dentro do limite restante), sem os que já têm revisão `primeira_do_dia` no dia de estudo corrente.
+  - `primeiro_instante_disponivel(sessao, usuario_id, hoje)`: o menor instante em que algum cartão `ativo` atual passa a estar disponível, com o estado anterior às revisões de `hoje`. Para um cartão já revisado é `greatest(vencimento, entrada_estudo_em)`; para um novo, `entrada_estudo_em`, e só se `limite_novos_dia > 0`. Num cartão revisado hoje, usa `vencimento_antes` e `ultima_revisao_antes` da primeira revisão do dia. Nulo sem nenhum cartão que se torne disponível.
+  - Sem provedor registrado, a aplicação não inicia (verificação ao iniciar, como a configuração da 001).
+- **Ganchos (ouvintes registrados por `gamificacao`):** `antes_de_alterar(sessao, alteracao)` e `depois_de_alterar(sessao, alteracao)`, com `AlteracaoDisponibilidade(usuario_id, agora, fuso_anterior)`; `fuso_anterior` só vem preenchido na mudança de fuso.
+- **Quem chama, sempre na própria transação, depois das suas travas e antes e depois da escrita:**
+  - `cartoes`: suspender, reativar e excluir (003) e o participante dos cartões em `ao_excluir_fonte` e `ao_excluir_materia` (DTEC 027, 038);
+  - `identidade`: `PATCH /perfil` quando mudam `meta_diaria`, `limite_novos_dia` ou `fuso` (001).
+- **Quem não chama:** criar um cartão (003) e aceitar um gerado (004) só aumentam a disponibilidade, e `entrada_estudo_em` já limita exatamente desde quando o cartão conta. A revisão usa o evento da DTEC 055, que tem os mesmos efeitos.
+- **Ordem das travas:** os ganchos travam a linha do estudante em `usuarios` depois das travas de quem chama (cartão, fonte, matéria). Nenhum caminho trava um cartão depois de `usuarios`, o que evita *deadlock* com a avaliação da 005.
+- **Propagação:** a 001, a 003 e a 005 ainda não foram implementadas e seus planos não mudam de comportamento. As chamadas aos ganchos e o registro do provedor são tarefas da 006, que alteram os serviços dessas specs. Quem implementar primeiro uma spec que precise do módulo cria-o, com os registros vazios.
+
+**Condição para revisão:** um terceiro domínio que precise reagir às mesmas alterações (ex.: conquistas, fora dos estágios acadêmicos), ou disponibilidade filtrada por matéria (012), que acrescentaria um parâmetro ao provedor.
 
 ## Fontes consultadas
 
