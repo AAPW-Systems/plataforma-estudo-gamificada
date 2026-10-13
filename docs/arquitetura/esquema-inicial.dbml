@@ -137,6 +137,13 @@ Enum tipo_evento_xp {
   cartao_dominado [note: 'Bônus único quando o cartão é dominado pela primeira vez']
 }
 
+Enum situacao_dia {
+  pendente [note: 'Dia corrente (ou repetido) com revisões e meta efetiva ainda não atingida']
+  estudado [note: 'Meta efetiva atingida com pelo menos uma revisão; definitivo (RF-006)']
+  nao_estudado [note: 'Dia liquidado com cartões disponíveis e meta não cumprida; zera a sequência']
+  neutro [note: 'Dia liquidado sem revisões e sem cartão disponível na virada, ou data pulada pela mudança de fuso (RF-007, D-003)']
+}
+
 Enum tipo_tentativa_acesso {
   falha_entrada
   falha_senha_atual [note: 'Senha atual errada na troca de senha ou na exclusão da conta']
@@ -195,13 +202,14 @@ Table usuarios {
   senha_hash varchar(255) [not null, note: 'Argon2id (DTEC 003)']
   papel papel_usuario [not null, default: 'estudante']
   fuso varchar(64) [not null, default: 'America/Sao_Paulo', note: 'Nome IANA (RN-15)']
-  meta_diaria smallint [not null, note: 'Revisões por dia (RN-21); padrão em QA-24']
+  meta_diaria smallint [not null, note: 'Cartões distintos por dia (RN-21); de 1 a 200, padrão 20 (D-001 da 001)']
   tamanho_licao smallint [not null, note: 'Cartões distintos por lição (RN-19); padrão em QA-24']
   limite_novos_dia smallint [not null, note: 'Cartões novos por dia (RN-20); padrão em QA-24']
-  xp_total integer [not null, default: 0, note: 'Cache de sum(eventos_xp.quantidade), atualizado na mesma transação']
-  sequencia_atual integer [not null, default: 0, note: 'Cache (RN-21)']
-  sequencia_recorde integer [not null, default: 0, note: 'Cache (RN-21, RN-25)']
+  xp_total integer [not null, default: 0, note: 'Cache de sum(eventos_xp.quantidade), atualizado na mesma transação (spec 006, DTEC 059)']
+  sequencia_atual integer [not null, default: 0, note: 'Sequência vigente na última liquidação ou marcação (spec 006, DTEC 061)']
+  sequencia_recorde integer [not null, default: 0, note: 'Maior sequência atingida (RN-21); CHECK sequencia_recorde >= sequencia_atual']
   ultimo_dia_estudado date [note: 'Último dia em que a meta efetiva foi cumprida']
+  dias_liquidados_ate date [note: 'Último dia de estudo já classificado; nulo antes da primeira liquidação (spec 006, DTEC 061)']
   criado_em timestamptz [not null, default: `now()`]
   atualizado_em timestamptz [not null, default: `now()`]
 
@@ -596,6 +604,7 @@ Table revisoes {
     (usuario_id, cartao_id, dia_estudo) [unique, name: 'revisoes_primeira_do_dia', note: 'Parcial: where primeira_do_dia']
     cartao_id
     licao_id
+    (id, usuario_id) [unique, name: 'revisoes_id_usuario', note: 'Alvo da FK composta de eventos_xp (DTEC 019). Criado pela spec 006']
   }
 
   Note: 'Evento imutável (RN-17). O estado antes e depois, a versão dos parâmetros e a semente permitem auditar e reproduzir o agendamento (RQ-004), alimentar o otimizador e implementar o desfazer futuro sem mudar o esquema.'
@@ -607,33 +616,43 @@ Table eventos_xp {
   revisao_id bigint [not null, note: 'Todo XP nasce de uma revisão; o bônus de domínio, da revisão que dominou o cartão']
   cartao_id bigint [note: 'Nulo se o cartão for excluído; o evento nunca é apagado']
   tipo tipo_evento_xp [not null]
-  quantidade integer [not null]
-  versao_regra varchar(20) [not null, note: 'Versão dos valores de QA-24; mudar valores não altera XP concedido']
-  dia_estudo date [not null]
-  concedido_em timestamptz [not null, default: `now()`]
+  quantidade integer [not null, note: 'CHECK quantidade > 0; valor da regra versionada (DTEC 058)']
+  versao_regra smallint [not null, note: 'Versão dos valores de XP (gamificacao/regras.py); a do limiar fica em revisoes.versao_regras']
+  dia_estudo date [not null, note: 'Copiado da revisão']
+  concedido_em timestamptz [not null, note: 'Instante da revisão (revisoes.revisada_em)']
 
   indexes {
-    (cartao_id, dia_estudo, tipo) [unique, note: 'XP uma vez por cartão distinto no dia (RN-18): reapresentações e reenvios não rendem XP']
+    (revisao_id, tipo) [unique, name: 'eventos_xp_revisao_tipo', note: 'Um evento por fato; a unicidade por cartão e dia vem de revisoes_primeira_do_dia, e a do bônus, de cartoes.dominado_em (DTEC 059)']
     (usuario_id, dia_estudo)
-    revisao_id
+    cartao_id [note: 'Cobre o SET NULL na exclusão do cartão']
   }
 
-  Note: 'Histórico de XP, nunca removido (RN-18). usuarios.xp_total é o seu total em cache. O bônus de domínio é único por cartão (cartoes.dominado_em).'
+  Note: 'Histórico de XP, imutável e nunca removido, salvo na exclusão da conta (RN-18, RF-003 da 006). usuarios.xp_total é o seu total em cache.'
 }
 
 Table dias_estudo {
   usuario_id bigint [not null]
   dia date [not null]
+  situacao situacao_dia [not null]
   fuso varchar(64) [not null, note: 'Fuso vigente no dia (CB-25)']
-  cartoes_revisados integer [not null, default: 0, note: 'Cartões distintos revisados no dia; reapresentações não contam (RN-21)']
-  meta_efetiva integer [not null, note: 'min(meta diária, cartões disponíveis no dia) (RN-21)']
-  meta_cumprida_em timestamptz [note: 'Preenchido quando o dia passa a contar como estudado']
+  cartoes_revisados integer [not null, default: 0, note: 'Cartões distintos revisados no dia (primeira_do_dia); reapresentações não contam (RN-21)']
+  meta_diaria smallint [note: 'Meta vigente na última avaliação do dia; nula em dia liquidado sem atividade']
+  meta_efetiva integer [note: 'min(meta diária, revisados + restantes) na última avaliação (RF-005); 0 no neutro; nula em nao_estudado sem atividade']
+  meta_cumprida_em timestamptz [note: 'Presente se e somente se situacao = estudado']
+  data_pulada boolean [not null, default: false, note: 'Data que nunca foi o dia corrente por mudança de fuso (D-003); só com neutro']
+  liquidado_em timestamptz [note: 'Instante da liquidação; nulo em pendente e no estudado ainda corrente']
 
   indexes {
     (usuario_id, dia) [pk]
   }
 
-  Note: 'Uma linha por estudante e dia com atividade. A chave natural dispensa um id próprio. Dia neutro (sem cartões disponíveis): meta_efetiva = 0, não conta nem quebra a sequência.'
+  Note: '''
+  Uma linha por estudante e data desde a primeira liquidação (spec 006, DTEC 061): o dia corrente com
+  revisões (pendente ou estudado) e cada data liquidada (estudado, nao_estudado ou neutro). Linhas
+  liquidadas nunca mudam de situação; estudado nunca volta atrás.
+  CHECKs: estudado se e somente se meta_cumprida_em; estudado com cartoes_revisados >= 1;
+  neutro com cartoes_revisados = 0; data_pulada só com neutro.
+  '''
 }
 
 // ---------------------------------------------------------------------------
@@ -769,8 +788,9 @@ Ref: revisoes.parametros_fsrs_id > parametros_fsrs.id
 
 // Gamificação
 Ref: eventos_xp.usuario_id > usuarios.id
-Ref: eventos_xp.revisao_id > revisoes.id
-Ref: eventos_xp.cartao_id > cartoes.id [delete: set null]
+Ref: eventos_xp.(revisao_id, usuario_id) > revisoes.(id, usuario_id)
+// Na migração: ON DELETE SET NULL (cartao_id), preservando usuario_id (PostgreSQL 15+)
+Ref: eventos_xp.(cartao_id, usuario_id) > cartoes.(id, usuario_id) [delete: set null]
 Ref: dias_estudo.usuario_id > usuarios.id
 
 // Final acadêmico
