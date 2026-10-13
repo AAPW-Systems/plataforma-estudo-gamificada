@@ -4,7 +4,7 @@ Plataforma web que funde **repetição espaçada** com uma **trilha visual de pr
 
 Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido com **Spec-Driven Development (SDD)**.
 
-> **Estado (12/10/2026):** produto e arquitetura alinhados em três estágios: MVP (local), final acadêmico (publicado) e referência pós-acadêmica (documentada). A arquitetura foi aprovada em 12/10/2026; o novo recorte do MVP está em [pauta com o professor](docs/produto/pauta-po.md). Próximos passos: esquema inicial do banco em DBML e specs. A criação de código está liberada, mas ainda não há código.
+> **Estado (12/10/2026):** produto e arquitetura alinhados em três estágios: MVP (local), final acadêmico (publicado) e referência pós-acadêmica (documentada). A arquitetura foi aprovada em 12/10/2026; o novo recorte do MVP está em [pauta com o professor](docs/produto/pauta-po.md). O [esquema inicial do banco](docs/arquitetura/esquema-inicial.dbml) foi escrito em 12/10/2026. Próximo passo: specs. A criação de código está liberada, mas ainda não há código.
 
 ## Equipe
 

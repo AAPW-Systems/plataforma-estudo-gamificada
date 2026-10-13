@@ -237,7 +237,7 @@ As questões QA-01 a QA-11 do brainstorming inicial (versão de 25/09/2026 de `d
 | QA-18 | Front e backend serão separados? Qual stack, banco de dados e organização dos contêineres? | Técnica | Primeiro plano | Respondida em 12/10/2026: FastAPI ([DTEC 002](../research.md#decisão-dtec-002-framework-do-backend)) e contêineres na [arquitetura](../arquitetura/README.md) |
 | QA-19 | Qual a identidade visual (nome, tema claro ou escuro, paleta, tipografia)? | Produto | Primeira interface | Parcial: claro por padrão com escuro disponível; nome, paleta e tipografia pendentes |
 | QA-20 | O estudante pode editar, excluir ou criar flashcards manualmente? | Produto | F-04, F-05 | Respondida: sim, com origem visível |
-| QA-21 | Qual o esquema inicial do banco de dados? | Técnica | Primeiro plano | Próximo passo do projeto: esquema em DBML |
+| QA-21 | Qual o esquema inicial do banco de dados? | Técnica | Primeiro plano | Respondida em 12/10/2026: [esquema inicial](../arquitetura/esquema-inicial.dbml) |
 | QA-22 | Qual provedor e modelo de IA (LLM e embeddings) serão usados, e com qual custo? Refina QA-04. | Técnica | F-03, F-04, F-06 | Respondida em 12/10/2026: [DTEC 007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) e [DTEC 008](../research.md#decisão-dtec-008-embeddings-e-reranking) |
 | QA-23 | Cartões gerados são publicados automaticamente ou passam por aprovação? Qual o limite padrão de novos cartões por dia? | Produto | F-04, F-05 | Respondida em 12/10/2026: revisão pelo estudante; limite configurável, valor padrão na spec de F-05 |
 | QA-24 | Quais os valores de XP, o limiar de "cartão dominado" e os padrões de meta, lição e teto de tempo? | Produto | F-05, F-09, F-10 | Aberta, definir na spec de F-09 |

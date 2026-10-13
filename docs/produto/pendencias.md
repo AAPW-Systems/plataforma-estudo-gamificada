@@ -12,13 +12,13 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 
 - **MVP:** 3 semanas a partir de 29/09/2026 (estimativa: 20/10/2026), rodando localmente.
 - **Final acadêmico:** novembro de 2026, com deploy obrigatório (URL com HTTPS).
-- **Caminho crítico (12/10/2026):** esquema inicial em DBML (QA-21) e aprovação da primeira spec. A arquitetura foi aprovada em 12/10/2026 (VAL-06).
+- **Caminho crítico (12/10/2026):** aprovação da primeira spec. O esquema inicial em DBML (QA-21) foi escrito em 12/10/2026. A arquitetura foi aprovada em 12/10/2026 (VAL-06).
 
 ## Resumo
 
 | ID | Pendência | Tipo | Bloqueia | Responsável | Situação |
 |---|---|---|---|---|---|
-| [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | **Próximo passo:** esquema em DBML |
+| [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | Respondida em 12/10/2026: [esquema inicial](../arquitetura/esquema-inicial.dbml) |
 | [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy do final acadêmico | Equipe | Parcial: DTEC 013; VPS e domínio pendentes |
 | [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
 | [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026 (revisão pelo estudante); valor padrão do limite na spec |
@@ -139,6 +139,8 @@ Os números de RAM são estimativas e precisam ser medidos no `research.md`.
 ---
 
 ### QA-21 Esquema inicial do banco
+
+> **Respondida em 12/10/2026** ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)): o esquema está em [`../arquitetura/esquema-inicial.dbml`](../arquitetura/esquema-inicial.dbml). PK `bigint` identity interna e `public_id` UUID v4 nas tabelas expostas em rotas; arquivos no R2 referenciados por chave do objeto; estado do FSRS nas colunas do cartão, revisões com estado antes e depois e parâmetros do FSRS versionados por estudante. O texto abaixo é o histórico da análise.
 
 **Próximo passo do projeto (decidido em 12/10/2026):** escrever o esquema inicial em DBML (`docs/arquitetura/esquema-inicial.dbml`), a partir das [entidades da base de especificação](../base-specs/spec.md#8-entidades-conceituais), antes das specs. Cada `data-model.md` parte dele. A dimensão do vetor é 1024 (bge-m3, DTEC 008).
 

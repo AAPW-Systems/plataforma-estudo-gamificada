@@ -183,7 +183,7 @@ trechos por estrutura (página/seção, com sobreposição)
 
 | Item | Onde |
 |---|---|
-| Esquema inicial do banco em DBML (próximo passo) | [QA-21](../produto/pendencias.md#qa-21-esquema-inicial-do-banco) |
+| Esquema inicial do banco: escrito em 12/10/2026 em [`esquema-inicial.dbml`](esquema-inicial.dbml) | [QA-21](../produto/pendencias.md#qa-21-esquema-inicial-do-banco) |
 | Escolha da VPS, do domínio e custo mensal | [QA-11](../produto/pendencias.md#qa-11-vps-e-operação-do-deploy) |
 | PydanticAI ou LangGraph para os agentes do final acadêmico | [QA-31](../produto/pendencias.md#qa-31-framework-de-agentes-do-final-acadêmico) |
 | Qualidade do reranker em português | DTEC 008, condição para revisão |

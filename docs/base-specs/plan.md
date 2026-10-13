@@ -9,7 +9,7 @@ Ao escrever o `plan.md` de uma spec (modelo em [`../sdd_guidelines/modelos/`](..
 
 1. Cite as DTEC aplicáveis em vez de reabrir decisões já tomadas.
 2. Use os domínios e as tarefas assíncronas definidos na [arquitetura](../arquitetura/README.md#5-backend).
-3. Parta do esquema inicial em DBML (próximo passo do projeto) para o `data-model.md`.
+3. Parta do [esquema inicial em DBML](../arquitetura/esquema-inicial.dbml) para o `data-model.md`.
 4. Verifique os itens das seções 2 a 8 abaixo que tocam a funcionalidade.
 
 ## 2. Domínios e funcionalidades
@@ -80,4 +80,4 @@ Os cinco tipos exigidos pela regra 17 do [`AGENTS.md`](../../.agents/AGENTS.md),
 
 ## 8. Itens técnicos em aberto
 
-Os itens técnicos em aberto estão em [`../produto/pendencias.md`](../produto/pendencias.md): QA-11 (VPS), QA-21 (esquema inicial, próximo passo) e QA-31 (framework dos agentes do final acadêmico). Os parâmetros de divisão em trechos e de busca são experimentais e ajustados pela avaliação.
+Os itens técnicos em aberto estão em [`../produto/pendencias.md`](../produto/pendencias.md): QA-11 (VPS) e QA-31 (framework dos agentes do final acadêmico). Os parâmetros de divisão em trechos e de busca são experimentais e ajustados pela avaliação.

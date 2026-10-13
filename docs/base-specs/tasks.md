@@ -10,5 +10,5 @@ A versão de 07/10/2026 deste arquivo, com um plano em fases para trilhas e ques
 
 | Ordem | Passo | Situação |
 |---|---|---|
-| 1 | Esquema inicial do banco em DBML (`docs/arquitetura/esquema-inicial.dbml`), a partir das entidades da [base de especificação](spec.md#8-entidades-conceituais) | Pendente ([QA-21](../produto/pendencias.md#qa-21-esquema-inicial-do-banco)) |
-| 2 | Specs das funcionalidades do MVP, na ordem do [backlog](../produto/backlog.md#ordem), conforme as guidelines | Pendente, após o passo 1 |
+| 1 | Esquema inicial do banco em DBML (`docs/arquitetura/esquema-inicial.dbml`), a partir das entidades da [base de especificação](spec.md#8-entidades-conceituais) | Concluído em 12/10/2026 ([esquema](../arquitetura/esquema-inicial.dbml), [QA-21](../produto/pendencias.md#qa-21-esquema-inicial-do-banco)) |
+| 2 | Specs das funcionalidades do MVP, na ordem do [backlog](../produto/backlog.md#ordem), conforme as guidelines | Pendente (próximo passo) |

@@ -12,7 +12,7 @@ O projeto segue **SDD (Spec-Driven Development)** conforme as guidelines em `doc
 
 ## Estado atual
 
-- **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Próximos passos, nesta ordem: (1) esquema inicial do banco em DBML (`docs/arquitetura/esquema-inicial.dbml`, QA-21); (2) specs das funcionalidades do MVP conforme as guidelines.
+- **Fase:** alinhamento do produto e da arquitetura concluído (12/10/2026, [registro](../docs/prompts/2026-10-12-alinhamento-produto-arquitetura.md)). Esquema inicial do banco escrito em 12/10/2026 (`docs/arquitetura/esquema-inicial.dbml`, QA-21, [registro](../docs/prompts/2026-10-12-esquema-inicial-banco.md)). Próximo passo: specs das funcionalidades do MVP conforme as guidelines.
 - **Produto:** visão v0.3 em `docs/produto/visao.md`; recorte por estágio em `docs/produto/backlog.md`; regras globais (RN, RF, HU, CB) em `docs/base-specs/spec.md`. O novo recorte do MVP e as exigências EX-01 e EX-05 estão na pauta com o PO (`docs/produto/pauta-po.md`).
 - **Pendências:** `docs/produto/pendencias.md` lista o que está em aberto e o impacto de cada opção. Consulte antes de propor qualquer decisão técnica.
 - **Exigências do PO:** `docs/produto/exigencias_po.md`. EX-01 a EX-05 estão no backlog; EX-01 e EX-05 aguardam resposta do PO.
@@ -57,7 +57,7 @@ README.md                  # visão geral para pessoas
 docs/
 ├── constitution.md        # princípios estáveis do projeto
 ├── research.md            # decisões técnicas transversais (DTEC), válidas para todas as specs
-├── arquitetura/           # arquitetura vigente (MVP e final acadêmico) e referência pós-acadêmica
+├── arquitetura/           # arquitetura vigente (MVP e final acadêmico), referência pós-acadêmica e esquema inicial do banco (DBML)
 ├── base-specs/            # regras, telas e orientação técnica globais, base para as specs
 ├── produto/               # visão, backlog (recorte por estágio), pendências, exigências e pauta do PO
 ├── specs/NNN-nome-curto/  # uma pasta por funcionalidade (spec, plan, tasks...)

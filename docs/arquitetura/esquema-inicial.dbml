@@ -1,0 +1,557 @@
+// Esquema inicial do banco (QA-21)
+// Atualizado em 12/10/2026. Registro: docs/prompts/2026-10-12-esquema-inicial-banco.md
+// Visualização: cole este arquivo em https://dbdiagram.io
+//
+// Este esquema é o ponto de partida do data-model.md de cada spec. A spec aprovada
+// prevalece: mudanças de comportamento atualizam a spec primeiro e depois este arquivo.
+
+Project plataforma_estudo_gamificada {
+  database_type: 'PostgreSQL'
+  Note: '''
+  **Convenções**
+
+  - Tabelas no plural, snake_case, em português e sem acentos.
+  - Chave primária: `bigint generated always as identity` (PostgreSQL 10+), escrita aqui como
+    `bigint [pk, increment]`. A exportação SQL do dbdiagram gera `by default`; as migrações
+    (Alembic) usam `always`. Ela nunca sai da API. Uma `pk` já implica `not null` e `unique`;
+    nada é repetido.
+  - `public_id uuid` v4 (`gen_random_uuid()`) só nas tabelas cujos recursos aparecem em rotas.
+    É o único identificador exposto, o que impede a enumeração de registros. Tabelas internas
+    não têm `public_id`.
+  - Instantes em `timestamptz` (UTC). Dias de estudo em `date`, já no fuso do estudante, com
+    virada às 4h (RN-15).
+  - Arquivos (fontes e imagens) ficam no Cloudflare R2 (DTEC 010). O banco guarda a **chave do
+    objeto**, nunca a URL: a API gera uma URL assinada de curta duração a cada leitura.
+  - Exclusão física (RN-14). FKs para tabelas com objetos no R2 usam `restrict`: a aplicação
+    exclui os objetos e depois as linhas, na ordem certa.
+  - O FSRS é soberano (DTEC 012): os campos de estado do cartão espelham o `Card` da
+    biblioteca `fsrs`, e nenhuma regra do produto altera o agendamento que ele calcula.
+  - As tabelas da fila (Procrastinate) são criadas pela própria biblioteca e não aparecem aqui.
+  '''
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+Enum papel_usuario {
+  estudante
+  admin [note: 'Usa o painel administrativo do final acadêmico (F-17)']
+}
+
+Enum estado_fonte {
+  pendente
+  processando
+  concluido
+  falhou
+}
+
+Enum estado_geracao {
+  pendente
+  processando
+  concluida
+  falhou
+}
+
+Enum origem_cartao {
+  gerado_verificado [note: 'Gerado pela IA e sustentado por trechos']
+  editado [note: 'Gerado e depois editado pelo estudante; perde o selo de verificado']
+  criado [note: 'Criado manualmente pelo estudante']
+}
+
+Enum situacao_cartao {
+  aguardando_revisao [note: 'Gerado, ainda não aceito; fora das lições']
+  ativo
+  suspenso [note: 'Fora das lições; estado do FSRS preservado']
+  recusado [note: 'Invisível ao estudante; conta para a taxa de aceitação e para "Gerar mais"']
+}
+
+Enum estado_fsrs {
+  aprendizado [note: 'State.Learning. Um cartão novo é "aprendizado" com ultima_revisao nula']
+  revisao [note: 'State.Review']
+  reaprendizado [note: 'State.Relearning']
+}
+
+Enum nota_revisao {
+  errei [note: 'Rating.Again (1)']
+  dificil [note: 'Rating.Hard (2)']
+  bom [note: 'Rating.Good (3)']
+  facil [note: 'Rating.Easy (4)']
+}
+
+Enum origem_parametros_fsrs {
+  padrao [note: 'Pesos padrão da biblioteca']
+  otimizado [note: 'Pesos calculados pelo otimizador com o histórico do estudante (fora do MVP)']
+}
+
+Enum tipo_evento_xp {
+  revisao [note: 'Revisão concluída, independentemente da nota (RN-18)']
+  cartao_dominado [note: 'Bônus único quando o cartão é dominado pela primeira vez']
+}
+
+Enum papel_mensagem {
+  estudante
+  assistente
+}
+
+// ---------------------------------------------------------------------------
+// MVP
+// ---------------------------------------------------------------------------
+
+TableGroup identidade [color: #3B82F6] {
+  usuarios
+  sessoes
+}
+
+TableGroup acervo [color: #10B981] {
+  materias
+  fontes
+  trechos
+}
+
+TableGroup cartoes_e_ia [color: #F59E0B] {
+  geracoes
+  cartoes
+  evidencias_cartoes
+  consumo_ia
+}
+
+TableGroup revisao_fsrs [color: #8B5CF6] {
+  parametros_fsrs
+  licoes
+  revisoes
+}
+
+TableGroup gamificacao [color: #EF4444] {
+  eventos_xp
+  dias_estudo
+}
+
+Table usuarios {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  nome varchar(120) [not null]
+  email varchar(254) [not null, note: 'Único sem diferenciar maiúsculas (índice em lower(email))']
+  senha_hash varchar(255) [not null, note: 'Argon2id (DTEC 003)']
+  papel papel_usuario [not null, default: 'estudante']
+  fuso varchar(64) [not null, default: 'America/Sao_Paulo', note: 'Nome IANA (RN-15)']
+  meta_diaria smallint [not null, note: 'Revisões por dia (RN-21); padrão em QA-24']
+  tamanho_licao smallint [not null, note: 'Cartões distintos por lição (RN-19); padrão em QA-24']
+  limite_novos_dia smallint [not null, note: 'Cartões novos por dia (RN-20); padrão em QA-24']
+  xp_total integer [not null, default: 0, note: 'Cache de sum(eventos_xp.quantidade), atualizado na mesma transação']
+  sequencia_atual integer [not null, default: 0, note: 'Cache (RN-21)']
+  sequencia_recorde integer [not null, default: 0, note: 'Cache (RN-21, RN-25)']
+  ultimo_dia_estudado date [note: 'Último dia em que a meta efetiva foi cumprida']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    `lower(email)` [unique, name: 'usuarios_email_unico']
+  }
+
+  Note: 'Estudantes e administradores compartilham a tabela e o login. As preferências do FSRS (retenção desejada) ficam em parametros_fsrs.'
+}
+
+Table sessoes {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  token_hash bytea [not null, unique, note: 'SHA-256 do identificador opaco do cookie; o identificador em si nunca é gravado']
+  criada_em timestamptz [not null, default: `now()`]
+  ultimo_uso_em timestamptz [not null, default: `now()`]
+  expira_em timestamptz [not null]
+  revogada_em timestamptz [note: 'Logout ou revogação; sessão revogada nunca volta a valer']
+  ip inet
+  agente_usuario varchar(512)
+
+  indexes {
+    usuario_id
+  }
+
+  Note: 'Sessão opaca em cookie HttpOnly (DTEC 003).'
+}
+
+Table materias {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  nome varchar(60) [not null, note: '1 a 60 caracteres (RN-23)']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, `lower(nome)`) [unique, name: 'materias_nome_unico_por_usuario']
+    (id, usuario_id) [unique, name: 'materias_id_usuario', note: 'Alvo das FKs compostas que garantem que fonte e cartão pertencem ao dono da matéria (RN-01)']
+  }
+}
+
+Table fontes {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  materia_id bigint [not null]
+  titulo varchar(200) [not null]
+  nome_arquivo varchar(255) [not null, note: 'Nome enviado; só exibido, nunca usado como caminho']
+  chave_objeto varchar(512) [not null, unique, note: 'Chave no R2, com nome interno (UUID)']
+  tipo_midia varchar(100) [not null, note: 'Tipo real detectado pelo conteúdo (RN-02)']
+  tamanho_bytes integer [not null]
+  hash_sha256 bytea [not null, note: 'Integridade do arquivo']
+  estado estado_fonte [not null, default: 'pendente']
+  motivo_falha varchar(500) [note: 'Mensagem ao estudante quando estado = falhou']
+  total_paginas integer [note: 'Só quando conhecido']
+  processada_em timestamptz
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (materia_id, usuario_id) [note: 'Cobre a FK composta e a listagem por matéria']
+  }
+}
+
+Table trechos {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`, note: 'Exposto na consulta da evidência (RF-17)']
+  fonte_id bigint [not null]
+  ordem integer [not null, note: 'Posição do trecho na fonte']
+  texto text [not null]
+  pagina integer [note: 'Somente quando conhecida; nunca inventada (RN-05)']
+  inicio_caractere integer [not null]
+  fim_caractere integer [not null]
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (fonte_id, ordem) [unique]
+  }
+}
+
+Table geracoes {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  materia_id bigint [not null]
+  fonte_id bigint [note: 'Nula quando o pedido é da matéria inteira ou a fonte foi excluída']
+  chave_idempotencia uuid [not null, note: 'Gerada no cliente (RN-10)']
+  estado estado_geracao [not null, default: 'pendente']
+  provedor varchar(50)
+  modelo varchar(100)
+  versao_instrucoes varchar(50)
+  quantidade_gerada integer [not null, default: 0, note: 'Saídas do modelo']
+  quantidade_aprovada integer [not null, default: 0, note: 'Aprovadas nas validações estrutural e de sustentação (RN-22)']
+  motivo_falha varchar(500)
+  criado_em timestamptz [not null, default: `now()`]
+  concluida_em timestamptz
+
+  indexes {
+    (usuario_id, chave_idempotencia) [unique]
+    (materia_id, usuario_id)
+  }
+
+  Note: 'Pedido de geração de cartões. Aceitos e recusados são contados em cartoes (taxa de aceitação, RN-22).'
+}
+
+Table cartoes {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  materia_id bigint [not null]
+  geracao_id bigint [note: 'Nula em cartões criados manualmente']
+  frente text [not null, note: 'Pergunta']
+  chave_imagem varchar(512) [note: 'Imagem opcional da frente no R2 (final acadêmico, RF-27)']
+  verso text [not null, note: 'Resposta']
+  explicacao text [note: 'Explicação curta exibida ao marcar Errei (RN-16). Obrigatória nos gerados, validada na aplicação']
+  origem origem_cartao [not null]
+  situacao situacao_cartao [not null]
+  aceito_em timestamptz [note: 'Ordem de entrada dos novos nas lições (RN-20)']
+  // Estado do FSRS: espelha fsrs.Card
+  estado_fsrs estado_fsrs [not null, default: 'aprendizado']
+  passo smallint [note: 'Card.step: passo de aprendizado ou reaprendizado; nulo em revisao']
+  estabilidade "double precision" [note: 'Card.stability: nula até a primeira revisão']
+  dificuldade "double precision" [note: 'Card.difficulty, de 1 a 10: nula até a primeira revisão']
+  vencimento timestamptz [not null, default: `now()`, note: 'Card.due: instante UTC em que o cartão vence']
+  ultima_revisao timestamptz [note: 'Card.last_review: nula = cartão novo']
+  dominado_em timestamptz [note: 'Primeira vez que a estabilidade passou do limiar (QA-24); garante bônus único']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, situacao, vencimento) [name: 'cartoes_devidos', note: 'Monta a lição: cartões ativos com vencimento antes da próxima virada das 4h']
+    (usuario_id, situacao, aceito_em) [name: 'cartoes_novos', note: 'Cartões novos na ordem de aceitação']
+    (materia_id, usuario_id) [note: 'Cobre a FK composta e o filtro do deck por matéria']
+    geracao_id
+  }
+
+  Note: 'O deck do estudante é o conjunto dos seus cartões, filtrável por matéria; não há tabela de deck. Editar o conteúdo não altera o estado do FSRS.'
+}
+
+Table evidencias_cartoes {
+  id bigint [pk, increment]
+  cartao_id bigint [not null]
+  trecho_id bigint [note: 'Nulo depois que a fonte é excluída: o cartão exibe "fonte apagada"']
+  fonte_titulo varchar(200) [not null, note: 'Cópia da descrição da origem (RN-05), sobrevive à exclusão da fonte']
+  fonte_nome_arquivo varchar(255) [not null]
+  fonte_enviada_em timestamptz [not null]
+  pagina integer [note: 'Somente quando conhecida']
+
+  indexes {
+    (cartao_id, trecho_id) [unique]
+    trecho_id
+  }
+}
+
+Table consumo_ia {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  geracao_id bigint
+  operacao varchar(50) [not null, note: 'Ex.: gerar_cartoes; no final, responder_chat, embutir, reordenar']
+  provedor varchar(50) [not null]
+  modelo varchar(100) [not null]
+  versao_instrucoes varchar(50)
+  tokens_entrada integer
+  tokens_saida integer
+  latencia_ms integer [not null]
+  custo_estimado numeric(12,6)
+  sucesso boolean [not null]
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, criado_em) [note: 'Orçamento diário por estudante']
+  }
+
+  Note: 'Uma linha por chamada ao provedor (limites operacionais, DTEC 011). Nunca guarda conteúdo das fontes, perguntas ou respostas.'
+}
+
+Table parametros_fsrs {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  versao integer [not null, note: 'A vigente é a maior versão do usuário']
+  origem origem_parametros_fsrs [not null, default: 'padrao']
+  pesos "double precision[]" [not null, note: 'Os 21 pesos do modelo (Scheduler.parameters)']
+  retencao_desejada numeric(3,2) [not null, default: 0.90, note: 'Preferência do perfil (RF-19)']
+  passos_aprendizado_s "integer[]" [not null, note: 'Scheduler.learning_steps em segundos; padrão {60, 600}']
+  passos_reaprendizado_s "integer[]" [not null, note: 'Scheduler.relearning_steps em segundos; padrão {600}']
+  intervalo_maximo_dias integer [not null, default: 36500]
+  fuzzing boolean [not null, default: true]
+  versao_biblioteca varchar(20) [not null, note: 'Versão fixada da biblioteca fsrs']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, versao) [unique]
+  }
+
+  Note: 'Imutável: mudar a retenção desejada ou otimizar os pesos cria uma nova versão. Cada revisão aponta a versão usada (reprodutibilidade, RN-17).'
+}
+
+Table licoes {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  numero integer [not null, note: 'Posição do nó na trilha']
+  dia_estudo date [not null]
+  extra boolean [not null, default: false, note: 'Iniciada depois de cumprida a meta do dia']
+  tamanho_alvo smallint [not null, note: 'Cartões distintos previstos']
+  iniciada_em timestamptz [not null, default: `now()`]
+  concluida_em timestamptz [note: 'Preenchida quando os cartões previstos foram revisados e nenhum tem passo curto pendente; acende o nó']
+
+  indexes {
+    (usuario_id, numero) [unique]
+  }
+
+  Note: 'Sessão de estudo e nó da trilha (RN-19). Um cartão marcado Errei volta na mesma lição quando o passo curto do FSRS vence.'
+}
+
+Table revisoes {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  cartao_id bigint [note: 'Nulo se o cartão for excluído: a revisão nunca é apagada (RN-14)']
+  licao_id bigint [not null]
+  parametros_fsrs_id bigint [not null]
+  chave_idempotencia uuid [not null, note: 'Gerada no cliente (RN-10)']
+  nota nota_revisao [not null]
+  revisada_em timestamptz [not null, note: 'ReviewLog.review_datetime']
+  duracao_ms integer [note: 'ReviewLog.review_duration']
+  dia_estudo date [not null, note: 'Dia de estudo no fuso vigente no instante da revisão (CB-25)']
+  // Estado do cartão antes da revisão
+  estado_antes estado_fsrs [not null]
+  passo_antes smallint
+  estabilidade_antes "double precision"
+  dificuldade_antes "double precision"
+  vencimento_antes timestamptz [not null]
+  ultima_revisao_antes timestamptz
+  // Estado do cartão depois da revisão
+  estado_depois estado_fsrs [not null]
+  passo_depois smallint
+  estabilidade_depois "double precision" [not null]
+  dificuldade_depois "double precision" [not null]
+  vencimento_depois timestamptz [not null]
+
+  indexes {
+    (usuario_id, chave_idempotencia) [unique]
+    (usuario_id, dia_estudo)
+    cartao_id
+    licao_id
+  }
+
+  Note: 'Evento imutável (RN-17). O estado antes e depois permite auditar, reproduzir o agendamento, alimentar o otimizador e implementar o desfazer futuro sem mudar o esquema.'
+}
+
+Table eventos_xp {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  revisao_id bigint [not null, note: 'Todo XP nasce de uma revisão; o bônus de domínio, da revisão que dominou o cartão']
+  tipo tipo_evento_xp [not null]
+  quantidade integer [not null]
+  versao_regra varchar(20) [not null, note: 'Versão dos valores de QA-24; mudar valores não altera XP concedido']
+  dia_estudo date [not null]
+  concedido_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (revisao_id, tipo) [unique, note: 'Impede XP duplicado por reenvio (RN-10)']
+    (usuario_id, dia_estudo)
+  }
+
+  Note: 'Histórico de XP, nunca removido (RN-18). usuarios.xp_total é o seu total em cache.'
+}
+
+Table dias_estudo {
+  usuario_id bigint [not null]
+  dia date [not null]
+  fuso varchar(64) [not null, note: 'Fuso vigente no dia (CB-25)']
+  revisoes_feitas integer [not null, default: 0]
+  meta_efetiva integer [not null, note: 'min(meta diária, cartões disponíveis no dia) (RN-21)']
+  meta_cumprida_em timestamptz [note: 'Preenchido quando o dia passa a contar como estudado']
+
+  indexes {
+    (usuario_id, dia) [pk]
+  }
+
+  Note: 'Uma linha por estudante e dia com atividade. A chave natural dispensa um id próprio. Dia neutro (sem cartões disponíveis): meta_efetiva = 0, não conta nem quebra a sequência.'
+}
+
+// ---------------------------------------------------------------------------
+// Final acadêmico
+// ---------------------------------------------------------------------------
+
+TableGroup final_academico [color: #6B7280, note: 'Entram no final acadêmico (novembro de 2026)'] {
+  indices_trechos
+  conversas
+  mensagens
+  citacoes
+  tokens_recuperacao_senha
+}
+
+Table indices_trechos {
+  trecho_id bigint [pk, note: '1:1 com trechos']
+  usuario_id bigint [not null, note: 'Filtro aplicado na própria consulta (RN-01)']
+  materia_id bigint [not null]
+  embedding "vector(1024)" [not null, note: 'bge-m3 (DTEC 008); índice HNSW com distância de cosseno']
+  texto_busca tsvector [not null, note: 'to_tsvector(\'portuguese\', texto); índice GIN']
+  modelo_embedding varchar(100) [not null]
+  versao_modelo varchar(50) [not null]
+  indexado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, materia_id)
+  }
+
+  Note: 'Indexação para a busca híbrida (RF-06). Separada de trechos para que o MVP não carregue colunas que não usa.'
+}
+
+Table conversas {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  usuario_id bigint [not null]
+  materia_id bigint [not null]
+  cartao_id bigint [note: 'Preenchido no tira-dúvidas (F-16, EX-04)']
+  titulo varchar(200)
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (materia_id, usuario_id)
+  }
+}
+
+Table mensagens {
+  id bigint [pk, increment]
+  public_id uuid [not null, unique, default: `gen_random_uuid()`]
+  conversa_id bigint [not null]
+  papel papel_mensagem [not null]
+  conteudo text [not null]
+  sem_evidencia boolean [not null, default: false, note: 'O assistente declarou não ter encontrado a informação nas fontes']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (conversa_id, criado_em)
+  }
+}
+
+Table citacoes {
+  id bigint [pk, increment]
+  mensagem_id bigint [not null]
+  trecho_id bigint [note: 'Nulo depois que a fonte é excluída: exibe "fonte apagada"']
+  ordem smallint [not null]
+  fonte_titulo varchar(200) [not null, note: 'Cópia, como em evidencias_cartoes']
+  pagina integer
+
+  indexes {
+    (mensagem_id, ordem) [unique]
+    trecho_id
+  }
+}
+
+Table tokens_recuperacao_senha {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  token_hash bytea [not null, unique, note: 'SHA-256 do token enviado por e-mail']
+  expira_em timestamptz [not null]
+  usado_em timestamptz [note: 'Token de uso único']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    usuario_id
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Relacionamentos
+// ---------------------------------------------------------------------------
+
+// Identidade
+Ref: sessoes.usuario_id > usuarios.id [delete: cascade]
+Ref: tokens_recuperacao_senha.usuario_id > usuarios.id [delete: cascade]
+
+// Acervo. As FKs compostas garantem que fonte, geração, cartão e conversa
+// pertencem ao mesmo estudante da matéria (RN-01).
+Ref: materias.usuario_id > usuarios.id
+Ref: fontes.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: restrict]
+Ref: trechos.fonte_id > fontes.id [delete: cascade]
+
+// Cartões e IA
+Ref: geracoes.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: cascade]
+Ref: geracoes.fonte_id > fontes.id [delete: set null]
+Ref: cartoes.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: restrict]
+Ref: cartoes.geracao_id > geracoes.id [delete: set null]
+Ref: evidencias_cartoes.cartao_id > cartoes.id [delete: cascade]
+Ref: evidencias_cartoes.trecho_id > trechos.id [delete: set null]
+Ref: consumo_ia.usuario_id > usuarios.id
+Ref: consumo_ia.geracao_id > geracoes.id [delete: set null]
+
+// Revisão e FSRS
+Ref: parametros_fsrs.usuario_id > usuarios.id
+Ref: licoes.usuario_id > usuarios.id
+Ref: revisoes.usuario_id > usuarios.id
+Ref: revisoes.cartao_id > cartoes.id [delete: set null]
+Ref: revisoes.licao_id > licoes.id
+Ref: revisoes.parametros_fsrs_id > parametros_fsrs.id
+
+// Gamificação
+Ref: eventos_xp.usuario_id > usuarios.id
+Ref: eventos_xp.revisao_id > revisoes.id
+Ref: dias_estudo.usuario_id > usuarios.id
+
+// Final acadêmico
+Ref: indices_trechos.trecho_id - trechos.id [delete: cascade]
+Ref: conversas.(materia_id, usuario_id) > materias.(id, usuario_id) [delete: cascade]
+Ref: conversas.cartao_id > cartoes.id [delete: set null]
+Ref: mensagens.conversa_id > conversas.id [delete: cascade]
+Ref: citacoes.mensagem_id > mensagens.id [delete: cascade]
+Ref: citacoes.trecho_id > trechos.id [delete: set null]

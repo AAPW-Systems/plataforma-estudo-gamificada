@@ -280,7 +280,7 @@ No MVP, o mínimo é dias estudados, XP, sequência e cartões dominados.
 
 ## 8. Entidades conceituais
 
-Estudante, Matéria, Fonte, Trecho, Cartão, Estado FSRS do cartão, Revisão, Geração (pedido de geração e seus cartões), Lição, Evento de XP, Dia de estudo, Conversa e Mensagem (final acadêmico), Citação. A modelagem física é feita no esquema inicial em DBML (próximo passo) e no `data-model.md` de cada spec.
+Estudante, Matéria, Fonte, Trecho, Cartão, Estado FSRS do cartão, Revisão, Geração (pedido de geração e seus cartões), Lição, Evento de XP, Dia de estudo, Conversa e Mensagem (final acadêmico), Citação. A modelagem física está no [esquema inicial em DBML](../arquitetura/esquema-inicial.dbml) e no `data-model.md` de cada spec.
 
 ## 9. Requisitos de qualidade
 
