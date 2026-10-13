@@ -100,6 +100,12 @@ O agente conferiu as exigências do PO (nenhuma toca a 007; EX-05 fora do MVP pe
 ok em todas, segue as recomendações
 ```
 
+### Prompt 3
+
+```text
+plano aprovado, segue para tarefas e rastreabilidade
+```
+
 ## Saída aceita
 
 ### Etapa 5 (planejar)
@@ -112,6 +118,16 @@ Consolidado das decisões (todas as recomendações da rodada 1) aplicado nos ar
 - Sem alteração no esquema (`esquema-inicial.dbml`) nem em `docs/research.md`: não há commit de esquema nem de decisões transversais.
 - Interpretação submetida ao portão: o contraste de 3:1 do RQ-001 não é atingível entre todos os pares de quatro situações só pela luminância; o plano o verifica em três razões (indicador contra o fundo, preenchimento contra células vazias, glifo contra o preenchimento), com a forma como distinção principal.
 
+### Aprovação do plano
+
+- Plano e DTEC 064 a 067 aprovados por Artur Lins em 13/10/2026, inclusive a interpretação do contraste de 3:1, a semana corrente no topo do calendário e a exceção `evolucao` → `revisao/consultas.py`.
+- No mesmo commit: status em `plan.md`, `research.md`, `README.md` da spec e índice de specs; esclarecimento de `dias_no_intervalo` na T036 da 006 (sem mudança de comportamento); `docs/skills/contexto-tecnico.md` com a linha da 007, "nenhum código novo", `transacao_leitura_consistente`, a exceção de dependência, a seção "Evolução", as DTEC 064 a 067 (próxima: 068), as obrigações da 007 marcadas como cumpridas no plano e as novas obrigações para a 012, a 013 e a implementação da 006.
+
+### Etapas 6 e 7 (tarefas e rastreabilidade)
+
+- `docs/specs/007-evolucao/tasks.md`: T001 a T026 (preparação, base, história única com backend e frontend, qualidade transversal), com dependências, paralelismo e o corte mínimo previsto pela spec.
+- `docs/specs/007-evolucao/traceability.md`: matriz de RF-001 a RF-005, RQ-001 a RQ-003, CS-001 e CS-002, os 6 casos de borda e as DTEC 064 a 067; análise de consistência; lacunas aceitas.
+
 ## Alterações humanas
 
 Pendente de revisão.
@@ -120,7 +136,8 @@ Pendente de revisão.
 
 - `openapi-spec-validator` sobre `contracts/openapi.yaml` da 007: OK.
 - Comparação por script: `ResumoGamificacao`, `ProgressoMeta`, `Sequencia`, `ErroCampo` e o enum de `Erro.codigo` idênticos aos do contrato da 006.
-- Links relativos e âncoras dos arquivos da 007 e do índice de specs verificados por script: nenhum quebrado.
+- Links relativos e âncoras dos arquivos da 007, do índice de specs, da T036 da 006 e do `contexto-tecnico.md` verificados por script: nenhum quebrado.
+- Script: todas as tarefas T001 a T026 aparecem na matriz de rastreabilidade.
 
 ## Pendências
 
