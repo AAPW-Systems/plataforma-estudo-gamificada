@@ -56,6 +56,7 @@ Pendente de revisão.
 - T021: suíte completa no contêiner: **201 passed** (8,07 s); Ruff completo passou.
 - T021: mypy passou (47 arquivos).
 - T022: teste antes do código falhou pela ausência de `app.principal`; após implementar, suíte completa **207 passed** (8,86 s), mypy passou (54 arquivos), exportação OpenAPI executada.
+- T023: detector AST de importações absolutas/relativas e oito casos de violação deliberada; **216 passed** (9,62 s), Ruff e mypy passaram (55 arquivos).
 - Primeira execução identificou o vínculo incorreto ao nome do arquivo da revisão anterior; corrigido para o ID real `0001` e repetida a suíte com sucesso.
 - A migração cria apenas o valor `padrao` de `origem_parametros_fsrs`; `otimizado` fica fora do MVP conforme o plano. Modelos importam a Base compartilhada e tipos da biblioteca padrão: exceção estrutural necessária à tabela de camadas, sem importar comportamento de domínio.
 
