@@ -103,6 +103,22 @@ O agente tratou a resposta como confirmação do consolidado, idêntico às reco
 - As decisões específicas ficaram em quatro DTEC (035 a 038), e não em três, separando o estado e a edição do cartão (DTEC 037) da fronteira com a 004 (DTEC 038). O intervalo foi corrigido em `docs/research.md` num commit próprio.
 - `GET /cartoes/limites` também devolve o teto da busca (`buscaMax`), para que a interface não repita o número.
 
+### Prompt 2
+
+```text
+continue
+```
+
+O agente não tratou "continue" como aprovação do plano (regra 1): apresentou o resumo da etapa 5 e pediu a aprovação explícita.
+
+### Prompt 3
+
+```text
+aprovado
+```
+
+O agente tratou a resposta como aprovação do plano (portão "Plano aprovado"), com as DTEC 033 a 038 e a emenda da DTEC 027. Corrigiu no plano a origem da dependência `fsrs`, que já entra na 001. Depois escreveu as tarefas e a rastreabilidade (etapas 6 e 7) e parou no portão "Tarefas aprovadas".
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -120,20 +136,25 @@ O agente tratou a resposta como confirmação do consolidado, idêntico às reco
 | `docs/specs/003-cartoes-manuais/README.md`, `docs/specs/README.md` | alterados (status `Planejando`) |
 | `.agents/AGENTS.md` | alterado (estado atual) |
 | `docs/prompts/README.md` | alterado (índice) |
+| `docs/research.md`, `plan.md` e `research.md` da 003, READMEs e `.agents/AGENTS.md` | alterados (aprovação do plano e estado atual) |
+| `docs/specs/003-cartoes-manuais/plan.md` | alterado (origem da dependência `fsrs`) |
+| `docs/specs/003-cartoes-manuais/tasks.md` | criado (T001 a T045) |
+| `docs/specs/003-cartoes-manuais/traceability.md` | criado (matriz e análise de consistência) |
 
 ## Alterações humanas
 
-pendente de revisão
+- Plano aprovado por Artur Lins em 13/10/2026 sem alterações (prompt 3), com as DTEC 033 a 038 e a emenda da DTEC 027.
+- Tarefas e rastreabilidade: pendente de revisão.
 
 ## Verificação
 
 - `contracts/openapi.yaml` validado com `openapi-spec-validator` (resultado: `OK`).
 - Links relativos e âncoras dos arquivos criados e alterados conferidos por script (nenhum quebrado).
 - Exigências do PO conferidas: só a EX-03 toca a 003, coberta pela spec (explicação opcional aqui, obrigatória na 004 e exibida na 005); o plano garante o campo e o limite. EX-01 e EX-05 (em pauta) não tocam a 003.
-- Nenhum código foi escrito nem executado (decisão de 13/10/2026). Os testes listados no plano são previstos, não verificados.
+- Rastreabilidade: todo RF, RQ, CS, cenário e caso de borda tem teste planejado e tarefa; as dependências de outras specs estão registradas como lacunas aceitas.
+- Nenhum código foi escrito nem executado (decisão de 13/10/2026). Os testes listados no plano e nas tarefas são previstos, não verificados.
 
 ## Pendências
 
-- Portão "Plano aprovado" (Artur Lins ou equipe), com as DTEC 033 a 038 e a emenda da DTEC 027.
-- Depois da aprovação: `tasks.md` (etapa 6) e `traceability.md` com análise de consistência (etapa 7), e o portão "Tarefas aprovadas".
+- Portão "Tarefas aprovadas" (Artur Lins ou equipe).
 - Prompt da spec 004 para uma nova sessão, ao fim da 003.
