@@ -29,4 +29,4 @@ coverage/
 *.tsbuildinfo
 
 # Dados locais (armazenamento de arquivos do ambiente de desenvolvimento)
-dados/
+/dados/
