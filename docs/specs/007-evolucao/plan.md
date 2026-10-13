@@ -7,7 +7,7 @@
 
 - Artur Lins: decisões técnicas e aprovações desta fase de documentação.
 - Implementação: qualquer pessoa da equipe pode assumir, e registra o nome abaixo antes da primeira tarefa.
-  - **Responsável pela implementação:** *a definir no início da implementação*.
+  - **Responsável pela implementação:** William Johnson, designado em 13/10/2026 por Artur Lins ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)). A T001 é concluída quando ele confirmar o nome no registro de prompts da sessão de implementação.
 
 **Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 064 a 067
 

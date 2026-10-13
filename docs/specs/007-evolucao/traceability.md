@@ -87,5 +87,5 @@ Conferência feita em 13/10/2026 entre spec, plano, pesquisa, modelo de dados, c
 - **CS-002 da tela com medida manual:** a medida de 1 s na tela é feita no quickstart (T024). A automação com o Playwright entra no final acadêmico (DTEC 014). O servidor tem teste automatizado (T022).
 - **Leitor de tela:** a leitura real do calendário é evidência manual (T024). O comportamento verificável (papéis, rótulos, foco e teclado) tem teste automatizado (T017).
 - **Dependência da ordem de implementação:** a 007 só começa depois da 006 e da 002 completas.
-- **Pessoa responsável:** a definir no início da implementação (T001). Até lá, as aprovações da documentação são de Artur Lins.
+- **Pessoa responsável:** William Johnson, designado em 13/10/2026; a T001 se conclui com a confirmação dele na sessão de implementação. As aprovações da documentação seguem com Artur Lins.
 - **Nomes de teste:** os nomes exatos são confirmados na implementação e consolidados na T026.

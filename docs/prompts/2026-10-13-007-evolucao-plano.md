@@ -151,6 +151,17 @@ Consolidado das decisões (todas as recomendações da rodada 1) aplicado nos ar
 - `.agents/AGENTS.md` e `docs/skills/contexto-tecnico.md` passam a apontar para `docs/specs/divisao-implementacao-mvp.md` (sem link, porque o arquivo só existe no remoto depois do push), com a divisão (Artur Lins: 001, 005, 006 e 007; Arthur Moura: 002, 003 e 004) e as decisões D1 a D4 aguardando a concordância dos dois. A frase "nenhum código foi implementado" foi retirada, porque a 001 está em andamento localmente.
 - O agente não criou o arquivo da divisão nesta sessão, para não gerar conflito de adição com a versão local; a atualização da linha da 007 nele foi entregue na resposta, para aplicação local.
 
+### Prompt 6
+
+```text
+o william vai implemtar a spec 007, faça o registro e finalize a sessão
+```
+
+### Designação da 007
+
+- William Johnson registrado como responsável pela implementação da 007 no `plan.md` (designado por Artur Lins), em `traceability.md` (lacunas), no "Estado atual" do `.agents/AGENTS.md` e no `contexto-tecnico.md`. A T001 da 007 continua aberta até a confirmação dele na sessão de implementação (regra 6).
+- A D3 de `docs/specs/divisao-implementacao-mvp.md` (007 com Artur Lins) fica superada; o ajuste do arquivo local foi entregue na resposta.
+
 ## Alterações humanas
 
 Pendente de revisão.
@@ -164,8 +175,8 @@ Pendente de revisão.
 
 ## Pendências
 
-- Fazer o push de `docs/specs/divisao-implementacao-mvp.md` (com a linha da 007 atualizada: domínio `evolucao`, sem migração, 26 tarefas) depois de `git pull --rebase` sobre os commits desta sessão; obter a concordância de Arthur Moura nas D1 a D4; registrar o responsável na T001 de cada spec.
+- Fazer o push de `docs/specs/divisao-implementacao-mvp.md` (com a linha da 007 atualizada: William Johnson, domínio `evolucao`, sem migração, 26 tarefas; D3 superada; carga de Artur Lins em 159 tarefas; fronteira da T005 da 007 em `cartoes` e `materias`, com revisão de Arthur Moura) depois de `git pull --rebase` sobre os commits desta sessão; obter a concordância de Arthur Moura nas D1 a D4; registrar o responsável na T001 de cada spec.
 - Implementação das specs 001 a 007, na `develop`, com a apresentação do MVP prevista para 15/10/2026.
 - Na implementação da 006 (T036), aplicar o recorte de `dias_no_intervalo` esclarecido pela DTEC 065; a T006 da 007 confere.
-- Na implementação da 007: a interpretação do contraste de 3:1 (DTEC 067) depende da paleta final (QA-19, UI-01 a UI-03); se o p95 do servidor reprovar (T022), a contingência da DTEC 066 vira tarefa nova com migração.
+- William Johnson confirma o nome na T001 da 007 ao começar. Na implementação da 007: a interpretação do contraste de 3:1 (DTEC 067) depende da paleta final (QA-19, UI-01 a UI-03); se o p95 do servidor reprovar (T022), a contingência da DTEC 066 vira tarefa nova com migração.
 - Questões com o PO seguem em pauta (PO-01 e PO-02); a EX-05, se aprovada, entra na 013.
