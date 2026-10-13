@@ -119,7 +119,7 @@
   - `X-Forwarded-For` forjado;
   - cadastro reenviado depois do sucesso (`409`).
 - [x] T033 [US1] Implementar `app/identidade/preferencias.py` (padrões e limites de D-001), `app/identidade/dominio.py` e `app/identidade/excecoes.py`, até que a T029 passe.
-- [ ] T034 [US1] Implementar os repositórios:
+- [x] T034 [US1] Implementar os repositórios:
   - `app/identidade/repositorios.py`: usuários, sessões e tentativas com `pg_advisory_xact_lock` e chave HMAC; `IntegrityError` do e-mail vira `Conflito`.
   - `app/revisao/repositorios.py`: criação da versão de `parametros_fsrs`.
 

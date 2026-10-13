@@ -7,10 +7,13 @@ de senhas comuns (DTEC 022).
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import unicodedata
 import zoneinfo
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -209,3 +212,45 @@ def validar_cadastro(
         senha=valores["senha"],
         fuso=fuso_do_cadastro(fuso),
     )
+
+
+# --- Limites de tentativas (RQ-003, DTEC 020) --------------------------------------------
+
+_PREFIXO_CHAVE_CONTA = b"chave-conta-v1|"
+
+
+def chave_da_conta(segredo: bytes, email_normalizado: str) -> bytes:
+    """HMAC-SHA-256 do e-mail normalizado: vale igual para e-mails com e sem conta (CS-003).
+
+    O e-mail em si nunca é gravado na tabela de tentativas.
+    """
+    mensagem = _PREFIXO_CHAVE_CONTA + email_normalizado.encode("utf-8", errors="surrogatepass")
+    return hmac.new(segredo, mensagem, hashlib.sha256).digest()
+
+
+def bloqueado_ate(
+    instantes: Sequence[datetime], *, limite: int, janela: timedelta, bloqueio: timedelta
+) -> datetime | None:
+    """Fim do bloqueio mais tardio causado pelas falhas, ou `None` se nunca houve.
+
+    A L-ésima falha (`limite`) dentro da `janela` inicia um bloqueio de `bloqueio`. Quem chama
+    compara o resultado com o instante atual; só precisa passar as falhas mais recentes que
+    `agora - (janela + bloqueio)`, porque as anteriores não podem mais sustentar um bloqueio.
+    """
+    ordenados = sorted(instantes)
+    ate: datetime | None = None
+    for i in range(limite - 1, len(ordenados)):
+        if ordenados[i] - ordenados[i - limite + 1] < janela:
+            candidato = ordenados[i] + bloqueio
+            ate = candidato if ate is None else max(ate, candidato)
+    return ate
+
+
+def liberado_cadastro_em(
+    instantes: Sequence[datetime], *, agora: datetime, limite: int, janela: timedelta
+) -> datetime | None:
+    """Instante em que o endereço volta ao limite de cadastros, ou `None` se já está livre."""
+    recentes = sorted(i for i in instantes if i > agora - janela)
+    if len(recentes) < limite:
+        return None
+    return recentes[len(recentes) - limite] + janela
