@@ -14,21 +14,21 @@
 
 ## Fase 1 Preparação (estrutura base do repositório)
 
-- [ ] T001 Criar `.editorconfig` e `.gitattributes` (UTF-8, LF) na raiz e ampliar o `.gitignore` (`.venv/`, `__pycache__/`, `node_modules/`, `dist/`, `coverage/`, `.pytest_cache/`, `.mypy_cache/`, `dados/`).
-- [ ] T002 [P] Criar o projeto do backend com o uv em `backend/pyproject.toml`, `backend/.python-version` (3.13) e `backend/uv.lock`, com as dependências do plano em versões fixas. A configuração inclui:
+- [x] T001 Criar `.editorconfig` e `.gitattributes` (UTF-8, LF) na raiz e ampliar o `.gitignore` (`.venv/`, `__pycache__/`, `node_modules/`, `dist/`, `coverage/`, `.pytest_cache/`, `.mypy_cache/`, `dados/`).
+- [x] T002 [P] Criar o projeto do backend com o uv em `backend/pyproject.toml`, `backend/.python-version` (3.13) e `backend/uv.lock`, com as dependências do plano em versões fixas. A configuração inclui:
   - Ruff: formatação e regras `E`, `F`, `I`, `B`, `S`, `UP`, `ASYNC`.
   - `mypy --strict`.
   - pytest com `--strict-markers` e os marcadores `unit`, `integration`, `functional`, `security` e `adversarial`, e `asyncio_mode=auto`.
 
   **Verificação:** `uv sync --locked` instala tudo em Python 3.13.
-- [ ] T003 [P] Criar o projeto do frontend:
+- [x] T003 [P] Criar o projeto do frontend:
   - **Pacote:** `frontend/package.json` (`engines.node` 24, scripts `dev`, `build`, `test`, `lint`, `typecheck`, `format`, `gerar:api`), `package-lock.json` e `.nvmrc`.
   - **Configuração:** `tsconfig.json` em modo *strict*, `eslint.config.js` (`typescript-eslint` com as regras *strict type-checked*, `react-hooks`, `jsx-a11y`), `.prettierrc`, `vite.config.ts` (proxy de `/api` para `api:8000` e plugin do TanStack Router) e `vitest.config.ts` (jsdom, setup do MSW).
   - **Ponto de entrada:** `index.html` e `src/main.tsx`.
 
   **Verificação:** `npm ci && npm run build` passa.
-- [ ] T004 [P] Criar `backend/Dockerfile` multi-stage (`base` com uv, `dev` com recarga, `prod` sem ferramentas de desenvolvimento e com usuário não root) e `backend/.dockerignore`.
-- [ ] T005 [P] Criar `frontend/Dockerfile` multi-stage (`deps`, `dev` com o servidor do Vite, `build`, `prod` com os estáticos) e `frontend/.dockerignore`.
+- [x] T004 [P] Criar `backend/Dockerfile` multi-stage (`base` com uv, `dev` com recarga, `prod` sem ferramentas de desenvolvimento e com usuário não root) e `backend/.dockerignore`.
+- [x] T005 [P] Criar `frontend/Dockerfile` multi-stage (`deps`, `dev` com o servidor do Vite, `build`, `prod` com os estáticos) e `frontend/.dockerignore`.
 - [ ] T006 Criar o `compose.yaml` com os serviços `db` (`pgvector/pgvector`, volume e *healthcheck*), `migrate` (execução única), `api` e `worker` (que dependem do `migrate` concluído) e `web`, além do `.env.example` com todas as variáveis da tabela do plano, sem valores secretos (regra 9).
 - [ ] T007 [P] Criar `.github/workflows/ci.yml` com as etapas da tabela "Integração contínua e qualidade" do plano, a cada push na `develop` e em todo pull request para a `main` (DTEC 017).
 - [ ] T008 [P] Criar `.pre-commit-config.yaml` com Ruff (lint e formatação), Prettier e ESLint, documentado como opcional.
@@ -37,8 +37,8 @@
 
 ### Núcleo do backend
 
-- [ ] T009 [P] Criar os testes da configuração em `tests/unit/nucleo/test_configuracao.py`: a aplicação não sobe sem `SEGREDO_APLICACAO`, com segredo de menos de 32 bytes ou com limite inválido. Implementar `app/nucleo/configuracao.py` (pydantic-settings).
-- [ ] T010 [P] Criar os testes de erros em `tests/unit/nucleo/test_erros.py`. Eles verificam que:
+- [x] T009 [P] Criar os testes da configuração em `tests/unit/nucleo/test_configuracao.py`: a aplicação não sobe sem `SEGREDO_APLICACAO`, com segredo de menos de 32 bytes ou com limite inválido. Implementar `app/nucleo/configuracao.py` (pydantic-settings).
+- [x] T010 [P] Criar os testes de erros em `tests/unit/nucleo/test_erros.py`. Eles verificam que:
   - cada subclasse de `ErroAplicacao` vira o corpo `Erro` com o status certo;
   - `RequestValidationError` vira `422 dados_invalidos`, com campos em camelCase e mensagens em português;
   - JSON inválido vira `400 requisicao_malformada`;
@@ -46,27 +46,27 @@
   - `LimiteExcedido` envia `Retry-After`.
 
   Implementar `app/nucleo/erros.py` e `app/nucleo/dtos.py` (`ModeloDTO` em camelCase, `ErroDTO`, `ErroCampoDTO`).
-- [ ] T011 [P] Criar os testes de logs e *middlewares* em `tests/unit/nucleo/test_logs.py`. Eles verificam que:
+- [x] T011 [P] Criar os testes de logs e *middlewares* em `tests/unit/nucleo/test_logs.py`. Eles verificam que:
   - senha, cookies, `X-CSRF-Token` e os corpos de `/auth` e `/perfil` são mascarados (RQ-002);
   - um `X-Request-ID` que não é UUID é substituído;
   - a resposta tem `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` e, nas rotas de conta, `Cache-Control: no-store`;
   - um corpo acima de 64 KiB é recusado.
 
   Implementar `app/nucleo/logs.py` (structlog JSON) e `app/nucleo/middlewares.py`.
-- [ ] T012 [P] Criar os testes do endereço de rede em `tests/unit/nucleo/test_rede.py`: o `X-Forwarded-For` só é aceito de proxies confiáveis. Implementar `app/nucleo/rede.py`.
-- [ ] T013 Implementar `app/nucleo/banco.py`: engine assíncrono `postgresql+psycopg`, sessão e unidade de trabalho que expõe a conexão psycopg da transação.
-- [ ] T014 Implementar `app/nucleo/fila.py`: `App` do Procrastinate com `PsycopgConnector` e uma função que enfileira na conexão da transação atual. Criar `app/worker.py`.
-- [ ] T015 Configurar o Alembic em `backend/alembic.ini` e `backend/migracoes/env.py`, e criar a revisão `backend/migracoes/versions/0001_procrastinate.py` com o esquema da versão fixada do Procrastinate.
-- [ ] T016 Criar `tests/conftest.py` e `tests/fabricas.py` com:
+- [x] T012 [P] Criar os testes do endereço de rede em `tests/unit/nucleo/test_rede.py`: o `X-Forwarded-For` só é aceito de proxies confiáveis. Implementar `app/nucleo/rede.py`.
+- [x] T013 Implementar `app/nucleo/banco.py`: engine assíncrono `postgresql+psycopg`, sessão e unidade de trabalho que expõe a conexão psycopg da transação.
+- [x] T014 Implementar `app/nucleo/fila.py`: `App` do Procrastinate com `PsycopgConnector` e uma função que enfileira na conexão da transação atual. Criar `app/worker.py`.
+- [x] T015 Configurar o Alembic em `backend/alembic.ini` e `backend/migracoes/env.py`, e criar a revisão `backend/migracoes/versions/0001_procrastinate.py` com o esquema da versão fixada do Procrastinate.
+- [x] T016 Criar `tests/conftest.py` e `tests/fabricas.py` com:
   - banco `plataforma_teste` criado e migrado uma vez por execução;
   - transação com *savepoints* por teste;
   - cliente `httpx.AsyncClient` que trata cookies e CSRF;
   - relógio controlável;
   - adaptador de armazenamento em memória;
   - fábricas de contas fictícias (`@exemplo.com`, regra 10).
-- [ ] T017 Criar o teste de enfileiramento atômico em `tests/integration/nucleo/test_fila_transacao.py`: um *rollback* não deixa tarefa na fila, e um commit deixa (emenda da DTEC 002).
-- [ ] T018 [P] Criar a interface de armazenamento em `app/nucleo/armazenamento/` (`interface.py`, `memoria.py`, `disco.py`), com `apagar_prefixo`, e a suíte de contrato `tests/integration/nucleo/test_armazenamento_contrato.py`, rodada contra os dois adaptadores. A suíte inclui a recusa de chave que escapa da raiz, contra *path traversal* (DTEC 010 e 021).
-- [ ] T019 [P] Implementar o registro de exclusão por domínio em `app/nucleo/exclusao.py`, com teste unitário de ordem em `tests/unit/nucleo/test_exclusao.py`.
+- [x] T017 Criar o teste de enfileiramento atômico em `tests/integration/nucleo/test_fila_transacao.py`: um *rollback* não deixa tarefa na fila, e um commit deixa (emenda da DTEC 002).
+- [x] T018 [P] Criar a interface de armazenamento em `app/nucleo/armazenamento/` (`interface.py`, `memoria.py`, `disco.py`), com `apagar_prefixo`, e a suíte de contrato `tests/integration/nucleo/test_armazenamento_contrato.py`, rodada contra os dois adaptadores. A suíte inclui a recusa de chave que escapa da raiz, contra *path traversal* (DTEC 010 e 021).
+- [x] T019 [P] Implementar o registro de exclusão por domínio em `app/nucleo/exclusao.py`, com teste unitário de ordem em `tests/unit/nucleo/test_exclusao.py`.
 - [ ] T020 [P] Criar os testes de segurança do núcleo em `tests/unit/nucleo/test_seguranca.py`:
   - **Sessão:** token de 256 bits; hash SHA-256; validade por inatividade de 14 dias e absoluta de 30 dias, com relógio controlado; renovação no máximo uma vez por minuto.
   - **CSRF:** a assinatura liga o token à sessão ou à pré-sessão; um token de outra sessão é recusado.
