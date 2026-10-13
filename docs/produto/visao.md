@@ -2,7 +2,7 @@
 
 **Versão:** 0.3 (rascunho)
 **Data:** 29/09/2026; atualizada em 12/10/2026
-**Status:** decisões do brainstorming aprofundado e do alinhamento de 12/10/2026 registradas por Artur Lins; recorte do MVP pendente de validação com a equipe e com o professor (PO), conforme a [pauta](pauta-po.md)
+**Status:** decisões do brainstorming aprofundado e do alinhamento de 12/10/2026 registradas por Artur Lins; recorte do MVP aprovado em 12/10/2026; com o professor (PO), seguem pendentes só as exigências EX-01 e EX-05, conforme a [pauta](pauta-po.md)
 **Origem:** brainstorming inicial (hoje [`../base-specs/`](../base-specs/README.md)), sessão de estruturação ([registro](../prompts/2026-09-29-estruturacao-projeto.md)), brainstorming aprofundado ([registro](../prompts/2026-09-29-brainstorming-aprofundado.md)) e alinhamento do produto e da arquitetura ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md))
 
 Este documento descreve a plataforma completa em nível de produto, sem escolher tecnologia. Ele orienta o [backlog](backlog.md), é complementado pelas [exigências do PO](exigencias_po.md) e pela [base de especificação](../base-specs/spec.md), que reúne as regras, e não substitui as specs: o comportamento verificável de cada funcionalidade é definido em `docs/specs/NNN-nome-curto/spec.md`.
@@ -117,12 +117,12 @@ No final acadêmico, o estudante conversa com as fontes ao lado delas, na págin
 | Organização | Trilhas por material | Matérias, com rotina diária unificada | Decidida em 29/09/2026 |
 | Pesquisa externa | Fora do escopo | Exigida pelo PO (EX-01); a equipe a considera incompatível com o Princípio I | Em pauta com o PO ([PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01)) desde 12/10/2026 |
 | Product Owner | Não definido | O professor Aldo Nunes é o PO; representante interno a decidir ([VAL-04](pendencias.md#val-04-representante-interno-do-po)) | Decidida em 29/09/2026 |
-| Chat no MVP | — | Sai do MVP e vai para o final acadêmico, ao lado das fontes da matéria | Decidida em 12/10/2026; em pauta ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
+| Chat no MVP | — | Sai do MVP e vai para o final acadêmico, ao lado das fontes da matéria | Decidida e aprovada em 12/10/2026 ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
 | Publicação dos cartões gerados | — | Revisão pelo estudante (aceitar, editar, recusar, aceitar todos) | Decidida em 12/10/2026 (QA-23) |
 | Exclusão de fontes | Arquivamento e restauração (versão de 07/10/2026) | Fontes guardadas no acervo da matéria; exclusão definitiva, com escolha sobre os cartões | Decidida em 12/10/2026 |
 | Dificuldade | Pontos por dificuldade da questão (versão de 07/10/2026) | Seleção por dificuldade é incompatível com o FSRS; proposta de exibir a dificuldade calculada | Em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
 
-> Na coluna "Situação", as decisões de 29/09/2026 e de 12/10/2026 foram tomadas por Artur Lins e dependem da validação da equipe e do professor ([VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor), [pauta](pauta-po.md)).
+> Na coluna "Situação", as decisões de 29/09/2026 e de 12/10/2026 foram tomadas por Artur Lins e dependem da validação da equipe. O recorte do MVP foi aprovado em 12/10/2026 ([VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor)); com o professor, seguem só os itens marcados como em pauta ([pauta](pauta-po.md)).
 
 ## Decisões do brainstorming aprofundado
 
@@ -230,7 +230,7 @@ As questões QA-01 a QA-11 do brainstorming inicial (versão de 25/09/2026 de `d
 
 | ID | Questão | Tipo | Bloqueia | Situação |
 |---|---|---|---|---|
-| QA-12 | Quais funcionalidades do backlog compõem o MVP e em que ordem? | Produto | Primeira spec | Respondida por Artur Lins em 29/09/2026 e revista em 12/10/2026; validar com o professor ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
+| QA-12 | Quais funcionalidades do backlog compõem o MVP e em que ordem? | Produto | Primeira spec | Respondida por Artur Lins em 29/09/2026 e revista e aprovada em 12/10/2026 ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
 | QA-13 | Como o estudante avalia cada revisão (ex.: errei, difícil, bom, fácil)? Qual algoritmo de repetição espaçada será usado (ex.: SM-2, FSRS)? | Produto e técnica | F-05 | Respondida: quatro botões e FSRS |
 | QA-14 | O que conta como "dia de estudo" para a sequência? Existe meta diária configurável ou proteção da sequência? | Produto | F-10 | Respondida (ver [XP, meta e sequência](#xp-meta-e-sequência-f-09-f-10)) |
 | QA-15 | Como a rota é estruturada (por material, por assunto, por unidade)? Há desbloqueio sequencial? | Produto | F-07 | Respondida em 12/10/2026: trilha unificada de lições montadas pelo FSRS; domínio por matéria no final acadêmico |

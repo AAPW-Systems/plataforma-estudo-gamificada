@@ -6,14 +6,16 @@
 
 Itens que dependem de uma resposta do PO. Cada item traz a posição da equipe e uma alternativa, para que a reunião termine com uma decisão. A resposta é registrada no item, com data, e propagada para a [visão](visao.md), o [backlog](backlog.md), a [constituição](../constitution.md) ou as [pendências](pendencias.md), conforme o caso. Enquanto não houver resposta, vale a posição da equipe, marcada como provisória.
 
+**Atualização de 12/10/2026** ([registro](../prompts/2026-10-12-specs-funcionalidades.md)): o escopo já discutido com o professor está aprovado, e não haverá tempo de rediscutir o MVP inteiro. A reunião com o PO fica restrita às **exigências que a equipe considera incompatíveis com o projeto**: PO-01 (EX-05) e PO-02 (EX-01). PO-03 foi encerrado como aprovado; PO-04, PO-05 e PO-06 saíram da pauta e valem como decisões da equipe.
+
 | ID | Tema | Exigência ou pendência | Situação |
 |---|---|---|---|
 | [PO-01](#po-01-níveis-de-dificuldade-ex-05) | Níveis de dificuldade | EX-05, QA-26 | Aguardando o PO |
 | [PO-02](#po-02-pesquisa-externa-ex-01) | Pesquisa externa | EX-01, QA-27 | Aguardando o PO |
-| [PO-03](#po-03-novo-recorte-do-mvp) | Novo recorte do MVP | VAL-01 | Aguardando o PO |
-| [PO-04](#po-04-três-estágios-do-produto) | Três estágios do produto | — | Aguardando o PO |
-| [PO-05](#po-05-revisão-humana-dos-cartões-gerados) | Revisão humana dos cartões gerados | QA-23, QA-04 | Aguardando o PO |
-| [PO-06](#po-06-painel-administrativo) | Painel administrativo | F-17, QA-32 | Aguardando o PO |
+| [PO-03](#po-03-novo-recorte-do-mvp) | Novo recorte do MVP | VAL-01 | Aprovado (12/10/2026) |
+| [PO-04](#po-04-três-estágios-do-produto) | Três estágios do produto | — | Retirado da pauta: decisão da equipe (12/10/2026) |
+| [PO-05](#po-05-revisão-humana-dos-cartões-gerados) | Revisão humana dos cartões gerados | QA-23, QA-04 | Retirado da pauta: decisão da equipe (12/10/2026) |
+| [PO-06](#po-06-painel-administrativo) | Painel administrativo | F-17, QA-32 | Retirado da pauta: decisão da equipe (12/10/2026) |
 
 ## PO-01 Níveis de dificuldade (EX-05)
 
@@ -53,6 +55,8 @@ O recorte apresentado em 29/09/2026 incluía o chat com os materiais no MVP. A e
 
 **Pergunta ao PO:** aprova o novo recorte (acordo do MVP)?
 
+**Resposta (12/10/2026):** aprovado. O escopo das funcionalidades já discutidas com o professor está aprovado, conforme informado por Artur Lins ([registro](../prompts/2026-10-12-specs-funcionalidades.md)). Encerra [VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor).
+
 ## PO-04 Três estágios do produto
 
 A equipe vai apresentar o produto em três estágios:
@@ -65,11 +69,15 @@ A equipe vai apresentar o produto em três estágios:
 
 **Pergunta ao PO:** a referência documentada é aceita como demonstração de conhecimento das tecnologias não adotadas?
 
+**Resposta (12/10/2026):** retirado da pauta. Não é uma exigência incompatível; os três estágios valem como decisão da equipe ([registro](../prompts/2026-10-12-specs-funcionalidades.md)).
+
 ## PO-05 Revisão humana dos cartões gerados
 
 Os cartões gerados pela IA não entram direto no estudo: o estudante aceita, edita ou recusa cada um (ou aceita todos). Os recusados ficam registrados e geram a **taxa de aceitação**, usada como métrica de qualidade da IA, junto do conjunto de casos de avaliação (Princípio V).
 
 **Pergunta ao PO:** a taxa de aceitação é aceita como uma das métricas de avaliação da IA?
+
+**Resposta (12/10/2026):** retirado da pauta. A revisão humana dos cartões gerados e a taxa de aceitação como métrica valem como decisão da equipe ([registro](../prompts/2026-10-12-specs-funcionalidades.md)).
 
 ## PO-06 Painel administrativo
 
@@ -78,3 +86,5 @@ Os cartões gerados pela IA não entram direto no estudo: o estudante aceita, ed
 **Motivo:** a equipe considera o painel uma funcionalidade esperada de um produto publicado (operação, acompanhamento de uso e de consumo da IA).
 
 **Pergunta ao PO:** o painel é esperado no final acadêmico? Há alguma capacidade mínima que ele deva ter?
+
+**Resposta (12/10/2026):** retirado da pauta. O painel simples entra no final acadêmico como decisão da equipe; o escopo é definido na [spec 016](../specs/016-painel-administrativo/spec.md) ([QA-32](pendencias.md#qa-32-escopo-do-painel-administrativo)) ([registro](../prompts/2026-10-12-specs-funcionalidades.md)).

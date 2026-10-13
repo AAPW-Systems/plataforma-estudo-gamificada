@@ -21,7 +21,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-21](#qa-21-esquema-inicial-do-banco) | Esquema inicial do banco | Técnica | Primeiro `plan.md` | Equipe | Respondida em 12/10/2026: [esquema inicial](../arquitetura/esquema-inicial.dbml) |
 | [QA-11](#qa-11-vps-e-operação-do-deploy) | VPS, dimensionamento e operação | Técnica e custo | Deploy do final acadêmico | Equipe | Parcial: DTEC 013; VPS e domínio pendentes |
 | [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
-| [QA-32](#qa-32-escopo-do-painel-administrativo) | Escopo do painel administrativo | Produto | Spec de F-17 | Equipe e professor | Aberta (12/10/2026); proposta na spec [016](../specs/016-painel-administrativo/spec.md); [PO-06](pauta-po.md#po-06-painel-administrativo) |
+| [QA-32](#qa-32-escopo-do-painel-administrativo) | Escopo do painel administrativo | Produto | Spec de F-17 | Equipe | Aberta (12/10/2026); proposta na spec [016](../specs/016-painel-administrativo/spec.md); saiu da pauta com o PO em 12/10/2026 |
 | [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026 (revisão pelo estudante); limite padrão de 20 novos por dia, global, proposto em [001](../specs/001-conta-acesso/spec.md) (D-001), aguardando a aprovação da spec |
 | [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 (final acadêmico) | Equipe e professor | Provisória |
 | [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Valores propostos em 12/10/2026 nas specs [001](../specs/001-conta-acesso/spec.md), [005](../specs/005-licao-trilha/spec.md), [006](../specs/006-xp-meta-sequencia/spec.md) e [013](../specs/013-evolucao-completa/spec.md), aguardando a aprovação das specs |
@@ -30,7 +30,6 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-26](#qa-26-níveis-de-dificuldade) | Níveis de dificuldade (EX-05) | Produto | Spec de F-04 e F-05 | Professor | Em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
 | [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 | Equipe e professor | Depende de [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) |
 | [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Aberta |
-| [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | Processo | Aprovação da primeira spec | Artur Lins | Em pauta ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)) |
 | [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição (v0.4) | Processo | Aprovação da primeira spec | Equipe | Aberta |
 | [VAL-03](#val-03-escala-do-rodízio-de-scrum-master) | Escala do rodízio semanal de Scrum Master | Processo | Primeira sprint | Equipe | Aberta |
 | [VAL-04](#val-04-representante-interno-do-po) | Representante interno do PO | Processo | Aprovações entre as reviews | Equipe | Aberta |
@@ -41,8 +40,7 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 ```mermaid
 flowchart LR
     QA21[QA-21 Esquema em DBML] --> PLAN[Primeiro plan.md]
-    VAL01[VAL-01 / PO-03 Recorte do MVP] --> SPEC[Aprovação da primeira spec]
-    VAL02[VAL-02 Constituição] --> SPEC
+    VAL02[VAL-02 Constituição] --> SPEC[Aprovação da primeira spec]
     SPEC --> PLAN
     PLAN --> IMPL[Primeira implementação]
     QA30[QA-30 develop e verificação automática] --> IMPL
@@ -369,6 +367,8 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 
 ### VAL-01 Validação do MVP com o professor
 
+> **Encerrada em 12/10/2026:** o escopo já discutido com o professor está aprovado, conforme informado por Artur Lins ([registro](../prompts/2026-10-12-specs-funcionalidades.md)). Com o PO, ficam pendentes só as exigências consideradas incompatíveis: [PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05) (EX-05) e [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) (EX-01). O texto abaixo é o histórico.
+
 > **Atualização de 12/10/2026:** o recorte foi revisto (chat e tira-dúvidas passam ao final acadêmico; trilha entra no MVP) e levado ao PO em [PO-03](pauta-po.md#po-03-novo-recorte-do-mvp).
 
 As guidelines definem o professor como PO e exigem um "acordo do MVP" com escopo, hipótese de valor mensurável, escopo adiado e critérios de sucesso. O recorte do [backlog](backlog.md#recorte-do-mvp) precisa ser apresentado e aceito na próxima review. Até lá, specs podem ser escritas, mas não aprovadas como definitivas.
@@ -394,7 +394,7 @@ O PO é o professor Aldo Nunes. Ainda não foi decidido se a equipe terá um rep
 - **Se houver:** as decisões do dia a dia andam sem esperar a review, mas precisam ser levadas ao professor.
 - **Se não houver:** as questões de produto (`Q-xxx` nas specs) aguardam a equipe ou a próxima review com o professor. Isso pode atrasar a aprovação das specs no prazo de 3 semanas do MVP.
 
-As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continuam válidas como proposta até a validação com a equipe e com o professor (VAL-01).
+As decisões do brainstorming aprofundado foram tomadas por Artur Lins e continuam válidas como proposta até a validação com a equipe. O recorte do MVP foi aprovado em 12/10/2026 (VAL-01).
 
 ### VAL-06 Aprovação da arquitetura e das DTEC 002 a 014
 
@@ -429,6 +429,7 @@ Em 29/09/2026, Artur Lins incluiu no [`AGENTS.md`](../../.agents/AGENTS.md) as r
 
 | ID | Pendência | Encerrada em | Decisão |
 |---|---|---|---|
+| [VAL-01](#val-01-validação-do-mvp-com-o-professor) | Validação do recorte do MVP com o professor | 12/10/2026 | Recorte aprovado ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)); só EX-01 e EX-05 seguem com o PO |
 | [VAL-06](#val-06-aprovação-da-arquitetura-e-das-dtec-002-a-014) | Aprovação da arquitetura e das DTEC 002 a 014 | 12/10/2026 | [Arquitetura](../arquitetura/README.md) aprovada |
 | [QA-18](#qa-18-framework-do-backend-fastapi-ou-django) | Framework do backend | 12/10/2026 | [DTEC 002](../research.md#decisão-dtec-002-framework-do-backend) |
 | [QA-22](#qa-22-stack-de-ia-llm-embeddings-e-busca) | Stack de IA | 12/10/2026 | [DTEC 007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) e [DTEC 008](../research.md#decisão-dtec-008-embeddings-e-reranking) |

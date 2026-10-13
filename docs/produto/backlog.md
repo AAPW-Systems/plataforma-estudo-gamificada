@@ -1,7 +1,7 @@
 # Backlog de funcionalidades
 
 **Data:** 29/09/2026; atualizado em 12/10/2026 ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)) com os três estágios do produto e o novo recorte do MVP
-**Status:** recorte do MVP proposto pela equipe, pendente de validação com o professor ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp), [VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor))
+**Status:** recorte do MVP aprovado em 12/10/2026 ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp), [VAL-01](pendencias.md#val-01-validação-do-mvp-com-o-professor)). Seguem com o PO apenas as exigências EX-01 e EX-05 ([pauta](pauta-po.md))
 **Base:** [visão do produto](visao.md), [constituição](../constitution.md), [exigências do PO](exigencias_po.md), [pendências](pendencias.md) e [base de especificação](../base-specs/spec.md)
 
 Cada linha é uma **funcionalidade candidata**, ou seja, uma jornada que pode virar uma pasta `docs/specs/NNN-nome-curto/`. O identificador `F-xx` é estável e serve para referência no planejamento. O número `NNN` da pasta só é atribuído quando a spec é criada, na ordem de execução (ver [`../specs/README.md`](../specs/README.md)).
@@ -36,7 +36,7 @@ A coluna "Origem na base" aponta para os IDs da [base de especificação](../bas
 | F-14 | Plano de estudos a partir de um edital | Trilha | Não | Nova; relaciona-se com RN-06 | A abrir | — |
 | F-15 | Criar flashcard a partir de uma resposta do chat | Chat | Não | Nova | A abrir | — |
 | F-16 | Tira-dúvidas a partir de um cartão: durante a lição, o estudante abre o chat com o cartão como contexto e pede explicações, com referência (EX-04). Caminho opcional, fora do fluxo principal | Chat | **Final**; consulta externa (EX-01) em pauta com o PO | HU-19, RF-26, RN-24 | QA-16, QA-31; [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) | [015](../specs/015-tira-duvidas-cartao/README.md) (Final) |
-| F-17 | Painel administrativo simples, com acesso restrito ao papel administrador (RN-27). Escopo definido na spec | Base | **Final**; validação com o PO pendente | HU-20, RF-29, RN-27 | QA-32; [PO-06](pauta-po.md#po-06-painel-administrativo) | [016](../specs/016-painel-administrativo/README.md) (Final) |
+| F-17 | Painel administrativo simples, com acesso restrito ao papel administrador (RN-27). Escopo definido na spec | Base | **Final** | HU-20, RF-29, RN-27 | QA-32 | [016](../specs/016-painel-administrativo/README.md) (Final) |
 
 ## Exigências do PO
 
@@ -67,7 +67,7 @@ Os itens abaixo não são funcionalidades isoladas. Eles se aplicam a todas as s
 
 ## Recorte do MVP
 
-**Proposto em:** 29/09/2026; revisto em 12/10/2026 ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)). **Validação com o professor:** pendente ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)).
+**Proposto em:** 29/09/2026; revisto em 12/10/2026 ([registro](../prompts/2026-10-12-alinhamento-produto-arquitetura.md)). **Validação com o professor:** aprovado em 12/10/2026 ([PO-03](pauta-po.md#po-03-novo-recorte-do-mvp)).
 **Prazo:** ~20/10/2026. Roda localmente.
 
 As guidelines limitam o MVP a uma persona, uma jornada principal e até três capacidades essenciais (`sdd_guidelines/detalhes_projeto.md`, "Acordo do MVP com o PO").
