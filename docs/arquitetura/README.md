@@ -23,8 +23,8 @@ flowchart LR
     Web[Frontend React<br/>Vite dev server] -->|HTTP + cookie de sessão| API[API FastAPI]
     API --> PG[(PostgreSQL<br/>dados + fila)]
     Worker[Worker<br/>Procrastinate] --> PG
-    Worker -->|extração| Vol[(Volume<br/>fontes)]
-    API --> Vol
+    API -->|fontes| R2[(Cloudflare R2<br/>bucket de desenvolvimento)]
+    Worker -->|leitura para extração| R2
     Worker -->|geração de cartões| LLM[LLM<br/>Gemini / Groq]
 ```
 
@@ -36,15 +36,14 @@ flowchart LR
     Caddy -->|/api| API[API FastAPI<br/>chat em streaming]
     API --> PG[(PostgreSQL + pgvector<br/>dados, fila, vetores, tsvector)]
     Worker[Worker<br/>Procrastinate] --> PG
-    API --> Vol[(Volume<br/>fontes)]
-    Worker --> Vol
-    API -->|imagens dos cartões| R2[(Cloudflare R2)]
+    API -->|fontes e imagens dos cartões| R2[(Cloudflare R2)]
+    Worker -->|leitura para extração| R2
     Worker -->|embeddings bge-m3<br/>reranking| CF[Cloudflare Workers AI]
     API --> CF
     API -->|agentes PydanticAI| LLM[LLM<br/>Gemini / Groq]
     Worker --> LLM
     API -.->|rastros sem conteúdo| LF[Langfuse Cloud]
-    Backup[Backup diário<br/>pg_dump + fontes] -->|cópia externa| R2
+    Backup[Backup diário<br/>pg_dump] -->|bucket de backup| R2
 ```
 
 ## 3. Stack por estágio
@@ -61,7 +60,7 @@ flowchart LR
 | Agentes e LLM | PydanticAI; Gemini (camada gratuita), Groq como alternativa | + agentes do chat e do tira-dúvidas, busca como ferramenta; LangGraph em reavaliação | [007](../research.md#decisão-dtec-007-llm-e-framework-de-agentes) |
 | Embeddings e reranking | Não há | bge-m3 (1024) e reranker no Workers AI da Cloudflare | [008](../research.md#decisão-dtec-008-embeddings-e-reranking) |
 | Extração | PyMuPDF (PDF com texto), leitura direta de TXT e MD | + SRT, VTT, DOCX | [009](../research.md#decisão-dtec-009-extração-de-texto) |
-| Arquivos | Volume Docker (fontes) | Volume (fontes) + Cloudflare R2 (imagens dos cartões, até 3 MB) | [010](../research.md#decisão-dtec-010-armazenamento-de-arquivos) |
+| Arquivos | Cloudflare R2 (fontes) | Cloudflare R2 (fontes e imagens dos cartões, até 3 MB) | [010](../research.md#decisão-dtec-010-armazenamento-de-arquivos) |
 | Observabilidade | Logs JSON com id de correlação, `/health`, tabela de consumo da IA | + Langfuse Cloud sem conteúdo dos materiais; avaliações com pydantic-evals | [011](../research.md#decisão-dtec-011-observabilidade-e-avaliação-da-ia) |
 | Repetição espaçada | Biblioteca `fsrs` (implementação oficial em Python do FSRS) | igual | [012](../research.md#decisão-dtec-012-algoritmo-de-repetição-espaçada) |
 | Hospedagem | Docker Compose local | VPS (provável Hetzner) + Docker Compose + Caddy | [013](../research.md#decisão-dtec-013-hospedagem-e-operação) |
@@ -120,7 +119,7 @@ Tarefas do Procrastinate, idempotentes e com estados visíveis (RN-03):
 | `processar_fonte` | Extrai texto, divide em trechos com página e posição, persiste | MVP |
 | `gerar_cartoes` | Seleciona trechos, chama o agente gerador, valida estrutura e sustentação, grava como "aguardando revisão" | MVP |
 | `indexar_fonte` | Gera embeddings (bge-m3) e o `tsvector` dos trechos | Final |
-| `backup` | `pg_dump` e cópia das fontes para o R2 | Final |
+| `backup` | `pg_dump` para o bucket de backup no R2 | Final |
 
 ### 5.4 IA
 
@@ -148,7 +147,7 @@ trechos por estrutura (página/seção, com sobreposição)
 
 ### 5.6 Arquivos
 
-- **Fontes:** volume Docker, com nome interno (UUID) e metadados no banco. O nome enviado pelo usuário nunca é usado como caminho.
+- **Fontes:** Cloudflare R2 desde o MVP, com nome interno (UUID) e metadados no banco, que guarda a chave do objeto, nunca a URL. O nome enviado pelo usuário nunca compõe a chave. O worker baixa a fonte para um arquivo temporário durante a extração.
 - **Imagens dos cartões (final):** Cloudflare R2 via API compatível com S3. O backend valida o tipo real (JPEG, PNG ou WebP) e o tamanho (até 3 MB) antes de gravar. A leitura usa URLs assinadas de curta duração, porque as imagens são privadas. Camada gratuita: 10 GB armazenados, 1 milhão de escritas e 10 milhões de leituras por mês, sem custo de saída.
 
 ## 6. Frontend
@@ -163,9 +162,9 @@ trechos por estrutura (página/seção, com sobreposição)
 | Exigência das guidelines | Como é atendida |
 |---|---|
 | URL com HTTPS | Caddy com certificado automático; domínio próprio ou DNS curinga |
-| Dados persistentes | Volumes do Postgres e das fontes |
+| Dados persistentes | Volume do Postgres; fontes e imagens no R2 |
 | Logs e verificação de saúde | Logs JSON; `/health` (processo vivo) e `/health/ready` (banco e fila acessíveis) |
-| Backup e restauração testados | `pg_dump` diário + fontes, copiados para o R2; restauração ensaiada e registrada no runbook |
+| Backup e restauração testados | `pg_dump` diário copiado para o bucket de backup no R2; restauração ensaiada e registrada no runbook |
 | Rollback documentado | Imagens versionadas por *tag* no registro; voltar = apontar o Compose para a *tag* anterior e aplicar a migração reversa, quando houver |
 | Testes no pipeline | Integração contínua executa a suíte completa antes do merge na `main` (QA-30) |
 | Limites e consumo da IA | Timeout, novas tentativas limitadas, orçamento por estudante e tabela de consumo |

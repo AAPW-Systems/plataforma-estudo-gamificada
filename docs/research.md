@@ -20,7 +20,7 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 007](#decisão-dtec-007-llm-e-framework-de-agentes) | LLM e framework de agentes | Aprovada em 12/10/2026; framework do final acadêmico em reavaliação (QA-31) |
 | [DTEC 008](#decisão-dtec-008-embeddings-e-reranking) | Embeddings e reranking | Aprovada em 12/10/2026; com DTEC 007, encerra QA-22 |
 | [DTEC 009](#decisão-dtec-009-extração-de-texto) | Extração de texto | Aprovada em 12/10/2026 |
-| [DTEC 010](#decisão-dtec-010-armazenamento-de-arquivos) | Armazenamento de arquivos | Aprovada em 12/10/2026 |
+| [DTEC 010](#decisão-dtec-010-armazenamento-de-arquivos) | Armazenamento de arquivos | Aprovada em 12/10/2026; revisada no mesmo dia (tudo no R2) |
 | [DTEC 011](#decisão-dtec-011-observabilidade-e-avaliação-da-ia) | Observabilidade e avaliação da IA | Aprovada em 12/10/2026 |
 | [DTEC 012](#decisão-dtec-012-algoritmo-de-repetição-espaçada) | Algoritmo de repetição espaçada | Aprovada em 12/10/2026 |
 | [DTEC 013](#decisão-dtec-013-hospedagem-e-operação) | Hospedagem e operação | Aprovada em 12/10/2026; VPS e domínio pendentes (QA-11) |
@@ -187,10 +187,17 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 2. **Cloudflare R2** para tudo: camada gratuita de 10 GB, 1 milhão de escritas e 10 milhões de leituras por mês, saída sem custo; exige conta e rede.
 3. **Volume para as fontes e R2 para as imagens.**
 
-**Decisão:** alternativa 3. Fontes no volume (lidas só pelo worker e pela API) e imagens dos cartões no R2, com limite de **3 MB** (JPEG, PNG ou WebP), validação do tipo real no backend e leitura por URL assinada de curta duração. O R2 também guarda a cópia externa dos backups.  
-**Justificativa:** as imagens são o único conteúdo exibido com frequência ao navegador; o R2 tira esse tráfego da VPS sem custo.  
-**Consequências:** nomes internos (UUID) para tudo; exclusão de cartão ou de fonte remove os objetos correspondentes.  
-**Condição para revisão:** uso acima da camada gratuita, ou mais de uma instância da API (todos os arquivos passam ao armazenamento de objetos).
+**Decisão (revisada em 12/10/2026, [registro](prompts/2026-10-12-esquema-inicial-banco.md)):** alternativa 2. **Fontes e imagens dos cartões no R2**, desde o MVP. Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-02. O backend valida o tipo real antes de gravar. O banco guarda a **chave do objeto**, nunca a URL, e a leitura pelo navegador usa URL assinada de curta duração. Buckets separados por ambiente (desenvolvimento, teste e produção) e um bucket próprio para os backups.  
+*Decisão anterior (12/10/2026):* alternativa 3, fontes no volume e imagens no R2.  
+**Justificativa:** as fontes crescem sem limite com o uso e lotariam o disco do contêiner e da VPS. Com tudo no R2, API e worker ficam sem estado, o backup da VPS se reduz ao banco e a camada gratuita cobre o volume acadêmico sem custo de saída.  
+**Consequências:**
+
+- Nomes internos (UUID) para tudo; o nome enviado pelo usuário nunca compõe a chave. Exclusão de cartão ou de fonte remove os objetos correspondentes, e a aplicação exclui os objetos antes das linhas.
+- O worker baixa a fonte do R2 para um arquivo temporário antes da extração e o apaga em seguida.
+- O MVP local passa a depender de rede e de uma conta da Cloudflare; as chaves ficam no `.env` (regra 9).
+- O acesso ao R2 fica atrás de uma interface própria de armazenamento. Os testes usam um adaptador em memória; a forma de testar a integração com o R2 é decidida no primeiro `plan.md`.
+
+**Condição para revisão:** uso acima da camada gratuita ou exigência de funcionar sem rede.
 
 ## Decisão DTEC 011 Observabilidade e avaliação da IA
 
@@ -240,7 +247,7 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 2. **VPS com Coolify:** painel de deploy, mas consome memória própria.
 3. **Kubernetes (k3s):** aprofundamento opcional das guidelines; mais componentes e memória.
 
-**Decisão:** alternativa 1, numa VPS de 2 a 4 GB (provável Hetzner). Imagens construídas na integração contínua e publicadas num registro; o deploy atualiza as *tags* no Compose. Backup diário (`pg_dump` e fontes) copiado para o R2, com restauração ensaiada. MVP apenas local.  
+**Decisão:** alternativa 1, numa VPS de 2 a 4 GB (provável Hetzner). Imagens construídas na integração contínua e publicadas num registro; o deploy atualiza as *tags* no Compose. Backup diário (`pg_dump`) copiado para um bucket de backup no R2, com restauração ensaiada; as fontes já ficam no R2 (DTEC 010). MVP apenas local.  
 **Justificativa:** atende a todas as exigências de operação das guidelines com o menor número de peças.  
 **Consequências:** escolha da VPS, do domínio e do custo mensal registrada quando decidida (QA-11); Kubernetes fica como aprofundamento opcional.  
 **Condição para revisão:** necessidade de alta disponibilidade ou de mais de uma VPS.
