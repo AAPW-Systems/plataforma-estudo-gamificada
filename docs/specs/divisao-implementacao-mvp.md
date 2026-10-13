@@ -22,11 +22,12 @@ A divisão segue os **domínios do backend**, e cada spec fica inteira com uma p
 | [004](004-geracao-cartoes/tasks.md) geração de cartões | **Arthur Moura**, também revisor do conjunto de avaliação | `ia`, `cartoes/geracao` | `0005` | 59 |
 | [005](005-licao-trilha/tasks.md) lição e trilha | **Artur Lins** | `revisao`, `nucleo/dia_estudo.py`, `nucleo/eventos_revisao.py` | `0006` | 49 |
 | [006](006-xp-meta-sequencia/tasks.md) XP, meta e sequência | **Artur Lins** | `gamificacao`, `nucleo/disponibilidade.py` | `0007` | 45 |
-| [007](007-evolucao/README.md) evolução mínima | **Artur Lins** (padrão; ver D3) | a definir no plano | `0008`, se houver | a definir |
+| [007](007-evolucao/tasks.md) evolução mínima | **William Johnson** (designado em 13/10/2026 por Artur Lins, no lugar da D3) | `evolucao` (sem persistência), `transacao_leitura_consistente` em `nucleo/banco.py` | nenhuma (DTEC 066) | 26 |
 
 **Equilíbrio da carga:**
 
-- **Artur Lins:** 159 tarefas, mais a 007.
+- **Artur Lins:** 159 tarefas.
+- **William Johnson:** 26 tarefas (007).
 - **Arthur Moura:** 155 tarefas, mais a revisão manual do conjunto de avaliação.
 
 As tarefas mais arriscadas também ficam divididas. Com Arthur Moura ficam o processamento isolado de arquivos não confiáveis (002) e o provedor de IA real (004). Com Artur Lins ficam a reprodutibilidade do FSRS (005) e a liquidação da sequência (006).
@@ -51,7 +52,7 @@ flowchart LR
   A2["001 T046–T052<br/>(Artur Lins)"] --> A3
   B3 --> A3["005<br/>migração 0006<br/>(Artur Lins)"]
   A3 --> A4["006<br/>migração 0007<br/>(Artur Lins)"]
-  A4 --> A5["007<br/>(Artur Lins)"]
+  A4 --> A5["007<br/>(William Johnson)"]
 ```
 
 Daí vem a regra que mais importa neste plano:
@@ -103,7 +104,9 @@ Cada onda começa quando a condição de entrada está na `develop` com a integr
 
 | Artur Lins | Arthur Moura |
 |---|---|
-| 006 US3 (T031 a T039), 005 US4 e fases finais da 005 e da 006. A 007, se as tarefas dela estiverem aprovadas. | 004 US3 e US2 (T040 a T051), conjunto de avaliação (T052 a T054, com a revisão humana) e fases finais da 002, da 003 e da 004. |
+| 006 US3 (T031 a T039), 005 US4 e fases finais da 005 e da 006. | 004 US3 e US2 (T040 a T051), conjunto de avaliação (T052 a T054, com a revisão humana) e fases finais da 002, da 003 e da 004. |
+
+A 007 fica com William Johnson e começa depois da 006 e da 002 completas (dependência declarada nas tarefas da 007).
 
 **Reverificações entre specs:** cabem ao responsável pela spec **posterior**, que é quem tem o código real. Por exemplo, a 005 reverifica a US1-1 da 003, e a 004 reexecuta os testes da US2 e da US3 da 002 com os seus participantes (seções "Dependências" dos `tasks.md`).
 
@@ -189,7 +192,7 @@ As datas possíveis são 15/10, 20/10 e 22/10/2026, com meta em 15/10. São cerc
 |---|---|---|---|
 | D1 | Divisão por domínio: Artur Lins com 001, 005, 006 e 007; Arthur Moura com 002, 003 e 004 | **Adotar.** Menos conflitos, carga equilibrada e cada pessoa responde por specs inteiras. | Alternar as specs (001, 003 e 005 com um; 002, 004 e 006 com o outro). Isso cruza os domínios `cartoes` e `revisao` e multiplica os pontos de contato. |
 | D2 | Antecipar só as tarefas puras listadas, apesar da dependência geral declarada nos `tasks.md` | **Adotar.** Sem isso, Arthur Moura fica ocioso até a 001 T045 e Artur Lins fica ocioso até a 004 T011. | Seguir a dependência ao pé da letra e aceitar a ociosidade. |
-| D3 | A 007 fica com Artur Lins | **Adotar**, salvo se a pessoa que está escrevendo o plano da 007 for implementá-la. A 007 lê só as consultas da 005 e da 006. | Quem estiver livre primeiro depois da 006 T036. |
+| D3 | A 007 fica com Artur Lins | **Substituída em 13/10/2026:** Artur Lins designou William Johnson para a 007 ([registro](../prompts/2026-10-13-007-evolucao-plano.md)). A 007 lê só as consultas da 005 e da 006. | Quem estiver livre primeiro depois da 006 T036. |
 | D4 | Corte de 15/10 conforme a tabela acima | **Adotar.** O MVP inteiro em dois dias não é realista. | Apresentar em 20/10 com o MVP completo. |
 
 Depois da aprovação, cada responsável escreve o próprio nome no campo "Responsável pela implementação" do plano da spec, ao começar a implementação (T001 da 004, da 005 e da 006).
