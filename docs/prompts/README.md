@@ -70,3 +70,4 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 | 2026-10-12 | [Esquema inicial do banco e FSRS soberano](2026-10-12-esquema-inicial-banco.md) | Esclarecer | Artur Lins |
 | 2026-10-12 | [Specs das funcionalidades do MVP e do final acadêmico](2026-10-12-specs-funcionalidades.md) | Especificar | Artur Lins |
 | 2026-10-12 | [Esclarecimento das specs do MVP](2026-10-12-esclarecimento-specs-mvp.md) | Esclarecer | Artur Lins |
+| 2026-10-12 | [Plano da spec 001 e estrutura base do repositório](2026-10-12-001-conta-acesso-plano.md) | Planejar | Artur Lins |
