@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-02 e F-03 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Plano aprovado |
+| Status | Tarefas aprovadas |
 | Depende de | [001](../001-conta-acesso/README.md) |
 
 ## Ordem de leitura
@@ -17,8 +17,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 7. [`quickstart.md`](quickstart.md): validação local.
 
-8. [`tasks.md`](tasks.md): tarefas T001 a T051, por história. Aguardando o portão "Tarefas aprovadas".
-9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Aguardando aprovação, junto com as tarefas.
+8. [`tasks.md`](tasks.md): tarefas T001 a T051, por história. Aprovadas em 13/10/2026.
+9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Aprovada em 13/10/2026, junto com as tarefas.
 
 ## Histórico
 
@@ -31,3 +31,4 @@
 | 13/10/2026 | Plano, pesquisa, modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodadas com Artur Lins ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 024 a 032 ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Tarefas (T001 a T051) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
+| 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
