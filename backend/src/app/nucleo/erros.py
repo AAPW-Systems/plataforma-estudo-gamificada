@@ -152,6 +152,7 @@ _MENSAGENS: dict[str, str] = {
     "too_long": "Informe no máximo {max_length} item(ns).",
 }
 _MENSAGEM_GENERICA = "Valor inválido."
+MENSAGEM_CORPO_GRANDE = "A requisição é grande demais."
 
 
 def _formatar_numero(valor: object) -> str:
@@ -244,6 +245,8 @@ async def _tratar_http(request: Request, exc: Exception) -> Response:
     erro: ErroAplicacao
     if exc.status_code == 404:
         erro = RecursoNaoEncontrado(cabecalhos=exc.headers)
+    elif exc.status_code == 413:
+        erro = RequisicaoMalformada(MENSAGEM_CORPO_GRANDE)
     else:
         erro = RequisicaoMalformada(cabecalhos=exc.headers)
     return resposta_erro(request.scope, erro, status=exc.status_code)
