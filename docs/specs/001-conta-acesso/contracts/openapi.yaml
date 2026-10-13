@@ -1,0 +1,566 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - conta, sessão e perfil (spec 001)
+  version: 0.1.0
+  description: |
+    Contrato da spec 001-conta-acesso (RQ-005). É a referência de projeto: o OpenAPI
+    gerado pela aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de
+    resposta e esquemas daqui, e um teste de contrato verifica isso.
+
+    Convenções:
+    - Frontend e API ficam na mesma origem; a API fica sob `/api/v1`.
+    - JSON em camelCase. Instantes em ISO 8601 com fuso explícito (UTC).
+    - Sessão em cookie `__Host-sessao` (HttpOnly, Secure, SameSite=Lax), nunca acessível
+      ao JavaScript (RQ-001).
+    - Toda requisição POST, PATCH, PUT ou DELETE exige o cabeçalho `X-CSRF-Token` com o
+      mesmo valor do cookie `__Host-csrf`, obtido em `GET /api/v1/auth/csrf` (RF-011).
+      O servidor também recusa `Origin` fora da lista permitida e `Sec-Fetch-Site`
+      diferente de `same-origin`.
+    - Os erros seguem sempre o esquema `Erro`. Nenhuma resposta de entrada ou de erro
+      distingue um e-mail cadastrado de um não cadastrado, exceto `409 email_em_uso` no
+      cadastro (D-005, CS-003).
+    - Respostas de autenticação e perfil têm `Cache-Control: no-store`.
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: autenticacao
+    description: Cadastro, entrada, saída e token anti-CSRF
+  - name: perfil
+    description: Perfil, preferências, senha e exclusão da conta
+  - name: saude
+    description: Verificações de saúde (fora de /api; não encaminhadas pelo proxy)
+paths:
+  /api/v1/auth/csrf:
+    get:
+      tags: [autenticacao]
+      operationId: obterTokenCsrf
+      summary: Emite o token anti-CSRF no cookie __Host-csrf
+      description: |
+        Ligado à sessão atual ou, sem sessão, a um identificador pré-sessão. O cliente
+        chama esta rota ao carregar a aplicação e de novo quando recebe `403 csrf_invalido`.
+      responses:
+        '204':
+          description: Token emitido
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetCookieCsrf'
+  /api/v1/auth/cadastro:
+    post:
+      tags: [autenticacao]
+      operationId: cadastrar
+      summary: Cria a conta de estudante e inicia a sessão (US1, RF-001 a RF-003, RF-009, RF-012)
+      security:
+        - csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CadastroEntrada'
+            example:
+              nome: Estudante Exemplo
+              email: estudante@exemplo.com
+              senha: uma frase longa e incomum
+              fuso: America/Recife
+      responses:
+        '201':
+          description: Conta criada com papel estudante, preferências padrão e sessão iniciada
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetCookieSessao'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '409':
+          description: E-mail já em uso (D-005); nenhuma conta é criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: email_em_uso
+                mensagem: Este e-mail já está em uso.
+                campos:
+                  - campo: email
+                    mensagem: Este e-mail já está em uso.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '429':
+          $ref: '#/components/responses/MuitasTentativas'
+  /api/v1/auth/entrada:
+    post:
+      tags: [autenticacao]
+      operationId: entrar
+      summary: Inicia uma sessão com e-mail e senha (US1, RF-004, RF-005)
+      security:
+        - csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntradaEntrada'
+      responses:
+        '200':
+          description: Sessão iniciada com novo identificador
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetCookieSessao'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          description: E-mail inexistente ou senha errada, com a mesma resposta nos dois casos (RF-004)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: credenciais_invalidas
+                mensagem: E-mail ou senha incorretos.
+                idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '429':
+          $ref: '#/components/responses/MuitasTentativas'
+  /api/v1/auth/saida:
+    post:
+      tags: [autenticacao]
+      operationId: sair
+      summary: Encerra a sessão no servidor (US1, RF-006)
+      description: Idempotente. Sem sessão válida, apenas apaga os cookies e responde 204.
+      security:
+        - sessao: []
+          csrf: []
+      responses:
+        '204':
+          description: Sessão revogada e cookies apagados
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+  /api/v1/perfil:
+    get:
+      tags: [perfil]
+      operationId: obterPerfil
+      summary: Consulta o perfil e as preferências do estudante autenticado (US3, RF-008)
+      description: Também é usada pelo frontend para saber se há sessão válida.
+      security:
+        - sessao: []
+      responses:
+        '200':
+          description: Perfil atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+    patch:
+      tags: [perfil]
+      operationId: alterarPerfil
+      summary: Altera nome, fuso e preferências (US3, RF-008, RF-010)
+      description: |
+        Alteração parcial e tudo ou nada: se algum campo é inválido, nada muda. Uma nova
+        retenção desejada cria uma nova versão dos parâmetros de agendamento (RF-010).
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerfilAlteracao'
+            example:
+              fuso: America/Manaus
+              retencaoDesejada: 0.92
+      responses:
+        '200':
+          description: Perfil depois da alteração
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+  /api/v1/perfil/senha:
+    post:
+      tags: [perfil]
+      operationId: trocarSenha
+      summary: Troca a senha e encerra as outras sessões (US4, RF-014)
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrocaSenhaEntrada'
+      responses:
+        '204':
+          description: Senha trocada; só a sessão atual continua válida
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '422':
+          description: |
+            Senha atual incorreta (`senha_atual_incorreta`, conta para o limite de tentativas)
+            ou nova senha inválida (`dados_invalidos`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '429':
+          $ref: '#/components/responses/MuitasTentativas'
+  /api/v1/perfil/exclusao:
+    post:
+      tags: [perfil]
+      operationId: excluirConta
+      summary: Exclui definitivamente a conta e todos os dados (US4, RF-015)
+      description: |
+        Apaga numa transação todas as linhas da conta e enfileira a remoção dos arquivos
+        (DTEC 021). Pedidos repetidos têm um único efeito: o segundo recebe 401.
+      security:
+        - sessao: []
+          csrf: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExclusaoContaEntrada'
+      responses:
+        '204':
+          description: Conta excluída, sessões encerradas e cookies apagados
+        '400':
+          $ref: '#/components/responses/RequisicaoMalformada'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/ProtecaoCsrf'
+        '422':
+          description: Senha atual incorreta (`senha_atual_incorreta`); nada é apagado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '429':
+          $ref: '#/components/responses/MuitasTentativas'
+  /health:
+    get:
+      tags: [saude]
+      operationId: verificarProcesso
+      summary: O processo da API está vivo
+      security: []
+      responses:
+        '200':
+          description: Processo vivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saude'
+  /health/ready:
+    get:
+      tags: [saude]
+      operationId: verificarProntidao
+      summary: Banco e fila acessíveis
+      security: []
+      responses:
+        '200':
+          description: Pronto para receber requisições
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saude'
+        '503':
+          description: Banco ou fila indisponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saude'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Mesmo valor do cookie __Host-csrf (double submit assinado, DTEC 023)
+  headers:
+    SetCookieSessao:
+      description: '`__Host-sessao=<identificador>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`, mais um novo `__Host-csrf` ligado à nova sessão'
+      schema:
+        type: string
+    SetCookieCsrf:
+      description: '`__Host-csrf=<token>; Path=/; Secure; SameSite=Lax` (legível pelo JavaScript)'
+      schema:
+        type: string
+  responses:
+    RequisicaoMalformada:
+      description: Corpo que não é JSON válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: requisicao_malformada
+            mensagem: A requisição não pôde ser lida.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    DadosInvalidos:
+      description: Um ou mais campos fora das regras; os erros vêm por campo e nada é alterado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: dados_invalidos
+            mensagem: Alguns campos precisam de correção.
+            campos:
+              - campo: senha
+                mensagem: Esta senha é muito comum. Escolha outra.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    NaoAutenticado:
+      description: Sem sessão válida (ausente, revogada ou expirada); os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: nao_autenticado
+            mensagem: Sua sessão terminou. Entre novamente.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+    ProtecaoCsrf:
+      description: Token anti-CSRF ausente ou inválido (`csrf_invalido`) ou origem não permitida (`origem_nao_permitida`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    MuitasTentativas:
+      description: Limite de tentativas atingido (RQ-003); vale mesmo com a senha correta
+      headers:
+        Retry-After:
+          description: Segundos até poder tentar de novo
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            codigo: muitas_tentativas
+            mensagem: Muitas tentativas. Tente de novo em alguns minutos.
+            idRequisicao: 2b1f6f0e-3c8a-4d2e-9f61-7a0c5d9b8e14
+  schemas:
+    CadastroEntrada:
+      type: object
+      additionalProperties: false
+      required: [nome, email, senha]
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Sem espaços nas extremidades depois da normalização
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Comparado sem diferenciar maiúsculas e minúsculas
+        senha:
+          type: string
+          minLength: 8
+          maxLength: 128
+          writeOnly: true
+          description: Recusada se constar na lista de senhas comuns ou só tiver espaços (RF-002)
+        fuso:
+          type: [string, 'null']
+          maxLength: 64
+          description: Fuso detectado no navegador; nome IANA inválido ou ausente vira America/Sao_Paulo (RF-009)
+    EntradaEntrada:
+      type: object
+      additionalProperties: false
+      required: [email, senha]
+      properties:
+        email:
+          type: string
+          maxLength: 254
+        senha:
+          type: string
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    PerfilAlteracao:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      description: Somente os campos enviados são alterados
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 100
+        fuso:
+          type: string
+          maxLength: 64
+          description: Nome IANA válido; inválido gera 422
+        metaDiaria:
+          type: integer
+          minimum: 1
+          maximum: 200
+        tamanhoLicao:
+          type: integer
+          minimum: 5
+          maximum: 50
+        limiteNovosDia:
+          type: integer
+          minimum: 0
+          maximum: 100
+        retencaoDesejada:
+          type: number
+          minimum: 0.7
+          maximum: 0.97
+          multipleOf: 0.01
+    TrocaSenhaEntrada:
+      type: object
+      additionalProperties: false
+      required: [senhaAtual, novaSenha]
+      properties:
+        senhaAtual:
+          type: string
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+        novaSenha:
+          type: string
+          minLength: 8
+          maxLength: 128
+          writeOnly: true
+    ExclusaoContaEntrada:
+      type: object
+      additionalProperties: false
+      required: [senhaAtual]
+      properties:
+        senhaAtual:
+          type: string
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    Perfil:
+      type: object
+      required:
+        - nome
+        - email
+        - papel
+        - fuso
+        - metaDiaria
+        - tamanhoLicao
+        - limiteNovosDia
+        - retencaoDesejada
+        - criadoEm
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        papel:
+          type: string
+          enum: [estudante, admin]
+        fuso:
+          type: string
+          example: America/Sao_Paulo
+        metaDiaria:
+          type: integer
+          example: 20
+        tamanhoLicao:
+          type: integer
+          example: 10
+        limiteNovosDia:
+          type: integer
+          example: 20
+        retencaoDesejada:
+          type: number
+          example: 0.9
+          description: Da versão vigente dos parâmetros de agendamento
+        criadoEm:
+          type: string
+          format: date-time
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+          description: Estável e legível por máquina; as próximas specs acrescentam códigos
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+          description: Mesmo valor do cabeçalho X-Request-ID e dos logs
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+          description: Nome do campo em camelCase, como no corpo enviado
+        mensagem:
+          type: string
+    Saude:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          type: string
+          enum: [ok, indisponivel]
+        verificacoes:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [ok, falhou]
+security:
+  - sessao: []
