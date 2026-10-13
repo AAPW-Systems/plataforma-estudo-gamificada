@@ -27,7 +27,7 @@ Preencha no `.env` apenas as credenciais do ambiente local:
 - `SEGREDO_APLICACAO`: no mínimo 32 bytes aleatórios. Para gerar um, rode:
 
   ```bash
-  docker run --rm python:3.14-slim python -c "import secrets; print(secrets.token_urlsafe(48))"
+  docker run --rm python:3.13-slim python -c "import secrets; print(secrets.token_urlsafe(48))"
   ```
 
 Nunca faça commit do `.env` (ele está no `.gitignore`).

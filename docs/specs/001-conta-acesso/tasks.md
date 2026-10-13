@@ -3,7 +3,7 @@
 **Funcionalidade:** 001-conta-acesso (conta, sessão, isolamento e preferências)  
 **Entrada:** [spec](spec.md), [plano](plan.md) (aprovado em 12/10/2026), [pesquisa](research.md), [modelo de dados](data-model.md), [contrato](contracts/openapi.yaml) e [quickstart](quickstart.md)  
 **Formato:** `[ID] [P?] [US?] ação com caminho exato e resultado verificável`  
-**Status:** em revisão (portão "Tarefas aprovadas", junto com a [rastreabilidade](traceability.md))
+**Status:** aprovadas em 13/10/2026 por Artur Lins (equipe), junto com a [rastreabilidade](traceability.md), com o Python 3.13 no lugar do 3.14
 
 - `[P]` indica que a tarefa pode ser executada em paralelo, porque não altera os mesmos arquivos nem depende de outra tarefa pendente.
 - `[US1]` relaciona a tarefa a uma história de usuário.
@@ -15,12 +15,12 @@
 ## Fase 1 Preparação (estrutura base do repositório)
 
 - [ ] T001 Criar `.editorconfig` e `.gitattributes` (UTF-8, LF) na raiz e ampliar o `.gitignore` (`.venv/`, `__pycache__/`, `node_modules/`, `dist/`, `coverage/`, `.pytest_cache/`, `.mypy_cache/`, `dados/`).
-- [ ] T002 [P] Criar o projeto do backend com o uv em `backend/pyproject.toml`, `backend/.python-version` (3.14) e `backend/uv.lock`, com as dependências do plano em versões fixas. A configuração inclui:
+- [ ] T002 [P] Criar o projeto do backend com o uv em `backend/pyproject.toml`, `backend/.python-version` (3.13) e `backend/uv.lock`, com as dependências do plano em versões fixas. A configuração inclui:
   - Ruff: formatação e regras `E`, `F`, `I`, `B`, `S`, `UP`, `ASYNC`.
   - `mypy --strict`.
   - pytest com `--strict-markers` e os marcadores `unit`, `integration`, `functional`, `security` e `adversarial`, e `asyncio_mode=auto`.
 
-  **Verificação:** `uv sync --locked` instala tudo em Python 3.14. Se faltar algum *wheel*, a tarefa para e abre a DTEC de recuo para 3.13 (risco do plano).
+  **Verificação:** `uv sync --locked` instala tudo em Python 3.13.
 - [ ] T003 [P] Criar o projeto do frontend:
   - **Pacote:** `frontend/package.json` (`engines.node` 24, scripts `dev`, `build`, `test`, `lint`, `typecheck`, `format`, `gerar:api`), `package-lock.json` e `.nvmrc`.
   - **Configuração:** `tsconfig.json` em modo *strict*, `eslint.config.js` (`typescript-eslint` com as regras *strict type-checked*, `react-hooks`, `jsx-a11y`), `.prettierrc`, `vite.config.ts` (proxy de `/api` para `api:8000` e plugin do TanStack Router) e `vitest.config.ts` (jsdom, setup do MSW).

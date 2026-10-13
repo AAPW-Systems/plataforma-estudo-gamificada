@@ -45,7 +45,7 @@ Cada spec pertence a um único estágio. Os incrementos do final acadêmico de u
 
 | Pasta | Funcionalidade | Status |
 |---|---|---|
-| [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Plano aprovado |
+| [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Tarefas aprovadas |
 | [002-materias-fontes](002-materias-fontes/README.md) | F-02 e F-03: matérias, envio e processamento de fontes | Spec aprovada |
 | [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Spec aprovada |
 | [004-geracao-cartoes](004-geracao-cartoes/README.md) | F-04: geração por IA, revisão dos gerados, "Gerar mais" (EX-02, EX-03) | Spec aprovada |

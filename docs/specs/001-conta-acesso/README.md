@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-01 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Plano aprovado (tarefas em revisão) |
+| Status | Tarefas aprovadas |
 | Depende de | — |
 
 ## Ordem de leitura
@@ -17,8 +17,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da API.
 7. [`quickstart.md`](quickstart.md): validação local.
 
-8. [`tasks.md`](tasks.md): tarefas T001 a T065, por história. Em revisão (portão "Tarefas aprovadas").
-9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Em revisão, junto com as tarefas.
+8. [`tasks.md`](tasks.md): tarefas T001 a T065, por história. Aprovadas em 13/10/2026.
+9. [`traceability.md`](traceability.md): requisito ↔ cenário ↔ teste ↔ tarefa e análise de consistência. Aprovada em 13/10/2026, junto com as tarefas.
 
 ## Histórico
 
@@ -31,3 +31,4 @@
 | 12/10/2026 | Plano, pesquisa, modelo de dados, contrato e quickstart escritos; decisões técnicas alinhadas em rodadas com Artur Lins ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
 | 12/10/2026 | Plano aprovado por Artur Lins, com a emenda da DTEC 002 e as DTEC 015 a 023 ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
 | 12/10/2026 | Tarefas (T001 a T065) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
+| 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins, com o Python 3.13 no lugar do 3.14; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |

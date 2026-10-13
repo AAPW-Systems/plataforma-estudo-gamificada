@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 001-conta-acesso (conta, sessão, isolamento e preferências)  
 **Data:** 12/10/2026 ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md))  
-**Status:** em revisão (portão "Tarefas aprovadas")
+**Status:** aprovada em 13/10/2026 por Artur Lins (equipe)
 
 Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo comportamento. Os nomes de teste são planejados e passam a ser links quando a implementação existir (T065). Os caminhos de teste são relativos a `backend/tests/`, salvo os do frontend.
 

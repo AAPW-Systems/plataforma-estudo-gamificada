@@ -16,7 +16,7 @@ A conta é implementada no domínio `identidade` de um backend FastAPI, organiza
 
 ## Contexto técnico
 
-- **Linguagem e versão:** Python 3.14 (backend), gerenciado pelo uv. TypeScript em modo *strict* sobre Node 24 LTS com npm (frontend). As versões ficam fixadas em `backend/.python-version`, `frontend/.nvmrc`, no campo `engines` do `package.json` e nas imagens base com *digest*.
+- **Linguagem e versão:** Python 3.13 (backend), gerenciado pelo uv. A versão foi alterada de 3.14 para 3.13 em 13/10/2026 por Artur Lins, na aprovação das tarefas, por maturidade do ecossistema de *wheels*. TypeScript em modo *strict* sobre Node 24 LTS com npm (frontend). As versões ficam fixadas em `backend/.python-version`, `frontend/.nvmrc`, no campo `engines` do `package.json` e nas imagens base com *digest*.
 - **Dependências principais do backend:** FastAPI, Uvicorn, Pydantic e pydantic-settings, SQLAlchemy 2 (assíncrono) com psycopg 3 (`psycopg[binary,pool]`), Alembic, Procrastinate, `argon2-cffi`, `email-validator`, `tzdata`, `fsrs` (DTEC 012) e structlog. As versões exatas são fixadas no `uv.lock` na tarefa de estrutura.
 - **Dependências principais do frontend:** React, Vite, Tailwind CSS, TanStack Router (com o plugin do Vite), TanStack Query, `openapi-fetch` e `openapi-typescript`, React Aria Components, React Hook Form e Zod. Versões fixadas no `package-lock.json`.
 - **Persistência:** PostgreSQL na imagem `pgvector/pgvector` (DTEC 005), com as tabelas `usuarios`, `sessoes`, `parametros_fsrs` e `tentativas_acesso` ([modelo de dados](data-model.md)) e o esquema do Procrastinate.
@@ -107,7 +107,7 @@ Na 001, a interface de armazenamento tem só o adaptador em memória (testes) e 
 ├── backend/
 │   ├── Dockerfile               # multi-stage: base -> dev -> prod
 │   ├── .dockerignore
-│   ├── .python-version          # 3.14
+│   ├── .python-version          # 3.13
 │   ├── pyproject.toml           # dependências, Ruff, mypy, pytest (marcadores)
 │   ├── uv.lock
 │   ├── alembic.ini
@@ -359,7 +359,7 @@ A aplicação valida todas as variáveis ao iniciar (pydantic-settings) e **não
 | Enumeração de contas por tempo de resposta | Viola CS-003 | Hash fictício para e-mail inexistente; bloqueio pela chave do e-mail | Teste estatístico de tempo; teste de corpo idêntico |
 | Força bruta distribuída | Senhas fracas comprometidas | Limites por conta e por IP, lista de senhas comuns, Argon2id | Testes `security/` de limites |
 | Pico de memória do Argon2 na VPS | Falta de memória sob rajada | Semáforo de 4 cálculos (256 MiB no máximo) | Teste de carga simples no ensaio de deploy |
-| Python 3.14 sem *wheel* de alguma dependência | Construção da imagem falha | Verificar na tarefa de estrutura; recuar para 3.13 por DTEC se preciso | Construção da imagem na integração contínua |
+| Dependência sem *wheel* para Python 3.13 | Construção da imagem falha | Risco baixo: 3.13 é a versão adotada justamente pela maturidade do ecossistema (decisão de 13/10/2026) | Construção da imagem na integração contínua |
 | Cookie `__Host-` em `http://localhost` em algum navegador | Sessão não persiste em desenvolvimento | Nome configurável por ambiente | Verificação do quickstart nos navegadores da equipe |
 | `X-Forwarded-For` forjado | Limite por IP contornado | Só aceito de proxies confiáveis | Teste adversarial com cabeçalho forjado |
 | Domínio novo esquecido no registro de exclusão | Dados remanescentes (viola CS-004) | Teste pelo catálogo do PostgreSQL | Teste de exclusão com todas as tabelas com `usuario_id` |
