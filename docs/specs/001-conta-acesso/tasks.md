@@ -78,7 +78,7 @@
   - **Migração** `backend/migracoes/versions/0002_identidade.py`: enums, as quatro tabelas, os `CHECK` de D-001, os índices (inclusive `lower(email)`), PK `generated always as identity` e `public_id` com `gen_random_uuid()`.
 
   **Verificação:** `tests/integration/test_migracoes.py` sobe e desce as migrações.
-- [ ] T022 Implementar `app/principal.py` (`criar_aplicacao`, *middlewares*, *handlers* e Swagger só em desenvolvimento), `app/saude/rotas.py` (`/health` e `/health/ready`) e `app/exportar_openapi.py`. Teste em `tests/integration/test_saude.py`: com o banco indisponível, `/health/ready` responde `503`.
+- [x] T022 Implementar `app/principal.py` (`criar_aplicacao`, *middlewares*, *handlers* e Swagger só em desenvolvimento), `app/saude/rotas.py` (`/health` e `/health/ready`) e `app/exportar_openapi.py`. Teste em `tests/integration/test_saude.py`: com o banco indisponível, `/health/ready` responde `503`.
 - [ ] T023 [P] Criar o teste de arquitetura em `tests/arquitetura/test_camadas.py`, com as importações proibidas da tabela "Camadas do backend" do plano (DTEC 018).
 
 ### Base do frontend

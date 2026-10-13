@@ -40,6 +40,8 @@ O registro docs/prompts/2026-10-13-001-conta-acesso-implementacao.md já traz as
 | `backend/migracoes/versions/0002_identidade.py` | Migração criada, com ID `0002`, seguindo o ID `0001` existente |
 | `backend/tests/integration/test_migracoes.py` | 13 casos: sobe/desce, identity, limites, unicidade e equivalência ORM/esquema |
 | `docs/specs/001-conta-acesso/tasks.md` | T021 marcada após execução |
+| `backend/src/app/principal.py`, `saude/`, `exportar_openapi.py`, `backend/openapi.json` | Aplicação, saúde e exportação do contrato (T022) |
+| `backend/tests/conftest.py`, `tests/integration/test_saude.py` | Cliente HTTPS com cookies/CSRF e seis testes da T022 |
 
 ## Alterações humanas
 
@@ -52,6 +54,8 @@ Pendente de revisão.
 - Docker inicialmente sem daemon; inicialização do Docker Desktop solicitada.
 - Docker Desktop iniciado; `.env` local ignorado criado com valores aleatórios, sem exibição; `docker compose up -d --wait db` passou.
 - T021: suíte completa no contêiner: **201 passed** (8,07 s); Ruff completo passou.
+- T021: mypy passou (47 arquivos).
+- T022: teste antes do código falhou pela ausência de `app.principal`; após implementar, suíte completa **207 passed** (8,86 s), mypy passou (54 arquivos), exportação OpenAPI executada.
 - Primeira execução identificou o vínculo incorreto ao nome do arquivo da revisão anterior; corrigido para o ID real `0001` e repetida a suíte com sucesso.
 - A migração cria apenas o valor `padrao` de `origem_parametros_fsrs`; `otimizado` fica fora do MVP conforme o plano. Modelos importam a Base compartilhada e tipos da biblioteca padrão: exceção estrutural necessária à tabela de camadas, sem importar comportamento de domínio.
 

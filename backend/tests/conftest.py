@@ -11,10 +11,12 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
 
+import httpx
 import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi import FastAPI
 from psycopg import sql
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, async_sessionmaker
@@ -119,3 +121,31 @@ def relogio() -> RelogioControlavel:
 @pytest.fixture(scope="session")
 def segredo_teste() -> str:
     return SEGREDO_TESTE
+
+
+@pytest.fixture
+async def aplicacao(
+    configuracao: Configuracao, fabrica_sessoes: FabricaSessoes, relogio: RelogioControlavel
+) -> AsyncIterator[FastAPI]:
+    from app.principal import criar_aplicacao
+
+    app = criar_aplicacao(configuracao, fabrica_sessoes=fabrica_sessoes, relogio=relogio)
+    async with app.router.lifespan_context(app):
+        yield app
+
+
+@pytest.fixture
+async def cliente(aplicacao: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
+    async def enviar_csrf(request: httpx.Request) -> None:
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            token = cliente_http.cookies.get(aplicacao.state.configuracao.cookie_csrf_nome)
+            if token is not None and "X-CSRF-Token" not in request.headers:
+                request.headers["X-CSRF-Token"] = token
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=aplicacao),
+        base_url="https://teste",
+        headers={"Origin": "https://teste", "Sec-Fetch-Site": "same-origin"},
+        event_hooks={"request": [enviar_csrf]},
+    ) as cliente_http:
+        yield cliente_http
