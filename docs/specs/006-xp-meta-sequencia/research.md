@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 006-xp-meta-sequencia (XP, meta diária e sequência)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-006-xp-meta-sequencia-plano.md))  
-**Status:** DTEC 058 a 063 propostas em 13/10/2026; aprovação com o plano
+**Status:** DTEC 058 a 063 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra só as dúvidas técnicas **novas** da spec 006. As decisões já tomadas não são reabertas:
 
@@ -10,7 +10,7 @@ Este arquivo registra só as dúvidas técnicas **novas** da spec 006. As decis�
 - da [spec 001](../001-conta-acesso/research.md): isolamento (DTEC 019) e exclusão da conta (DTEC 021);
 - da [spec 005](../005-licao-trilha/research.md): elegibilidade (DTEC 051), avaliação idempotente (DTEC 052), dominado e evento `RevisaoRegistrada` (DTEC 055) e trilha (DTEC 056).
 
-Vale também a DTEC transversal proposta neste planejamento: disponibilidade de cartões e ganchos de alteração no núcleo ([DTEC 057](../../research.md#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo)). A numeração das DTEC é única no projeto.
+Vale também a DTEC transversal aprovada neste planejamento: disponibilidade de cartões e ganchos de alteração no núcleo ([DTEC 057](../../research.md#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo)). A numeração das DTEC é única no projeto.
 
 | Decisão | Título |
 |---|---|

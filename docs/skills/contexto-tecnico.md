@@ -2,7 +2,7 @@
 
 Resumo das decisões e convenções já aprovadas, para que um agente comece uma spec nova sem ler todos os planos e `research.md` anteriores. **Este guia não decide nada.** Ele aponta para a fonte, e em caso de divergência a fonte prevalece: a DTEC, o plano aprovado ou o esquema.
 
-**Atualizado em:** 13/10/2026, até o plano da spec 005 ([registro](../prompts/2026-10-13-005-licao-trilha-plano.md)).
+**Atualizado em:** 13/10/2026, até o plano da spec 006 ([registro](../prompts/2026-10-13-006-xp-meta-sequencia-plano.md)).
 
 ## Como usar
 
@@ -20,8 +20,9 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Tarefas aprovadas | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
 | [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
+| [006](../specs/006-xp-meta-sequencia/plan.md) XP, meta e sequência | Plano aprovado | `0007_gamificacao` | `gamificacao`; `nucleo/disponibilidade.py`; provedor em `revisao/disponibilidade.py` |
 
-A próxima migração é a `0007`. Nenhum código foi implementado ainda: a decisão de 13/10/2026 é documentar todas as specs do MVP antes de implementar.
+A próxima migração é a `0008`. Nenhum código foi implementado ainda: a decisão de 13/10/2026 é documentar todas as specs do MVP antes de implementar.
 
 ## Convenções da API
 
@@ -40,7 +41,7 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
 - **Leituras:** `Cache-Control: no-store`. Corpo limitado a 64 KiB, salvo o envio de fonte. Entrada com `extra="forbid"`.
 - **Paginação (DTEC 034):** cursor opaco *keyset*, resposta `{itens, proximoCursor, total}`, `limite` padrão 50 (de 1 a 100) e `422 cursor_invalido`.
 - **Acompanhamento (DTEC 026):** *polling* de 2 s só enquanto houver item `pendente` ou `processando`, com anúncio por `aria-live`.
-- **Contrato:** cada spec tem `contracts/openapi.yaml`, validado com `openapi-spec-validator`. Um teste verifica que o OpenAPI gerado (`backend/openapi.json`, versionado) contém o de cada spec, e o frontend gera os tipos com `npm run gerar:api`.
+- **Contrato:** cada spec tem `contracts/openapi.yaml`, validado com `openapi-spec-validator`. Uma spec que só acrescenta campos às respostas de outra redefine os caminhos afetados como superconjunto do contrato anterior, com teste que compara os dois (DTEC 063). Um teste verifica que o OpenAPI gerado (`backend/openapi.json`, versionado) contém o de cada spec, e o frontend gera os tipos com `npm run gerar:api`.
 
 **Códigos de `Erro` já usados:**
 
@@ -49,6 +50,7 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
 - **003:** `cursor_invalido`.
 - **004:** `ciencia_aviso_pendente`, `aviso_desatualizado`, `fonte_nao_concluida`, `idempotencia_divergente`, `sem_conteudo_novo`, `limite_geracoes_excedido`, `orcamento_ia_esgotado`, `cartao_ja_decidido`.
 - **005:** `sem_cartoes_disponiveis`, `licao_encerrada`, `revelacao_pendente`, `apresentacao_ja_avaliada`, `cartao_indisponivel`, `limite_novos_atingido` (todos `409`).
+- **006:** nenhum código novo (a 006 não cria rotas; acrescenta campos às respostas da 005).
 
 ## Banco de dados
 
@@ -59,7 +61,7 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
   - `ALTER TYPE ... ADD VALUE` vai num `autocommit_block`, antes de qualquer uso do valor novo.
 - **Instantes e dias:** `timestamptz` em UTC. O **dia de estudo** vira às 4h no fuso do estudante (`usuarios.fuso`, RN-15), calculado só por `nucleo/dia_estudo.py` (`dia_estudo`, `inicio_dia`, `proxima_virada`; DTEC 048), usado pela 004, pela 005 e pela 006. O SQL recebe os limites já calculados.
 - **Dono:** FKs compostas `(materia_id, usuario_id)` e, para fonte, `(fonte_id, materia_id, usuario_id)` garantem o mesmo dono e a mesma matéria no banco. Desde a 005, `cartoes` e `licoes` têm índice único `(id, usuario_id)` como alvo de FKs compostas.
-- **Exclusão:** física (RN-14). Quando uma spec cria FK de **histórico** para `cartoes`, `revisoes` ou `eventos_xp`, usa `on delete set null` para preservar o histórico (obrigação da 003); com FK composta, `ON DELETE SET NULL (coluna)`. Exceção registrada na 005: `licoes_cartoes` e `apresentacoes` (plano da sessão, não histórico) usam `cascade`.
+- **Exclusão:** física (RN-14). Quando uma spec cria FK de **histórico** para `cartoes`, `revisoes` ou `eventos_xp`, usa `on delete set null` para preservar o histórico (obrigação da 003); com FK composta, `ON DELETE SET NULL (coluna)`. Exceção registrada na 005: `licoes_cartoes` e `apresentacoes` (plano da sessão, não histórico) usam `cascade`. Na 006, `eventos_xp.cartao_id` usa `ON DELETE SET NULL (cartao_id)`, e `revisoes` ganhou o índice único `(id, usuario_id)` como alvo de FK composta.
 - **Extensões:** `unaccent` (003). `vector` só no final acadêmico.
 
 ## Backend
@@ -77,13 +79,16 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
   - `exclusao.py` (`apagar_dados_usuario` por domínio, DTEC 021);
   - `participantes_acervo.py` (DTEC 027);
   - `isolamento.py` (`executar_isolado`, DTEC 024);
-  - `armazenamento/` (DTEC 010 e 025).
+  - `armazenamento/` (DTEC 010 e 025);
+  - `disponibilidade.py` (DTEC 057): provedor de disponibilidade registrado por `revisao` e ganchos `antes_de_alterar` e `depois_de_alterar`, cujos ouvintes são da `gamificacao`.
 - **Sentido das dependências:**
   - `cartoes` → `fontes` → `materias`;
   - `cartoes/geracao` → `ia`;
   - `revisao` → `cartoes` (`consultas.py` e `agendamento.py`), `materias` (`consultas.py`) e `identidade`;
   - `materias`, `fontes` e `identidade` não importam `cartoes`, e nenhum domínio importa `revisao` (a 006 se liga pelo evento do núcleo);
-  - `ia` não importa domínio de negócio.
+  - `ia` não importa domínio de negócio;
+  - `revisao` → `gamificacao` (`consultas.py`, só para compor as respostas); `gamificacao` não importa `revisao`, `cartoes` nem `materias` e recebe a disponibilidade pelo provedor do núcleo (DTEC 057);
+  - `cartoes` (suspender, reativar, excluir e participante) e `identidade` (`PATCH /perfil` com meta, limite de novos ou fuso) chamam os ganchos da DTEC 057 na própria transação, antes e depois da escrita.
 
   Os efeitos cruzados (contagens e exclusão) passam pelos registros do núcleo.
 - **Tarefas assíncronas (DTEC 030 e 043):**
@@ -120,6 +125,14 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
   - **Revisões:** imutáveis, com estado antes e depois, versão dos parâmetros, semente, `versao_regras`, `primeira_do_dia` e `tornou_dominado`; publicam `RevisaoRegistrada` em `nucleo/eventos_revisao.py`, na mesma transação.
   - **Dominado:** `LIMIAR_DOMINADO_DIAS = 21` em `revisao/regras.py` (versionado); `dominado_em` preenchido uma vez.
   - **Trilha:** `numero` atribuído na conclusão; `GET /trilha` com cursor, estado do nó atual e próximo vencimento.
+- **Gamificação (DTEC 057 a 063):**
+  - **Valores de XP:** `gamificacao/regras.py` com histórico imutável (`PUBLICADAS = {1: RegraXp(1, 10, 25)}`); `eventos_xp.versao_regra smallint`; o limiar de dominado continua só em `revisao/regras.py`; um teste de referência fixa as versões publicadas.
+  - **XP:** ouvinte de `RevisaoRegistrada` grava `revisao` (com `primeira_do_dia`) e `cartao_dominado` (com `tornou_dominado`) por `INSERT` simples, com índice único `(revisao_id, tipo)`, e incrementa `usuarios.xp_total` na mesma transação.
+  - **Trava:** toda escrita da gamificação começa com `FOR NO KEY UPDATE` na linha do estudante em `usuarios`, sempre depois das travas de quem chama (nenhum caminho trava cartão depois dela).
+  - **Meta:** linha do dia em `dias_estudo` (`pendente` → `estudado`, definitivo) com meta efetiva `min(meta_diaria, revisados + restantes)`; restantes pelo provedor.
+  - **Sequência:** liquidação preguiçosa e exata dos dias passados (`liquidar`, função pura) na próxima escrita da gamificação, com `usuarios.dias_liquidados_ate`; leituras calculam sem gravar; datas liquidadas materializadas (`estudado`, `nao_estudado`, `neutro`) e imutáveis; sem tarefa periódica.
+  - **Fuso:** data pulada (que nunca foi o dia corrente) vira `neutro` com `data_pulada`; data repetida reaproveita a linha.
+  - **Exibição:** `ResumoGamificacao` aditivo em `Trilha`, `Fechamento` e `ResultadoAvaliacao`, mais `xpGanho`, `metaCumpridaAgora` e `depoisDaMeta`.
 
 ## Frontend
 
@@ -133,6 +146,7 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
 - **Componentes já previstos:** `DialogoConfirmacao` (destrutivo), `ZonaArquivo`, `GrupoOpcoes`, `SeloEstado`, `CampoTextoLongo`, `SeloOrigem`, `PainelEvidencia`, `CitacaoDestacada` e `AtalhoTeclado`.
 - **Trilha do MVP:** caminho vertical contínuo (D-008 da 005); a do final acadêmico está em discussão (QA-34).
 - **Lição:** rota única `/licao`, que chama `POST /licoes` ao carregar; atalhos Espaço ou Enter (revelar), 1 a 4 (notas) e Enter depois da explicação; medida `transicao-cartao` com `performance.mark` (CS-004 da 005).
+- **Gamificação (006):** `PainelProgresso` e `AnuncioGamificacao` em `funcionalidades/gamificacao/`; uma região `aria-live="polite"` por página; valores só da resposta do servidor (sem atualização otimista); sem som; animação só sem `prefers-reduced-motion`.
 - **Acessibilidade:** WCAG 2.2 AA, `vitest-axe` em todo componente, uso a partir de 320 px.
 
 ## Testes
@@ -218,22 +232,29 @@ A próxima migração é a `0007`. Nenhum código foi implementado ainda: a deci
 | 054 | Próximo cartão (passo curto vencido primeiro), término e transição numa ida e volta | [005](../specs/005-licao-trilha/research.md#decisão-dtec-054-próximo-cartão-término-e-desempenho-da-transição) |
 | 055 | Dominado com regras versionadas; fatos e evento entregues à 006 | [005](../specs/005-licao-trilha/research.md#decisão-dtec-055-dominado-e-fatos-entregues-à-gamificação) |
 | 056 | Trilha: `numero` na conclusão, cursor, estado do nó atual e extras | [005](../specs/005-licao-trilha/research.md#decisão-dtec-056-trilha-numeração-dos-nós-e-lições-extras) |
+| 057 | Disponibilidade de cartões (provedor) e ganchos de alteração no núcleo | [research](../research.md#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo) |
+| 058 | Regra de valores de XP versionada, limiar só na 005 | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-058-regra-de-valores-versionada) |
+| 059 | XP por `INSERT` com índice `(revisao_id, tipo)` e cache `xp_total` | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-059-concessão-de-xp-idempotente-e-cache-do-total) |
+| 060 | Meta efetiva e dia estudado definitivo sob a trava do estudante | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-060-meta-efetiva-e-dia-estudado-sob-concorrência) |
+| 061 | Liquidação preguiçosa e exata dos dias passados; dia neutro e sequência | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-061-liquidação-dos-dias-passados-dia-neutro-e-sequência) |
+| 062 | Mudança de fuso (data pulada neutra, repetida uma vez) e horário de verão | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-062-mudança-de-fuso-e-horário-de-verão) |
+| 063 | `ResumoGamificacao` aditivo nas respostas da 005 e anúncio acessível | [006](../specs/006-xp-meta-sequencia/research.md#decisão-dtec-063-exibição-contrato-aditivo-e-anúncio-acessível) |
 
-A próxima DTEC é a **057**.
+A próxima DTEC é a **064**.
 
 ## Obrigações pendentes entre specs
 
 | Para | Obrigação | Origem |
 |---|---|---|
 | 004 (implementação) | Usar `nucleo/dia_estudo.py` no limite de gerações e no orçamento; quem implementar primeiro (004 ou 005) cria o módulo | [DTEC 048](../research.md#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) |
-| 006 | Registrar o ouvinte de `RevisaoRegistrada` (mesma transação); XP só com `primeira_do_dia` e bônus só com `tornou_dominado`, com regra versionada própria | [Plano da 005](../specs/005-licao-trilha/plan.md#obrigações-registradas-para-as-próximas-specs) |
-| 006 | Criar `eventos_xp.cartao_id` com `on delete set null`; reverificar o XP preservado da US3-3 da 003 | Plano da 003 |
-| 006 | XP e sequência como campos aditivos de `Fechamento` e da trilha; meta e sequência com `nucleo/dia_estudo.py`; "extra depois da meta" é da 006 | Plano da 005 |
 | 007 | Ler `dominado_em`, a estabilidade atual e as revisões por dia pelas consultas de `revisao` e `cartoes` | Plano da 005 |
+| 007 | Ler os dias (com a situação, inclusive os ainda não liquidados) e o XP por dia só por `gamificacao/consultas.py` (`dias_no_intervalo`, `xp_por_dia`); nunca recalcular a sequência nem ler `dias_estudo` direto | [Plano da 006](../specs/006-xp-meta-sequencia/plan.md#obrigações-registradas-para-as-próximas-specs) |
+| Toda spec que altere a situação de cartões, a meta, o limite de novos ou o fuso | Chamar os ganchos `antes_de_alterar` e `depois_de_alterar` da DTEC 057 na própria transação | [DTEC 057](../research.md#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo) |
+| 001, 003 e 005 (implementação) | Não mudam de comportamento: as chamadas aos ganchos, o provedor em `revisao` e os campos aditivos são tarefas da 006; quem implementar primeiro uma spec que precise de `nucleo/disponibilidade.py` cria o módulo com os registros vazios | [Plano da 006](../specs/006-xp-meta-sequencia/plan.md#saídas-do-planejamento) |
 | 010 | Reutilizar janela, cobertura, portões e filtro de repetição; geração com `fonte_id` nulo e publicação em lotes | Plano da 004 |
 | 011 | Criar `chave_imagem`; imagem segue a DTEC 025 (objeto antes das linhas) | Plano da 003 |
-| 012 | Acrescentar o filtro por matéria à elegibilidade (DTEC 051) e rever a unicidade da lição aberta (DTEC 050) | Plano da 005 |
+| 012 | Acrescentar o filtro por matéria à elegibilidade (DTEC 051) e rever a unicidade da lição aberta (DTEC 050); se a disponibilidade for filtrada por matéria, acrescentar o parâmetro ao provedor da DTEC 057, com a meta continuando global | Planos da 005 e da 006 |
 | 014 | Usar `ia/cliente.py` e a ciência da DTEC 039; registrar o participante dos índices e das citações | Planos da 002 e da 004 |
 | 015 | Tira-dúvidas como ação secundária na apresentação, sem alterar a avaliação | Plano da 005 |
 
-As obrigações da 003 e da 004 para a 005 (lição só com `ativo`, ordem de `entrada_estudo_em`, `revisoes.cartao_id` com `set null`, `dominado_em`, escritas disjuntas, explicação ao errar com a evidência e as reverificações da US1-1, US3-1, US3-2 e CS-003 da 003 e da US1-4 da 004) estão no plano da 005 e viram tarefas dela.
+As obrigações da 003 e da 005 para a 006 (ouvinte de `RevisaoRegistrada`, XP só com `primeira_do_dia` e bônus só com `tornou_dominado`, `eventos_xp.cartao_id` com `set null` e a reverificação da US3-3 da 003, campos aditivos, `nucleo/dia_estudo.py` na meta e na sequência, "extra depois da meta") estão no plano da 006 e viram tarefas dela. As obrigações da 003 e da 004 para a 005 (lição só com `ativo`, ordem de `entrada_estudo_em`, `revisoes.cartao_id` com `set null`, `dominado_em`, escritas disjuntas, explicação ao errar com a evidência e as reverificações da US1-1, US3-1, US3-2 e CS-003 da 003 e da US1-4 da 004) estão no plano da 005 e viram tarefas dela.

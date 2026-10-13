@@ -9,7 +9,7 @@
 - Implementação: qualquer pessoa da equipe pode assumir, e registra o nome abaixo antes da primeira tarefa.
   - **Responsável pela implementação:** *a definir no início da implementação*.
 
-**Status:** em revisão, aguardando o portão "Plano aprovado", com a DTEC 057 (transversal) e as DTEC 058 a 063
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com a DTEC 057 (transversal) e as DTEC 058 a 063
 
 Este plano **reaproveita sem redefinir** o que as specs anteriores já definiram (resumo em [`contexto-tecnico.md`](../../skills/contexto-tecnico.md)):
 
@@ -288,4 +288,4 @@ Nenhuma nova. Os valores de XP são regra versionada em código (DTEC 058), e a 
 - **Qualquer spec que altere a situação de cartões, a meta, o limite de novos ou o fuso:** chamar os ganchos da DTEC 057 na própria transação.
 - **Congelamento da sequência (incremento posterior de F-10):** nova situação de dia e regra em `liquidar`, sem mudar as linhas já liquidadas.
 
-O `tasks.md` só é criado depois da aprovação deste plano (portão "Plano aprovado").
+O `tasks.md` foi criado depois da aprovação deste plano (portão "Plano aprovado", 13/10/2026).
