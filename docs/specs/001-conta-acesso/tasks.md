@@ -30,7 +30,7 @@
 - [x] T004 [P] Criar `backend/Dockerfile` multi-stage (`base` com uv, `dev` com recarga, `prod` sem ferramentas de desenvolvimento e com usuário não root) e `backend/.dockerignore`.
 - [x] T005 [P] Criar `frontend/Dockerfile` multi-stage (`deps`, `dev` com o servidor do Vite, `build`, `prod` com os estáticos) e `frontend/.dockerignore`.
 - [ ] T006 Criar o `compose.yaml` com os serviços `db` (`pgvector/pgvector`, volume e *healthcheck*), `migrate` (execução única), `api` e `worker` (que dependem do `migrate` concluído) e `web`, além do `.env.example` com todas as variáveis da tabela do plano, sem valores secretos (regra 9).
-- [ ] T007 [P] Criar `.github/workflows/ci.yml` com as etapas da tabela "Integração contínua e qualidade" do plano, a cada push na `develop` e em todo pull request para a `main` (DTEC 017).
+- [x] T007 [P] Criar `.github/workflows/ci.yml` com as etapas da tabela "Integração contínua e qualidade" do plano, a cada push na `develop` e em todo pull request para a `main` (DTEC 017). **Evidência (13/10/2026):** o CI da `develop` falhava no job `frontend` (`EACCES` em `/app/coverage`, bind mount do runner); corrigido no commit `9b239d6` e a execução 5 passou nos dois jobs ([run](https://github.com/AAPW-Systems/plataforma-estudo-gamificada/actions/runs/38485755245)).
 - [ ] T008 [P] Criar `.pre-commit-config.yaml` com Ruff (lint e formatação), Prettier e ESLint, documentado como opcional.
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
