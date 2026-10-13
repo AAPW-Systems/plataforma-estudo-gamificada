@@ -37,8 +37,9 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 034](#decisão-dtec-034-paginação-das-listagens-por-cursor) | Paginação das listagens por cursor | Aprovada em 13/10/2026 com o plano da 003 |
 | [DTEC 039](#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo) | Aviso e ciência do uso de provedor de IA externo | Aprovada em 13/10/2026 com o plano da 004 |
 | [DTEC 040](#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia) | Consumo, orçamento e limites operacionais da IA | Aprovada em 13/10/2026 com o plano da 004 |
+| [DTEC 048](#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) | Dia de estudo calculado num único ponto | Proposta em 13/10/2026 com o plano da 005; aguarda aprovação |
 
-A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), e as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md), e as da spec 005 (DTEC 049 a 056), no [`research.md` da 005](specs/005-licao-trilha/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -588,6 +589,33 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 
 **Condição para revisão:** uma API paga com custo por *token*, que pediria um orçamento em valor (`custo_estimado`) e um teto global do projeto, além do teto por estudante.
 
+## Decisão DTEC 048 Dia de estudo calculado num único ponto
+
+**Questão:** o dia de estudo vira às 4h no fuso do estudante (RN-15). A 004 já usa essa virada no limite de gerações e no orçamento da IA (DTEC 040 e 044). A 005 a usa na montagem da lição, no limite de novos, no encerramento da lição de dia anterior e em cada revisão, e a 006 vai usá-la na meta e na sequência. Como garantir que todos calculem o mesmo dia, inclusive no horário de verão e na mudança de fuso?  
+**Critérios:**
+
+- um resultado único para o mesmo instante e fuso em todas as specs;
+- correção nas transições de horário de verão (hora repetida ou inexistente);
+- funções puras, testáveis sem banco;
+- nenhuma dependência nova.
+
+**Alternativas consideradas:**
+
+1. **Módulo único no núcleo (`app/nucleo/dia_estudo.py`)** com funções puras sobre `zoneinfo` (biblioteca padrão, com o pacote `tzdata` já previsto na 001): `dia_estudo(instante, fuso)`, `inicio_dia(dia, fuso)` e `proxima_virada(instante, fuso)`.
+2. **Cálculo no SQL** (`(instante AT TIME ZONE fuso - interval '4 hours')::date`): serve para agregações, mas espalharia a regra entre consultas e código Python.
+3. **Cada domínio com sua função:** foi o que o plano da 004 deixou implícito no domínio `ia`. Duplica a regra e permite divergência.
+
+**Decisão:** alternativa 1. O SQL só recebe limites já calculados (`inicio_dia` e `proxima_virada`, em UTC) como parâmetros, e as colunas `dia_estudo` são gravadas pela aplicação.  
+**Justificativa:** uma regra só, coberta por testes de propriedade, reaproveitada por 004, 005 e 006.  
+**Consequências:**
+
+- **Definição:** `dia_estudo(instante, fuso)` é a data local de `instante − 4 h` no fuso; `inicio_dia(dia, fuso)` é o instante UTC das 4h locais daquela data; `proxima_virada(instante, fuso)` é `inicio_dia(dia_estudo(instante, fuso) + 1, fuso)`.
+- **Horário de verão:** 4h local nunca cai na hora inexistente nos fusos brasileiros atuais, mas a função resolve qualquer caso com `fold=0` (a primeira ocorrência de uma hora repetida). Para uma hora inexistente, adota o primeiro instante válido depois dela. Testes com fusos que mudam à meia-noite (`America/Sao_Paulo` em anos com horário de verão e `America/Santiago`) cobrem as duas situações.
+- **Fuso vigente:** vale o `usuarios.fuso` no instante do cálculo (CB-25). Mudar o fuso não reescreve dias já gravados.
+- **Propagação:** a 004 (ainda não implementada) passa a usar este módulo no limite de gerações e no orçamento, sem mudança de comportamento; a 006 o usa na meta e na sequência. Quem implementar primeiro (004 ou 005) cria o módulo e os testes dele.
+
+**Condição para revisão:** virada configurável por estudante, que mudaria a assinatura das funções.
+
 ## Fontes consultadas
 
 - Documentação oficial do pytest (fixtures, parametrização, marcadores e plugins).
@@ -603,3 +631,4 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - Documentação do PostgreSQL 17 (módulo `unaccent`, funções `lower` e `LIKE` com `ESCAPE`, comparação de linhas), consultada em 13/10/2026 para as DTEC 033 e 034.
 - Documentação do PydanticAI (`ai.pydantic.dev`: saída estruturada, `UsageLimits`, `RunUsage`, `FunctionModel` e `TestModel`) e do pydantic-evals, consultada em 13/10/2026 para as DTEC 039, 040 e as da spec 004.
 - Esboço de arquitetura de 12/10/2026, hoje [`arquitetura/referencia-pos-academica.md`](arquitetura/referencia-pos-academica.md).
+- Documentação da biblioteca padrão do Python (`zoneinfo`, atributo `fold` da PEP 495), consultada em 13/10/2026 para a DTEC 048.
