@@ -99,7 +99,7 @@
 **Teste independente:** cadastrar uma conta fictícia, sair, entrar de novo e chegar à área do estudante; entrar com a senha errada e receber a mensagem neutra (passos 1 a 10 da US1 no [quickstart](quickstart.md)).
 
 - [x] T028 [P] [US1] Criar a lista de senhas em `app/identidade/dados/senhas_comuns.txt`: lista NCSC de 100 mil senhas do SecLists, com cabeçalho de origem e licença MIT, mais a lista curta em português (DTEC 022). A lista em português passa pela revisão da equipe no pull request. **Nota (13/10/2026):** o `.gitignore` ignorava `dados/` em qualquer nível e passou a ignorar só `/dados/` na raiz. A revisão da lista em português pela equipe continua pendente (a `develop` recebe commits diretos, sem pull request).
-- [ ] T029 [P] [US1] Criar os testes unitários do domínio em `tests/unit/identidade/test_dominio.py`, com Hypothesis na normalização:
+- [x] T029 [P] [US1] Criar os testes unitários do domínio em `tests/unit/identidade/test_dominio.py`, com Hypothesis na normalização:
   - normalização de nome e e-mail (NFC, extremidades, caixa);
   - nome vazio, só com espaços, com 100 e 101 caracteres, e com caracteres de controle;
   - senha com 7, 8, 128 e 129 caracteres, só com espaços e da lista comum em outra caixa;
@@ -118,7 +118,7 @@
   - Unicode malicioso (RTL, combinação, controle) e e-mail com espaços e caixa mista;
   - `X-Forwarded-For` forjado;
   - cadastro reenviado depois do sucesso (`409`).
-- [ ] T033 [US1] Implementar `app/identidade/preferencias.py` (padrões e limites de D-001), `app/identidade/dominio.py` e `app/identidade/excecoes.py`, até que a T029 passe.
+- [x] T033 [US1] Implementar `app/identidade/preferencias.py` (padrões e limites de D-001), `app/identidade/dominio.py` e `app/identidade/excecoes.py`, até que a T029 passe.
 - [ ] T034 [US1] Implementar os repositórios:
   - `app/identidade/repositorios.py`: usuários, sessões e tentativas com `pg_advisory_xact_lock` e chave HMAC; `IntegrityError` do e-mail vira `Conflito`.
   - `app/revisao/repositorios.py`: criação da versão de `parametros_fsrs`.
