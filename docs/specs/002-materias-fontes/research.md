@@ -163,7 +163,7 @@ falhou (falha_tecnica) ──nova tentativa do estudante──> pendente
   - `POST /fontes/{id}/exclusao` recebe `modoCartoes` (`manter` ou `excluir`) e `impactoConfirmado`.
   - A exclusão trava a fonte (`FOR UPDATE`), recalcula, apaga o objeto (DTEC 025), executa os participantes com o modo escolhido e apaga trechos e fonte, tudo na mesma transação. Resposta `204`.
 - **Matéria:**
-  - `GET /materias/{id}/impacto-exclusao` devolve nome, `fontes`, `cartoesAtivos` e `cartoesAguardandoRevisao`.
+  - `GET /materias/{id}/impacto-exclusao` devolve nome, `fontes`, `cartoesAtivos` e `cartoesAguardandoRevisao`. Desde a emenda de 13/10/2026 da DTEC 027, `cartoesAtivos` é a soma de `cartoes_ativos` e `cartoes_suspensos` dos participantes.
   - `POST /materias/{id}/exclusao` recebe `nomeConfirmacao` e `impactoConfirmado`. O nome é comparado depois de NFC e sem espaços nas extremidades, **diferenciando** maiúsculas e minúsculas, por ser confirmação de ação destrutiva; se não confere, `422 confirmacao_invalida`.
   - A exclusão trava a matéria e as suas fontes (`FOR UPDATE`, em ordem de `id`, para evitar *deadlock*), recalcula e executa os participantes: cartões e gerações primeiro, `fontes` por último (objetos antes das linhas). Depois apaga a matéria. Resposta `204`.
 - **Processamento em andamento:** a exclusão não espera o worker. A transação B do worker encontra a fonte apagada e termina sem gravar nada (CB-16, RF-013). Um job ainda na fila roda e termina sem efeito.

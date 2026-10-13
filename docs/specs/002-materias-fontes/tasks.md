@@ -42,7 +42,7 @@
   - *path traversal* recusado em todas as operações.
 
   Implementar as operações em `app/nucleo/armazenamento/interface.py`, `memoria.py` e `disco.py` (DTEC 010, 021 e 025).
-- [ ] T005 [P] Criar os testes do registro de participantes em `tests/unit/nucleo/test_participantes_acervo.py`: registro, ordem por prioridade, soma de `ContagensAcervo` com campos ausentes valendo zero e chamada na transação recebida. Implementar `app/nucleo/participantes_acervo.py` (DTEC 027) e o participante falso de cartões em `tests/participantes_falsos.py`, que devolve contagens configuráveis e registra cada chamada com o modo.
+- [ ] T005 [P] Criar os testes do registro de participantes em `tests/unit/nucleo/test_participantes_acervo.py`: registro, ordem por prioridade, soma de `ContagensAcervo` com campos ausentes valendo zero, inclusive `cartoes_suspensos` (emenda de 13/10/2026 da DTEC 027) e chamada na transação recebida. Implementar `app/nucleo/participantes_acervo.py` (DTEC 027) e o participante falso de cartões em `tests/participantes_falsos.py`, que devolve contagens configuráveis e registra cada chamada com o modo.
 - [ ] T006 [P] Acrescentar `ConteudoMuitoGrande` (413) a `app/nucleo/erros.py`, com o caso correspondente em `tests/unit/nucleo/test_erros.py`. Criar o limite de corpo por rota em `app/nucleo/middlewares.py`, com testes em `tests/unit/nucleo/test_middlewares.py`:
   - a rota de envio aceita até `FONTE_TAMANHO_MAX_BYTES` + 64 KiB;
   - acima disso, ela recusa com `413 arquivo_muito_grande`, pelo `Content-Length` ou durante a leitura sem `Content-Length`;
@@ -206,7 +206,7 @@
   - acrescentar à tabela de isolamento os casos de `PATCH /materias/{id}`, `GET /materias/{id}/impacto-exclusao`, `POST /materias/{id}/exclusao` e `PATCH /fontes/{id}`;
   - reexecutar `tests/security/identidade/test_exclusao_completa.py` (001) com matérias, fontes, trechos e objetos criados: nada permanece depois da exclusão da conta (DTEC 021).
 - [ ] T043 [US3] Implementar `renomear`, `impacto_exclusao` e `excluir` em `app/materias/servicos.py`:
-  - **Exclusão:** `FOR UPDATE` na matéria e nas fontes por `id`, participantes por prioridade e confirmação pelo nome.
+  - **Exclusão:** `FOR UPDATE` na matéria e nas fontes por `id`, participantes por prioridade e confirmação pelo nome. O impacto informa `cartoesAtivos` = `cartoes_ativos` + `cartoes_suspensos`, e a lista de matérias (T023) mostra só `cartoes_ativos` (emenda de 13/10/2026 da DTEC 027).
   - **Participante de `fontes`:** `ao_excluir_materia` apaga os objetos e as linhas.
   - **Renomeação de fonte:** `renomear` em `app/fontes/servicos.py`.
   - **DTOs e rotas** correspondentes, até que as T040 a T042 passem.

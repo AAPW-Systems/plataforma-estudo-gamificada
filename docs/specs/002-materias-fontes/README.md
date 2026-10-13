@@ -32,3 +32,4 @@
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 024 a 032 ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Tarefas (T001 a T051) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
+| 13/10/2026 | Propagada a emenda da DTEC 027 (`cartoes_suspensos`), proposta no plano da 003: a lista de matérias conta só os ativos, e o impacto da exclusão soma ativos e suspensos; contrato inalterado ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md)) |
