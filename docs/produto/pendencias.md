@@ -23,12 +23,13 @@ As recomendações abaixo são do agente e **não são decisões**. Uma pendênc
 | [QA-31](#qa-31-framework-de-agentes-do-final-acadêmico) | Framework de agentes do final acadêmico | Técnica | Plano de F-06 e F-16 | Equipe | Aberta (12/10/2026) |
 | [QA-32](#qa-32-escopo-do-painel-administrativo) | Escopo do painel administrativo | Produto | Spec de F-17 | Equipe | Aberta (12/10/2026); proposta na spec [016](../specs/016-painel-administrativo/spec.md); saiu da pauta com o PO em 12/10/2026 |
 | [QA-33](#qa-33-confirmação-de-e-mail-no-cadastro) | Confirmação de e-mail no cadastro: final acadêmico ou referência pós-acadêmica | Produto | Spec de F-01 do estágio escolhido | Equipe | Aberta (12/10/2026) |
+| [QA-34](#qa-34-composição-da-trilha-no-final-acadêmico) | Composição da trilha no final acadêmico | Produto | Plano da [012](../specs/012-filtro-dominio-materia/spec.md) | Equipe | Aberta (13/10/2026); MVP decidido (caminho vertical contínuo, D-008 da 005) |
 | [QA-23](#qa-23-publicação-automática-e-limite-de-novos-cartões) | Publicação dos cartões gerados e limite de novos cartões | Produto | Spec de F-04 e F-05 | Equipe e professor | Respondida em 12/10/2026: revisão pelo estudante; limite padrão de 20 novos por dia, global, aprovado com a spec [001](../specs/001-conta-acesso/spec.md) (D-001) |
 | [QA-16](#qa-16-escopo-do-chat) | Escopo do chat (provisória) | Produto | Spec de F-06 (final acadêmico) | Equipe e professor | Provisória |
 | [QA-24](#qa-24-valores-da-gamificação) | Valores da gamificação (XP, limiar de domínio, padrões) | Produto | Spec de F-05, F-09 e F-10 | Equipe | Respondida em 12/10/2026: valores aprovados com as specs [001](../specs/001-conta-acesso/spec.md), [005](../specs/005-licao-trilha/spec.md) e [006](../specs/006-xp-meta-sequencia/spec.md); teto de tempo na [013](../specs/013-evolucao-completa/spec.md), ainda em especificação |
 | [QA-04](#qa-04-qualidade-e-verificação-da-geração) | Qualidade e verificação da geração (restante) | Produto e técnica | Spec de F-03 e F-04 | Equipe | Respondida em 12/10/2026 na spec aprovada [004](../specs/004-geracao-cartoes/spec.md) (D-002, D-003, D-006, D-011 e D-012) |
 | [QA-19](#qa-19-identidade-visual-restante) | Identidade visual: nome, paleta e tipografia | Produto | Primeira interface | Equipe | Aberta (UI-01 a UI-03 do [design](../base-specs/design.md#12-pendências-de-design)) |
-| [QA-26](#qa-26-níveis-de-dificuldade) | Níveis de dificuldade (EX-05) | Produto | Spec de F-04 e F-05 | Professor | Em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
+| [QA-26](#qa-26-níveis-de-dificuldade) | Níveis de dificuldade (EX-05) | Produto | Incremento de F-05 ou F-12 | Professor | Fora do MVP (13/10/2026, D-009 da spec [005](../specs/005-licao-trilha/spec.md)); em pauta ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
 | [QA-27](#qa-27-regras-da-consulta-externa) | Regras da consulta externa (EX-01) | Produto e técnica | Incremento de F-16 | Equipe e professor | Depende de [PO-02](pauta-po.md#po-02-pesquisa-externa-ex-01) |
 | [QA-30](#qa-30-branch-develop-e-verificação-automática-antes-do-merge) | Branch `develop` e verificação automática antes do merge | Técnica e processo | Primeira implementação | Equipe | Aberta; integração contínua decidida na DTEC 017 (plano da [001](../specs/001-conta-acesso/plan.md), 12/10/2026) |
 | [VAL-02](#val-02-aprovação-da-constituição-v03) | Aprovação da constituição (v0.4) | Processo | Aprovação da primeira spec | Equipe | Aberta |
@@ -295,6 +296,22 @@ Aberta em 12/10/2026 no esclarecimento da spec [001](../specs/001-conta-acesso/s
 
 **Recomendação do agente:** final acadêmico, porque a recuperação de senha já está lá e usa o mesmo envio de e-mail.
 
+### QA-34 Composição da trilha no final acadêmico
+
+Aberta em 13/10/2026, na decisão da Q-001 da spec [005](../specs/005-licao-trilha/spec.md) ([registro](../prompts/2026-10-13-005-licao-trilha-plano.md)).
+
+**Decidido para o MVP (D-008 da 005):** caminho vertical contínuo, com um nó por lição concluída, o nó atual destacado, três nós futuros esmaecidos e um marco a cada 10 lições; no celular, a mesma coluna.
+
+**Pendente, a discutir com a equipe:** manter esse padrão no final acadêmico, quando a trilha ganha o filtro e o domínio por matéria ([012](../specs/012-filtro-dominio-materia/spec.md)), ou adotar outra composição?
+
+| Opção | Consequência |
+|---|---|
+| Manter o caminho vertical contínuo | Nenhum retrabalho; muitas lições extras e lições por matéria alongam o caminho |
+| Estações por dia de estudo | Mais compacta com extras e filtros; liga a trilha à sequência da 006; pede o agrupamento por dia na interface |
+| Marcos por cartões dominados | Liga a trilha ao domínio por matéria da 012; pede um campo aditivo na API da trilha |
+
+A API da trilha (DTEC 056) atende às três opções sem mudança no backend.
+
 ### QA-23 Publicação automática e limite de novos cartões
 
 > **Respondida em 12/10/2026:** os cartões gerados passam pela revisão do estudante (aceitar, editar e aceitar, recusar, aceitar todos), com resumo e "Gerar mais" (RN-22 da [base de especificação](../base-specs/spec.md)). O valor padrão do limite de novos cartões continua para a spec de F-05. O texto abaixo é o histórico.
@@ -352,6 +369,8 @@ As regras estão decididas (ver [visão](visao.md#decisões-do-brainstorming-apr
 ### QA-26 Níveis de dificuldade
 
 > **Atualização de 12/10/2026:** a equipe considera a seleção por dificuldade incompatível com o FSRS. Levada ao PO com proposta em [PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05).
+>
+> **Atualização de 13/10/2026:** a equipe retirou a EX-05 do MVP (D-009 da spec [005](../specs/005-licao-trilha/spec.md), [registro](../prompts/2026-10-13-005-licao-trilha-plano.md)). Nenhuma spec do MVP tem requisito de dificuldade; a discussão com o PO continua em PO-01, e a resposta define o incremento de F-05 ou F-12 que a implementa.
 
 **Origem:** EX-05 das [exigências do PO](exigencias_po.md) ("definição de dificuldades: fácil, médio e difícil"). O texto não diz a que a dificuldade se aplica.
 

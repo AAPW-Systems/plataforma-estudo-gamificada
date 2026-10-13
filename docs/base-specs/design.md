@@ -186,4 +186,4 @@ WCAG 2.2 AA, conforme [`../skills/padroes-interface.md`](../skills/padroes-inter
 | UI-02 | Paleta. Opções em comparação: `#3D007A`/`#E8ECF1`, `#C8FF00`/`#06110D`, `#0038FF`/`#FFD8B8`, `#042F32`/`#D6FFCB`, `#5F2CFF`/`#DFF6FF`, `#CFFF74`/`#2F3A1D`. Avaliar contraste em claro e escuro |
 | UI-03 | Tipografia. Opções: Plus Jakarta Sans, Manrope, Sora, Outfit. Avaliar português, legibilidade em textos longos, números e licença |
 | UI-04 | Quais indicadores da evolução usam gráfico, sempre com o valor em texto |
-| UI-05 | Composição da trilha: nós, marcos, densidade, ícones, comportamento no celular. Identidade própria, sem reproduzir outras plataformas |
+| UI-05 | Composição da trilha: nós, marcos, densidade, ícones, comportamento no celular. Identidade própria, sem reproduzir outras plataformas. **MVP decidido em 13/10/2026** (D-008 da [spec 005](../specs/005-licao-trilha/spec.md)): caminho vertical contínuo, um nó por lição concluída, nó atual destacado, três futuros esmaecidos e marco a cada 10 lições. Final acadêmico em discussão ([QA-34](../produto/pendencias.md#qa-34-composição-da-trilha-no-final-acadêmico)) |

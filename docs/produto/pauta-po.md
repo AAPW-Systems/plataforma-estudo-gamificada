@@ -27,6 +27,8 @@ Itens que dependem de uma resposta do PO. Cada item traz a posição da equipe e
 
 **Pergunta ao PO:** a proposta atende à intenção da EX-05? Se não, qual era o objetivo da exigência?
 
+**Atualização de 13/10/2026** ([registro](../prompts/2026-10-13-005-licao-trilha-plano.md)): a equipe retirou a EX-05 do MVP (D-009 da spec [005](../specs/005-licao-trilha/spec.md)). A pergunta continua em pauta, e a resposta define o incremento que a implementa.
+
 ## PO-02 Pesquisa externa (EX-01)
 
 **Exigência:** "IA faça pesquisa sobre o assunto e traga o material".

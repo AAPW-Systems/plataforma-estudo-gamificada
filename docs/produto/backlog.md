@@ -48,7 +48,7 @@ As exigências de [`exigencias_po.md`](exigencias_po.md) foram incorporadas ao b
 | EX-02 | Gerar novos flashcards (incrementar) | F-04 | MVP | "Gerar mais" no resumo da revisão dos cartões gerados, sem repetir existentes nem recusados (RN-22) |
 | EX-03 | Explicação curta do motivo do erro | F-04 e F-05 | MVP | Criada junto com o cartão gerado (RN-16) e exibida ao marcar "Errei" |
 | EX-04 | Pedir explicações adicionais, com referência | F-16 | Final | Reaproveita a busca e as citações de F-06 |
-| EX-05 | Níveis de dificuldade (fácil, médio, difícil) | F-05 / F-12 | Em pauta | A equipe considera a seleção por dificuldade incompatível com o FSRS e propõe exibir a dificuldade calculada pelo algoritmo ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
+| EX-05 | Níveis de dificuldade (fácil, médio, difícil) | F-05 / F-12 | Fora do MVP (13/10/2026); em pauta | A equipe considera a seleção por dificuldade incompatível com o FSRS e propõe exibir a dificuldade calculada pelo algoritmo ([PO-01](pauta-po.md#po-01-níveis-de-dificuldade-ex-05)) |
 
 ## Requisitos transversais
 
