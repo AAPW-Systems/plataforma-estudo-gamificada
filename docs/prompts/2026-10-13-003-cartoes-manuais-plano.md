@@ -119,6 +119,14 @@ aprovado
 
 O agente tratou a resposta como aprovação do plano (portão "Plano aprovado"), com as DTEC 033 a 038 e a emenda da DTEC 027. Corrigiu no plano a origem da dependência `fsrs`, que já entra na 001. Depois escreveu as tarefas e a rastreabilidade (etapas 6 e 7) e parou no portão "Tarefas aprovadas".
 
+### Prompt 4
+
+```text
+aprovo as tarefas da 003
+```
+
+O agente registrou a aprovação (portão "Tarefas aprovadas") e entregou o prompt da spec 004 para uma nova sessão.
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -140,11 +148,12 @@ O agente tratou a resposta como aprovação do plano (portão "Plano aprovado"),
 | `docs/specs/003-cartoes-manuais/plan.md` | alterado (origem da dependência `fsrs`) |
 | `docs/specs/003-cartoes-manuais/tasks.md` | criado (T001 a T045) |
 | `docs/specs/003-cartoes-manuais/traceability.md` | criado (matriz e análise de consistência) |
+| `tasks.md`, `traceability.md` e README da 003, `docs/specs/README.md` e `.agents/AGENTS.md` | alterados (aprovação das tarefas e estado atual) |
 
 ## Alterações humanas
 
 - Plano aprovado por Artur Lins em 13/10/2026 sem alterações (prompt 3), com as DTEC 033 a 038 e a emenda da DTEC 027.
-- Tarefas e rastreabilidade: pendente de revisão.
+- Tarefas e rastreabilidade aprovadas por Artur Lins em 13/10/2026 sem alterações (prompt 4).
 
 ## Verificação
 
@@ -156,5 +165,6 @@ O agente tratou a resposta como aprovação do plano (portão "Plano aprovado"),
 
 ## Pendências
 
-- Portão "Tarefas aprovadas" (Artur Lins ou equipe).
-- Prompt da spec 004 para uma nova sessão, ao fim da 003.
+- Implementação da 003 adiada até a documentação das specs do MVP ficar completa (decisão de 13/10/2026).
+- Plano da spec 004 em nova sessão, com o prompt entregue ao fim desta.
+- `git push` da `develop` pendente: os commits desta sessão estão só no repositório local.
