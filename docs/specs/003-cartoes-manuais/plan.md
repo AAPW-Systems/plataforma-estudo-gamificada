@@ -38,7 +38,7 @@ A ordem US1 → US2 → US3 → US4 entrega primeiro a história P1, que a 005 p
 ## Contexto técnico
 
 - **Linguagem e versão:** as da 001: Python 3.13 com uv; TypeScript *strict* em Node 24 LTS com npm.
-- **Dependências novas do backend:** nenhuma. A biblioteca `fsrs` (DTEC 012) já está na stack. Se a 005 ainda não a tiver acrescentado ao `pyproject.toml`, a 003 a acrescenta, em versão fixa, para criar o estado inicial.
+- **Dependências novas do backend:** nenhuma. A biblioteca `fsrs` (DTEC 012) já entra na 001, que a usa para os parâmetros iniciais do FSRS, e a 003 a usa para o estado inicial do cartão.
 - **Dependências novas do frontend:** nenhuma. O painel usa o `Dialog` e o `Modal` do React Aria Components (DTEC 016) como painel lateral, e a lista usa o `useInfiniteQuery` do TanStack Query (DTEC 015).
 - **Persistência:** a tabela `cartoes`, os enums `origem_cartao`, `situacao_cartao` (`ativo` e `suspenso`) e `estado_fsrs`, a extensão `unaccent` e o índice `fontes_id_materia_usuario`, todos criados pela migração `0004_cartoes` ([modelo de dados](data-model.md)).
 - **Testes:** pytest com pytest-asyncio, httpx, Hypothesis e Postgres real. No frontend, Vitest, Testing Library, MSW e `vitest-axe`. Os cartões de teste são gerados por fábricas, sem dados pessoais (regra 10).
