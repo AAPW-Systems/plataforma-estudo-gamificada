@@ -2,7 +2,7 @@
 
 **Funcionalidade:** 003-cartoes-manuais (cartões criados e gerenciados pelo estudante)  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md))  
-**Status:** DTEC 035 a 038 propostas em 13/10/2026, alinhadas em rodada com Artur Lins; aguardam a aprovação do plano
+**Status:** DTEC 035 a 038 aprovadas em 13/10/2026 por Artur Lins, com o plano
 
 Este arquivo registra apenas as dúvidas técnicas **novas** da spec 003. Não são reabertas as decisões já tomadas em [`../../research.md`](../../research.md): FSRS com a biblioteca `fsrs` (DTEC 012), camadas (DTEC 018) e participantes da exclusão (DTEC 027, com a emenda de 13/10/2026). Também valem as DTEC transversais propostas neste planejamento: busca com `unaccent` (DTEC 033) e paginação por cursor (DTEC 034). Da [spec 001](../001-conta-acesso/research.md) valem o isolamento (DTEC 019) e a exclusão da conta (DTEC 021). Da [spec 002](../002-materias-fontes/research.md) vale o impacto da exclusão sob concorrência (DTEC 031). A numeração das DTEC é única no projeto.
 

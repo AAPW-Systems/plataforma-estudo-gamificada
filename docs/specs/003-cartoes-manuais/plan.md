@@ -4,7 +4,7 @@
 **Spec:** [spec.md](spec.md), aprovada em 12/10/2026  
 **Data:** 13/10/2026 ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md))  
 **Responsáveis:** Artur Lins (decisões técnicas); equipe na revisão  
-**Status:** aguardando o portão "Plano aprovado"
+**Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 033 a 038 e a emenda da DTEC 027
 
 Este plano **reaproveita sem redefinir** o que as specs 001 e 002 já definiram:
 
