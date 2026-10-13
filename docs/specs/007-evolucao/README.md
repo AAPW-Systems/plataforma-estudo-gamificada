@@ -18,3 +18,4 @@ Os demais artefatos (`checklists/requirements.md`, `research.md`, `plan.md`, `da
 | Data | Mudança |
 |---|---|
 | 12/10/2026 | Spec criada em rascunho ([registro](../../prompts/2026-10-12-specs-funcionalidades.md)) |
+| 12/10/2026 | Esclarecimento (E23 a E25) incorporado à spec; próxima etapa: revisão pelo checklist de requisitos ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md)) |

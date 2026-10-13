@@ -56,6 +56,7 @@ Como estudante, quero que a IA gere cartões de uma fonte minha e escolher quais
 6. **Dado** um cartão aguardando revisão, **quando** o estudante recusa, **então** o cartão desaparece da revisão e nunca entra nas lições.
 7. **Dado** vários cartões aguardando revisão, **quando** o estudante escolhe "Aceitar todos", **então** todos os restantes são aceitos de uma vez, sem afetar os já recusados.
 8. **Dado** que nenhum cartão aguardando revisão foi aceito nem recusado, **quando** o estudante volta à matéria, **então** eles continuam aguardando revisão e não entram nas lições.
+9. **Dado** um cartão sendo recusado, **quando** o estudante indica, de forma opcional e com um clique, o motivo (incorreto, irrelevante, repetido ou mal escrito), **então** o motivo fica registrado para a análise da qualidade; recusar sem motivo continua possível (D-007).
 
 ### História de usuário 2 Ver o resumo e gerar mais P2
 
@@ -106,7 +107,8 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - Fonte excluída durante a geração: a geração é interrompida e nenhum cartão dela é publicado (CB-16).
 - Fonte `pendente`, `processando` ou `falhou`: a ação de pedir cartões não está disponível.
 - Fonte com pouco texto (por exemplo, um parágrafo): pode resultar em menos de 10 cartões, ou em nenhum (US4, cenário 6).
-- Limite diário de gerações do estudante atingido (Q-001).
+- Limite diário de gerações do estudante atingido: o pedido é recusado com a indicação de quando o limite volta (D-005).
+- Nova geração da mesma fonte com cartões ainda aguardando revisão: permitida; os novos cartões não repetem os que aguardam revisão (D-008).
 - "Aceitar todos" enviado duas vezes: um único efeito.
 - Cartão aguardando revisão editado com frente ou verso vazios: recusado como em [003](../003-cartoes-manuais/spec.md), RF-001.
 - Resposta do modelo com mais de 10 cartões: só os 10 primeiros que passarem nas validações são mantidos.
@@ -125,12 +127,14 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **RF-010:** O estudante deverá conseguir aceitar, editar e aceitar, recusar ou aceitar todos os cartões aguardando revisão. Cartões aguardando revisão nunca entram em lições (deriva de RN-22 da base).
 - **RF-011:** Cartões aceitos deverão entrar como cartões novos na ordem de aceitação, respeitando o limite de novos por dia (deriva de RN-20 da base).
 - **RF-012:** Ao fim da revisão de uma geração, o sistema deverá exibir o resumo (gerados, aceitos, recusados) e oferecer "Gerar mais" (EX-02).
-- **RF-013:** "Gerar mais" não deverá produzir cartões que repitam, em conteúdo, um cartão existente ou recusado da mesma matéria. Sem conteúdo novo, deverá informar que não há novos cartões a gerar (deriva de RN-22 e CB-26 da base).
+- **RF-013:** "Gerar mais" e qualquer nova geração não deverão produzir cartões que repitam, em conteúdo, um cartão existente (inclusive aguardando revisão) ou recusado da mesma matéria (D-008). Sem conteúdo novo, deverá informar que não há novos cartões a gerar (deriva de RN-22 e CB-26 da base).
 - **RF-014:** Cartões recusados não deverão aparecer ao estudante, mas deverão permanecer registrados para a taxa de aceitação e para o "Gerar mais".
 - **RF-015:** O conteúdo das fontes deverá ser tratado como dado e nunca como instrução: instruções embutidas não alteram as regras da geração (deriva de CB-15 da base).
 - **RF-016:** Em falha do provedor, a geração deverá terminar como `falhou`, sem publicar cartões parciais, e permitir nova tentativa (deriva de CB-14 da base).
 - **RF-017:** Cada geração deverá registrar o provedor, o modelo, a versão das instruções, os trechos usados, as quantidades geradas e aprovadas e o consumo do provedor, sem registrar o conteúdo das fontes nos logs (deriva de RN-22 da base).
 - **RF-018:** O estudante deverá conseguir consultar a evidência e a descrição da origem de um cartão gerado, inclusive com "Fonte apagada" depois da exclusão da fonte (deriva de RF-17 da base).
+- **RF-019:** O sistema deverá limitar os pedidos de geração a 20 por dia de estudo por estudante, valor configurável por ambiente, e informar quando o limite volta (D-005).
+- **RF-020:** Ao recusar um cartão, o estudante poderá indicar um motivo opcional (incorreto, irrelevante, repetido ou mal escrito), registrado para a análise da qualidade (D-007).
 
 ## Entidades principais
 
@@ -145,14 +149,14 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **CS-001:** No conjunto de avaliação revisado por pessoa (pelo menos 15 casos, D-003), 100% dos cartões publicados apontam para um trecho existente da fonte do caso.
 - **CS-002:** Nos casos sem evidência e nos casos adversariais do conjunto, nenhum cartão publicado afirma algo ausente da fonte ou segue uma instrução embutida.
 - **CS-003:** Nos casos com contradição, nenhum cartão publicado afirma um dos lados como fato.
-- **CS-004:** A proporção de cartões publicados considerados sustentados pelo revisor humano atinge o limiar de Q-002.
+- **CS-004:** No conjunto de avaliação, pelo menos 90% dos cartões publicados são considerados sustentados pelo revisor humano, e nenhum contém afirmação ausente da fonte (D-006).
 - **CS-005:** A taxa de aceitação (aceitos, incluindo os editados, sobre o total revisado) é calculável por geração, por fonte e no total, e é exibida no relatório de avaliação.
 - **CS-006:** Uma geração de 10 cartões de uma fonte de 2 MB termina em até 2 minutos no ambiente local, com o provedor disponível.
 
 ## Requisitos de qualidade
 
 - **RQ-001:** As regras da geração não dependem de um provedor ou modelo específico. Trocar o provedor por configuração não altera nenhum requisito desta spec (RQ-05 da base).
-- **RQ-002:** A geração respeita um orçamento diário de uso do provedor por estudante, configurável por ambiente (Q-001).
+- **RQ-002:** A geração respeita um orçamento diário de uso do provedor por estudante, configurável por ambiente (D-005).
 - **RQ-003:** Logs e registros de consumo não guardam o conteúdo das fontes, dos cartões nem das instruções enviadas ao modelo.
 - **RQ-004:** A revisão dos gerados opera por teclado e atende WCAG 2.2 AA; "Aceitar todos" fica depois da lista.
 - **RQ-005:** Mensagens de erro ao estudante não expõem detalhes do provedor de IA.
@@ -162,13 +166,24 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 
 - **Dependência:** [002-materias-fontes](../002-materias-fontes/spec.md) (fontes `concluido` e trechos) e [003-cartoes-manuais](../003-cartoes-manuais/spec.md) (modelo de cartão, edição e origem).
 - **Suposição:** o método de verificação da sustentação (por exemplo, uma regra de sobreposição com o trecho, uma segunda chamada de IA apoiada no conjunto de casos, ou ambos) é escolhido no plano. Esta spec define só o resultado mensurável (CS-001 a CS-004). Uma segunda chamada de IA isolada não prova sustentação (Princípio V).
-- **Suposição:** o tempo de CS-006 é uma meta proposta pelo agente, a confirmar na revisão da spec.
+
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E14:** Qual o limite diário de gerações? → 20 pedidos por dia de estudo, configurável, com a indicação de quando o limite volta (D-005).
+- **E15:** Qual a meta de qualidade para considerar a geração pronta? → Pelo menos 90% dos cartões publicados sustentados e 0% com afirmação ausente da fonte (D-006).
+- **E16:** O estudante indica o motivo ao recusar? → Sim, de forma opcional e com um clique (D-007).
+- **E17:** Pode pedir nova geração da fonte com cartões aguardando revisão? → Sim; os novos não repetem os aguardando (D-008).
+- **E18:** A meta de 2 minutos para 10 cartões está confirmada? → Sim (D-009).
 
 ## Questões abertas
 
-- **Q-001:** Qual o limite diário de gerações por estudante, visível na interface, para proteger a camada gratuita do provedor? **Recomendação:** 20 pedidos por dia de estudo, configurável por ambiente, com a mensagem de quando o limite volta. — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-002:** Qual a proporção mínima de cartões publicados que o revisor humano deve considerar sustentados no conjunto de avaliação para a geração ser considerada pronta? **Recomendação:** pelo menos 90% sustentados e 0% com afirmação ausente da fonte. A taxa de aceitação pelo estudante é acompanhada, mas não bloqueia a entrega. — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-003:** Ao recusar um cartão, o estudante deve poder indicar o motivo (incorreto, irrelevante, repetido, mal escrito)? **Recomendação:** sim, de forma opcional e com um clique, porque melhora a análise da qualidade sem atrasar a revisão. — **Responsável:** equipe — **Prazo:** 14/10/2026
+- **Q-001:** ~~Limite diário de gerações por estudante?~~ Resolvida em 12/10/2026 (D-005).
+- **Q-002:** ~~Proporção mínima de cartões sustentados?~~ Resolvida em 12/10/2026 (D-006).
+- **Q-003:** ~~Motivo ao recusar um cartão?~~ Resolvida em 12/10/2026 (D-007).
+
+Nenhuma questão aberta impede o planejamento.
 
 ## Decisões confirmadas
 
@@ -176,6 +191,11 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 - **D-002:** No MVP, o pedido é por fonte, com até 10 cartões por pedido; "Gerar mais" pede mais 10. Cartões reprovados nas validações são descartados e registrados para análise, sem aparecer ao estudante. Pontos contraditórios não viram cartão. — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-003:** O conjunto de avaliação tem pelo menos 15 casos revisados por pessoa, incluindo casos ambíguos, sem evidência, com contradição e adversariais (instruções embutidas na fonte) ([QA-04](../../produto/pendencias.md#qa-04-qualidade-e-verificação-da-geração)). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-004:** A taxa de aceitação é uma das métricas de qualidade da geração, junto do conjunto de avaliação. O item saiu da pauta com o PO e vale como decisão da equipe ([PO-05](../../produto/pauta-po.md#po-05-revisão-humana-dos-cartões-gerados)). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
+- **D-005:** Limite de 20 pedidos de geração por dia de estudo por estudante, configurável por ambiente, com a indicação de quando o limite volta. — **Confirmada por:** Artur Lins (equipe), esclarecimento E14 — **Data:** 12/10/2026
+- **D-006:** A geração é considerada pronta quando, no conjunto de avaliação, pelo menos 90% dos cartões publicados são sustentados segundo o revisor humano e nenhum contém afirmação ausente da fonte. A taxa de aceitação é acompanhada, mas não bloqueia a entrega. — **Confirmada por:** Artur Lins (equipe), esclarecimento E15 — **Data:** 12/10/2026
+- **D-007:** Ao recusar, o estudante pode indicar um motivo opcional: incorreto, irrelevante, repetido ou mal escrito. — **Confirmada por:** Artur Lins (equipe), esclarecimento E16 — **Data:** 12/10/2026
+- **D-008:** Uma nova geração da mesma fonte é permitida com cartões ainda aguardando revisão; os novos cartões não repetem os existentes (inclusive os aguardando) nem os recusados. — **Confirmada por:** Artur Lins (equipe), esclarecimento E17 — **Data:** 12/10/2026
+- **D-009:** Meta de até 2 minutos para uma geração de 10 cartões de uma fonte de 2 MB, no ambiente local, com o provedor disponível (CS-006). — **Confirmada por:** Artur Lins (equipe), esclarecimento E18 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
@@ -189,7 +209,7 @@ Como estudante, quero que uma falha na IA não me entregue cartões incompletos 
 |---|---|
 | I Fontes exclusivas | RF-005 a RF-009, RF-015; US4; CS-001 a CS-004 |
 | II Proteção e isolamento | Aviso de envio ao provedor (RF-002); RQ-003; vínculo só com trechos do próprio estudante (RF-006) |
-| III Verificação humana | O estudante decide cada cartão (US1); o limiar de qualidade fica com a equipe (Q-002) |
+| III Verificação humana | O estudante decide cada cartão (US1); limiar de qualidade decidido pela equipe (D-006) |
 | IV Servidor autoritativo | Geração idempotente (RF-004); cartões só ficam visíveis depois das validações no servidor |
 | V Qualidade verificável | Conjunto de avaliação revisado por pessoa (D-003); a segunda chamada de IA não prova correção |
 | VI Entrega incremental | US1 com a US4 como critério de pronto; US2 e US3 ampliam |

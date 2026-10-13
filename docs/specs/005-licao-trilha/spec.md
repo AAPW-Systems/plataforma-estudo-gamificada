@@ -54,8 +54,8 @@ Como estudante, quero fazer uma lição curta com os cartões que o algoritmo es
 2. **Dado** um cartão na tela, **quando** o estudante ainda não revelou a resposta, **então** os botões de autoavaliação não estão disponíveis, e o verso não foi enviado ao navegador.
 3. **Dado** o verso revelado, **quando** o estudante escolhe Bom, **então** o servidor calcula o próximo vencimento pelo FSRS, registra a revisão e apresenta o próximo cartão.
 4. **Dado** um cartão novo marcado Errei, **quando** o FSRS agenda um passo curto (minutos), **então** o cartão volta na mesma lição quando o passo vence, sinalizado como "revendo", sem contar como novo cartão na posição da lição.
-5. **Dado** que todos os cartões previstos foram revisados e nenhum tem passo curto pendente, **quando** o último é avaliado, **então** a lição é concluída, o nó da trilha acende e o fechamento mostra as revisões feitas e os cartões que se tornaram dominados.
-6. **Dado** que só restam cartões com passo curto ainda não vencido, **quando** o estudante está na lição, **então** a tela mostra em quanto tempo o próximo cartão volta e permite esperar ou sair, sem apresentar cartões antes do vencimento.
+5. **Dado** que todos os cartões previstos foram revisados ao menos uma vez e nenhum passo curto já vencido aguarda reapresentação, **quando** o último é avaliado, **então** a lição é concluída, o nó da trilha acende e o fechamento mostra as revisões feitas e os cartões que se tornaram dominados.
+6. **Dado** que todos os cartões previstos já foram revisados e só restam cartões com passo curto ainda não vencido, **quando** o último cartão é avaliado, **então** a lição é concluída, o nó acende, e o fechamento informa que esses cartões voltam na próxima lição, no instante calculado pelo FSRS, sem apresentá-los antes do vencimento (D-004).
 
 ### História de usuário 2 Entender o erro P1
 
@@ -99,14 +99,15 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 
 - Avaliação enviada sem a revelação do verso naquela apresentação: não é registrada (CB-22).
 - Mesma revisão reenviada ou enviada de duas abas: um único efeito; o mesmo identificador com nota diferente gera conflito (CB-24).
-- Lição interrompida (aba fechada) com um cartão em passo curto: o cartão mantém o vencimento calculado; a lição continua em andamento e é retomada ao voltar à trilha; o nó só acende na conclusão (CB-28).
+- Lição interrompida (aba fechada) com um cartão em passo curto: o cartão mantém o vencimento calculado; a lição continua em andamento e é retomada ao voltar à trilha no mesmo dia de estudo; o nó só acende na conclusão (CB-28).
+- Lição deixada aberta de um dia de estudo anterior: é encerrada sem acender o nó, e uma nova lição é montada com os cartões disponíveis do dia; as revisões já registradas permanecem (D-005).
 - Lição iniciada antes das 4h e continuada depois: cada revisão pertence ao dia de estudo do seu instante, no fuso vigente (CB-25).
 - Cartão excluído, suspenso ou com a fonte excluída durante a lição: deixa de ser apresentado; as revisões registradas permanecem (CB-27).
 - Cartão aceito durante uma lição aberta: entra só nas lições seguintes.
 - Mudança da retenção desejada durante uma lição: vale a partir da próxima revisão (CB-29).
 - Limite de novos por dia igual a zero: a lição só tem devidos.
 - Alteração do tamanho da lição com uma lição em andamento: vale a partir da próxima lição.
-- Cartão marcado Errei várias vezes seguidas na mesma lição: volta a cada passo curto, sem impedir a conclusão quando o FSRS o agendar para além do passo curto.
+- Cartão marcado Errei várias vezes seguidas na mesma lição: volta a cada passo curto vencido enquanto a lição está em andamento, e não impede a conclusão (D-004).
 
 ## Requisitos funcionais
 
@@ -115,12 +116,12 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - **RF-003:** O verso só deverá ser enviado ao navegador quando o estudante pedir a revelação, e uma avaliação sem revelação naquela apresentação deverá ser recusada (deriva de RN-08 e CB-22 da base).
 - **RF-004:** A autoavaliação deverá oferecer Errei, Difícil, Bom e Fácil para todos os cartões, correspondendo às notas Again, Hard, Good e Easy do FSRS (deriva de RN-17 da base).
 - **RF-005:** O vencimento de cada cartão deverá ser calculado exclusivamente pelo FSRS, com os parâmetros vigentes do estudante e a variação aleatória leve dos intervalos ligada. Nenhuma regra de lição, meta, XP ou sequência altera esse cálculo (deriva de RN-26 da base).
-- **RF-006:** Um cartão agendado para um passo curto deverá voltar na mesma lição quando o passo vencer. A lição só termina quando todos os cartões previstos foram revisados e nenhum tem passo curto pendente (deriva de RN-19 e RN-26 da base).
-- **RF-007:** Cada revisão deverá ser registrada como evento imutável, com nota, instante, duração, estado do cartão antes e depois e versão dos parâmetros usada (deriva de RN-17 da base).
+- **RF-006:** Um cartão agendado para um passo curto deverá voltar na mesma lição quando o passo vencer, enquanto a lição estiver em andamento. A lição termina quando todos os cartões previstos foram revisados ao menos uma vez e nenhum passo curto já vencido aguarda reapresentação. Um cartão cujo passo curto ainda não venceu mantém o vencimento calculado pelo FSRS e entra na próxima lição (D-004; altera a RN-19 da base, deriva de RN-26).
+- **RF-007:** Cada revisão deverá ser registrada como evento imutável, com nota, instante, duração (da exibição da frente até a autoavaliação), estado do cartão antes e depois e versão dos parâmetros usada (deriva de RN-17 da base; D-006).
 - **RF-008:** Cada revisão enviada deverá carregar um identificador gerado no cliente. O reenvio com o mesmo identificador e o mesmo conteúdo devolve o resultado original; com conteúdo diferente, gera conflito (deriva de RN-10 da base).
 - **RF-009:** Ao marcar Errei, o sistema deverá exibir a explicação do cartão, quando existir, e o acesso à evidência, sem nova chamada à IA (deriva de RN-16 e RF-23 da base).
 - **RF-010:** A trilha deverá exibir os nós das lições concluídas, o nó atual e o próximo passo, e acender o nó quando a lição for concluída (deriva de RN-19 e RF-08 da base).
-- **RF-011:** Uma lição interrompida deverá permanecer em andamento e ser retomada no ponto em que parou (deriva de CB-28 da base).
+- **RF-011:** Uma lição interrompida deverá permanecer em andamento e ser retomada no ponto em que parou, dentro do mesmo dia de estudo. Uma lição aberta de um dia de estudo anterior deverá ser encerrada sem acender o nó, e uma nova lição deverá ser montada (deriva de CB-28 da base; D-005).
 - **RF-012:** Depois de concluída uma lição, o estudante poderá iniciar lições extras enquanto houver cartões disponíveis. Cartões que ainda não venceram nunca entram em lições (deriva de RN-19 e RN-26 da base).
 - **RF-013:** Sem cartões disponíveis, o sistema não deverá criar lição, e deverá exibir o instante do próximo vencimento no fuso do estudante (deriva de CB-13 e CB-30 da base).
 - **RF-014:** O fechamento da lição deverá mostrar as revisões feitas e os cartões que se tornaram dominados nela. XP ganho e sequência entram no fechamento com [006](../006-xp-meta-sequencia/spec.md).
@@ -150,8 +151,14 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 ## Suposições e dependências
 
 - **Dependência:** [001-conta-acesso](../001-conta-acesso/spec.md) (preferências e parâmetros) e [003-cartoes-manuais](../003-cartoes-manuais/spec.md) (cartões ativos). A explicação e a evidência de cartões gerados dependem de [004](../004-geracao-cartoes/spec.md), mas podem ser testadas com dados fictícios.
-- **Suposição:** o tempo de CS-004 é uma meta proposta pelo agente, a confirmar na revisão da spec.
-- **Suposição:** a duração registrada de uma revisão vai da exibição da frente até a autoavaliação.
+
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E19:** O último cartão marcado Errei obriga a esperar o passo curto? → Não. A lição termina quando todos os previstos foram revisados ao menos uma vez; o cartão em passo curto vence no instante calculado e entra na próxima lição (D-004).
+- **E20:** O que acontece com uma lição deixada aberta de um dia de estudo anterior? → É encerrada sem acender o nó, e uma nova lição é montada (D-005).
+- **E21:** A duração da revisão e a meta de 300 ms por transição estão confirmadas? → Sim (D-006).
 
 ## Questões abertas
 
@@ -163,6 +170,9 @@ Como estudante, quero fazer lições extras enquanto houver cartões disponívei
 - **D-001:** O FSRS é soberano: só ele calcula o vencimento, e as demais regras se adaptam a ele (RN-26). — **Confirmada por:** Artur Lins (equipe), [registro](../../prompts/2026-10-12-esquema-inicial-banco.md) — **Data:** 12/10/2026
 - **D-002:** Tamanho padrão da lição de 10 cartões distintos e limite global de 20 novos por dia ([001](../001-conta-acesso/spec.md), D-001). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-003:** Um cartão é **dominado** quando sua estabilidade no FSRS é de pelo menos 21 dias. O limiar fica numa configuração versionada (QA-24). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
+- **D-004:** A lição termina quando todos os cartões previstos foram revisados ao menos uma vez e nenhum passo curto já vencido aguarda reapresentação; cartões em passo curto ainda não vencido mantêm o vencimento do FSRS e entram na próxima lição. Altera a RN-19 da base, que será atualizada quando esta spec for aprovada. — **Confirmada por:** Artur Lins (equipe), esclarecimento E19 — **Data:** 12/10/2026
+- **D-005:** Uma lição deixada aberta de um dia de estudo anterior é encerrada sem acender o nó, e uma nova lição é montada com os cartões disponíveis do dia. — **Confirmada por:** Artur Lins (equipe), esclarecimento E20 — **Data:** 12/10/2026
+- **D-006:** A duração de uma revisão vai da exibição da frente até a autoavaliação; meta de até 300 ms por transição de cartão no percentil 95, no ambiente local (CS-004). — **Confirmada por:** Artur Lins (equipe), esclarecimento E21 — **Data:** 12/10/2026
 
 ## Exigências do PO
 

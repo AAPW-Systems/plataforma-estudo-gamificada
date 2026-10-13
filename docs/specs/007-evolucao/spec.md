@@ -19,7 +19,7 @@
 
 ### Incluído
 
-- Calendário dos dias de estudo das últimas 26 semanas, com cada dia marcado como estudado, não estudado ou neutro (Q-001).
+- Calendário dos dias de estudo das últimas 26 semanas, com cada dia marcado como estudado, não estudado ou neutro (D-002).
 - XP total.
 - Sequência atual e recorde.
 - Cartões dominados no total e por matéria.
@@ -62,7 +62,7 @@ Como estudante, quero ver meus dias estudados, meu XP, minha sequência e meus c
 - **RF-001:** O sistema deverá exibir o calendário dos dias de estudo das últimas 26 semanas, com a situação de cada dia (estudado, não estudado, neutro ou em andamento) e o total de dias estudados no período (deriva de RN-25 da base).
 - **RF-002:** O sistema deverá exibir o XP total, a sequência atual e a sequência recorde, iguais aos valores calculados em [006](../006-xp-meta-sequencia/spec.md) (deriva de RN-25 da base).
 - **RF-003:** O sistema deverá exibir a quantidade atual de cartões dominados (ativos ou suspensos, com estabilidade no limiar de domínio) no total e em cada matéria (deriva de RN-25 da base).
-- **RF-004:** Todos os valores deverão ser calculados no servidor e exibidos também em texto.
+- **RF-004:** Todos os valores deverão ser calculados no servidor e exibidos também em texto. No MVP, só o calendário é gráfico; os demais valores são números em destaque (D-003).
 - **RF-005:** Sem nenhuma revisão, a tela deverá exibir um estado vazio com o acesso à trilha.
 
 ## Entidades principais
@@ -83,17 +83,29 @@ Como estudante, quero ver meus dias estudados, meu XP, minha sequência e meus c
 ## Suposições e dependências
 
 - **Dependência:** [006-xp-meta-sequencia](../006-xp-meta-sequencia/spec.md) (dias de estudo, XP e sequência) e [005-licao-trilha](../005-licao-trilha/spec.md) (cartão dominado).
-- **Suposição:** o tempo de CS-002 é uma meta proposta pelo agente, a confirmar na revisão da spec.
 - **Suposição:** se o prazo do MVP apertar, esta spec é o primeiro corte e se reduz a XP e sequência, que já aparecem na trilha ([backlog](../../produto/backlog.md#ordem)).
+
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E23:** Qual o período do calendário? → As últimas 26 semanas (D-002).
+- **E24:** Quais indicadores usam gráfico? → No MVP, só o calendário (D-003).
+- **E25:** A meta de 1 segundo para carregar a evolução está confirmada? → Sim (D-004).
 
 ## Questões abertas
 
-- **Q-001:** O calendário do MVP cobre as últimas 26 semanas ou o período desde a criação da conta? **Recomendação:** 26 semanas, que cabem em 320 px com rolagem só no calendário; períodos e filtros ficam em [013](../013-evolucao-completa/spec.md) ([QA-09](../../produto/backlog.md#funcionalidades-candidatas)). — **Responsável:** equipe — **Prazo:** 14/10/2026
-- **Q-002:** Quais indicadores usam gráfico, e não só número ([UI-04](../../base-specs/design.md#12-pendências-de-design))? **Recomendação:** no MVP, só o calendário é gráfico; os demais valores são números em destaque. — **Responsável:** equipe — **Prazo:** 16/10/2026
+- **Q-001:** ~~Calendário de 26 semanas ou desde a criação da conta?~~ Resolvida em 12/10/2026 (D-002).
+- **Q-002:** ~~Quais indicadores usam gráfico?~~ Resolvida em 12/10/2026 (D-003).
+
+Nenhuma questão aberta impede o planejamento.
 
 ## Decisões confirmadas
 
 - **D-001:** O mínimo do MVP é dias estudados, XP, sequência e cartões dominados (RN-25 da base). — **Confirmada por:** equipe, no [backlog](../../produto/backlog.md#capacidades) — **Data:** 12/10/2026
+- **D-002:** O calendário do MVP cobre as últimas 26 semanas; períodos e filtros ficam em [013](../013-evolucao-completa/spec.md). — **Confirmada por:** Artur Lins (equipe), esclarecimento E23 — **Data:** 12/10/2026
+- **D-003:** No MVP, só o calendário é gráfico; os demais indicadores são números em destaque ([UI-04](../../base-specs/design.md#12-pendências-de-design)). — **Confirmada por:** Artur Lins (equipe), esclarecimento E24 — **Data:** 12/10/2026
+- **D-004:** Meta de até 1 segundo no percentil 95 para carregar a evolução, no ambiente local, com um ano de histórico fictício (CS-002). — **Confirmada por:** Artur Lins (equipe), esclarecimento E25 — **Data:** 12/10/2026
 
 ## Exigências do PO
 

@@ -87,7 +87,7 @@ Como estudante, quero que minha sequência conte os dias em que cumpri a meta e 
 - Cartões excluídos ou suspensos no meio do dia: deixam de contar como disponíveis restantes; os já revisados continuam contando.
 - Meta efetiva já cumprida: o dia continua estudado, mesmo que novos cartões fiquem disponíveis depois.
 - Mudança da meta diária no meio do dia: vale para o dia corrente, mas um dia já marcado como estudado não deixa de sê-lo.
-- Mudança de fuso: cada revisão pertence ao dia de estudo do seu instante, no fuso vigente. Datas puladas pela mudança são neutras; datas repetidas contam uma vez (CB-25).
+- Mudança de fuso: cada revisão pertence ao dia de estudo do seu instante, no fuso vigente. Datas puladas pela mudança são neutras; datas repetidas contam uma vez (CB-25, D-003).
 - Mudança de horário de verão no fuso do estudante.
 - Mudança dos valores de XP na configuração: não altera o XP já concedido.
 
@@ -128,7 +128,12 @@ Como estudante, quero que minha sequência conte os dias em que cumpri a meta e 
 ## Suposições e dependências
 
 - **Dependência:** [005-licao-trilha](../005-licao-trilha/spec.md) (revisões, lição, cartões disponíveis e cartão dominado) e [001-conta-acesso](../001-conta-acesso/spec.md) (meta e fuso).
-- **Suposição:** a regra "datas puladas pela mudança de fuso são neutras; datas repetidas contam uma vez" é proposta pelo agente para cobrir CB-25 e é confirmada na revisão da spec.
+
+## Esclarecimentos
+
+### Sessão de 12/10/2026 ([registro](../../prompts/2026-10-12-esclarecimento-specs-mvp.md))
+
+- **E22:** Como a mudança de fuso afeta os dias de estudo? → Datas puladas pela mudança são neutras, e datas repetidas contam uma vez (D-003).
 
 ## Questões abertas
 
@@ -138,6 +143,7 @@ Nenhuma questão impede o planejamento. Os valores de QA-24 que tocam esta spec 
 
 - **D-001:** 10 de XP pela primeira revisão de cada cartão no dia; bônus de 25 de XP pelo cartão dominado pela primeira vez; meta diária padrão de 20 cartões distintos ([001](../001-conta-acesso/spec.md), D-001). Valores numa regra versionada ([QA-24](../../produto/pendencias.md#qa-24-valores-da-gamificação)). — **Confirmada por:** Artur Lins (equipe) — **Data:** 12/10/2026
 - **D-002:** XP e meta contam cartões distintos por dia, independentemente da nota (RN-18, RN-21), para que errar de propósito não renda pontos. — **Confirmada por:** Artur Lins (equipe), [registro](../../prompts/2026-10-12-esquema-inicial-banco.md) — **Data:** 12/10/2026
+- **D-003:** Na mudança de fuso, cada revisão pertence ao dia de estudo do seu instante no fuso vigente; datas puladas pela mudança são neutras, e datas repetidas contam uma vez. — **Confirmada por:** Artur Lins (equipe), esclarecimento E22 — **Data:** 12/10/2026
 
 ## Exigências do PO
 
