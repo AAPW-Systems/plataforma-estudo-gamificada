@@ -1,0 +1,359 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de estudos gamificada - evolução mínima (spec 007)
+  version: 0.1.0
+  description: |
+    Contrato da spec 007-evolucao. É a referência de projeto: o OpenAPI gerado pela
+    aplicação (FastAPI) deve conter todos os caminhos, métodos, códigos de resposta e
+    esquemas daqui, e um teste de contrato verifica isso.
+
+    A 007 cria uma única rota de leitura, `GET /evolucao` (DTEC 064). Ela não altera
+    nenhuma rota das specs 001 a 006. Os esquemas `ResumoGamificacao`, `ProgressoMeta` e
+    `Sequencia` são cópias exatas dos da spec 006, e um teste compara os dois contratos.
+
+    Convenções herdadas das specs 001 a 006 (não redefinidas aqui):
+    - Frontend e API na mesma origem; API sob `/api/v1`; JSON em camelCase; instantes em
+      ISO 8601 UTC; datas de estudo em `YYYY-MM-DD` no fuso do estudante, com virada às 4h
+      (DTEC 048).
+    - Sessão no cookie `__Host-sessao` (spec 001).
+    - Erros sempre no esquema `Erro`; o enum `codigo` é cumulativo. A 007 não acrescenta
+      códigos. Sem sessão válida, `401 nao_autenticado`.
+
+    Regras desta spec:
+    - Todos os valores são calculados no servidor (RF-004, Princípio IV). XP total,
+      sequência atual e recorde são os mesmos da trilha, pela mesma consulta (RF-002).
+    - Leitura com `Cache-Control: no-store`, sem efeito colateral: os dias ainda não
+      liquidados são classificados em memória, sem gravação (DTEC 061), numa transação
+      `REPEATABLE READ, READ ONLY` (DTEC 064).
+    - Sem parâmetros: o período (26 semanas, D-002), o limiar de dominado e as ordens são
+      definidos no servidor.
+servers:
+  - url: http://localhost:5173
+    description: Desenvolvimento local (Vite encaminha /api para a API)
+tags:
+  - name: evolucao
+    description: Calendário dos dias de estudo, XP, sequência e cartões dominados (US1, RF-001 a RF-005)
+paths:
+  /api/v1/evolucao:
+    get:
+      tags: [evolucao]
+      operationId: consultarEvolucao
+      summary: Evolução do estudante (RF-001 a RF-005)
+      description: |
+        Devolve, numa resposta:
+        - `calendario`: as datas de estudo das últimas 26 semanas (grade de domingo a sábado,
+          a última semana é a corrente), de `max(inicio, primeiro dia do estudante)` até hoje,
+          com a situação exibida e o total de dias estudados no período (RF-001, DTEC 065);
+        - `gamificacao`: o `ResumoGamificacao` da spec 006, com XP total, sequência atual e
+          recorde (RF-002);
+        - `dominados`: os cartões dominados atuais (ativos ou suspensos com estabilidade no
+          limiar vigente), no total e por matéria (RF-003, DTEC 066);
+        - `possuiRevisoes`: falso quando o estudante ainda não fez nenhuma revisão; a interface
+          mostra o estado vazio com o acesso à trilha (RF-005).
+      responses:
+        '200':
+          description: Evolução
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/SemCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evolucao'
+              example:
+                # Conta criada em 09/10/2026: as datas anteriores não aparecem em `dias`
+                possuiRevisoes: true
+                gamificacao:
+                  xpTotal: 180
+                  diaEstudo: '2026-10-13'
+                  meta:
+                    revisados: 4
+                    metaDiaria: 20
+                    metaEfetiva: 20
+                    cumprida: false
+                    cumpridaEm: null
+                  sequencia:
+                    atual: 1
+                    recorde: 1
+                    hojeCumprido: false
+                calendario:
+                  inicio: '2026-04-19'
+                  fim: '2026-10-17'
+                  totalEstudados: 2
+                  dias:
+                    - data: '2026-10-09'
+                      situacao: estudado
+                    - data: '2026-10-10'
+                      situacao: neutro
+                    - data: '2026-10-11'
+                      situacao: nao_estudado
+                    - data: '2026-10-12'
+                      situacao: estudado
+                    - data: '2026-10-13'
+                      situacao: em_andamento
+                dominados:
+                  limiarDias: 21
+                  total: 0
+                  porMateria:
+                    - materiaId: 6f1c2a9e-0b7d-4c55-9a43-2e8f1d3b7c10
+                      nome: Biologia
+                      dominados: 0
+                    - materiaId: 0c9d8e7f-6a5b-4c3d-2e1f-0a9b8c7d6e5f
+                      nome: História
+                      dominados: 0
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+components:
+  securitySchemes:
+    sessao:
+      type: apiKey
+      in: cookie
+      name: __Host-sessao
+      description: Identificador opaco de 256 bits; HttpOnly, Secure, SameSite=Lax (spec 001)
+  headers:
+    SemCache:
+      description: '`no-store`; o estado muda em outras abas'
+      schema:
+        type: string
+        const: no-store
+  responses:
+    NaoAutenticado:
+      description: Sem sessão válida; os cookies são apagados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+  schemas:
+    SituacaoDiaCalendario:
+      type: string
+      enum: [estudado, nao_estudado, neutro, em_andamento]
+      description: |
+        Situação exibida (DTEC 065). `em_andamento` só no dia de hoje enquanto a meta não foi
+        cumprida; hoje nunca é `nao_estudado`. Datas puladas pela mudança de fuso são `neutro`.
+    DiaCalendario:
+      type: object
+      required: [data, situacao]
+      properties:
+        data:
+          type: string
+          format: date
+          description: Data de estudo atribuída pela spec 006 (DTEC 048 e 062)
+        situacao:
+          $ref: '#/components/schemas/SituacaoDiaCalendario'
+    CalendarioEstudo:
+      type: object
+      required: [inicio, fim, totalEstudados, dias]
+      description: Dias de estudo das últimas 26 semanas (RF-001, D-002)
+      properties:
+        inicio:
+          type: string
+          format: date
+          description: Domingo de 25 semanas antes da semana de hoje
+        fim:
+          type: string
+          format: date
+          description: Sábado da semana de hoje; os dias depois de hoje não estão em `dias`
+        totalEstudados:
+          type: integer
+          minimum: 0
+          maximum: 182
+          description: Dias `estudado` no período, hoje incluído se cumprido
+        dias:
+          type: array
+          minItems: 1
+          maxItems: 182
+          description: |
+            Datas contíguas e crescentes de `max(inicio, primeiro dia do estudante)` até hoje.
+            As datas anteriores à conta não aparecem
+          items:
+            $ref: '#/components/schemas/DiaCalendario'
+    DominadosMateria:
+      type: object
+      required: [materiaId, nome, dominados]
+      properties:
+        materiaId:
+          type: string
+          format: uuid
+          description: '`public_id` da matéria'
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 60
+        dominados:
+          type: integer
+          minimum: 0
+    DominadosAtuais:
+      type: object
+      required: [limiarDias, total, porMateria]
+      description: |
+        Cartões dominados agora: ativos ou suspensos com estabilidade de pelo menos
+        `limiarDias` (RF-003, DTEC 066). Diferente do marco único do bônus de domínio (006):
+        um cartão que perdeu estabilidade deixa de contar, sem perder o XP
+      properties:
+        limiarDias:
+          type: integer
+          minimum: 1
+          description: Limiar vigente das regras versionadas da revisão (21 dias, DTEC 055)
+        total:
+          type: integer
+          minimum: 0
+          description: Soma de `porMateria[].dominados`
+        porMateria:
+          type: array
+          maxItems: 50
+          description: Todas as matérias do estudante, inclusive com 0, ordenadas por nome
+          items:
+            $ref: '#/components/schemas/DominadosMateria'
+    Evolucao:
+      type: object
+      required: [possuiRevisoes, gamificacao, calendario, dominados]
+      properties:
+        possuiRevisoes:
+          type: boolean
+          description: |
+            Falso enquanto o estudante não tiver nenhuma revisão (revisões de cartões excluídos
+            contam). A interface mostra só o estado vazio com o acesso à trilha (RF-005)
+        gamificacao:
+          $ref: '#/components/schemas/ResumoGamificacao'
+        calendario:
+          $ref: '#/components/schemas/CalendarioEstudo'
+        dominados:
+          $ref: '#/components/schemas/DominadosAtuais'
+    ProgressoMeta:
+      type: object
+      required: [revisados, metaDiaria, metaEfetiva, cumprida, cumpridaEm]
+      description: Meta do dia de estudo corrente (RF-004 a RF-006)
+      properties:
+        revisados:
+          type: integer
+          minimum: 0
+          description: Cartões distintos revisados no dia; reapresentações não contam
+        metaDiaria:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: Preferência vigente do estudante (spec 001)
+        metaEfetiva:
+          type: integer
+          minimum: 0
+          description: |
+            Menor valor entre a meta diária e os revisados mais os disponíveis restantes
+            (RF-005). Depois de cumprida, é a do instante do cumprimento
+        cumprida:
+          type: boolean
+          description: Dia já estudado; nunca volta a falso no mesmo dia (RF-006)
+        cumpridaEm:
+          type: [string, 'null']
+          format: date-time
+    Sequencia:
+      type: object
+      required: [atual, recorde, hojeCumprido]
+      description: Sequência de dias estudados (RF-008), sem punir dias neutros (RF-007)
+      properties:
+        atual:
+          type: integer
+          minimum: 0
+          description: |
+            Dias estudados consecutivos, desconsiderando os neutros, até hoje se `hojeCumprido`,
+            senão até o último dia estudado; 0 se algum dia não neutro e não estudado veio
+            depois dele (US3-5)
+        recorde:
+          type: integer
+          minimum: 0
+        hojeCumprido:
+          type: boolean
+          description: Falso enquanto a meta de hoje ainda falta (a interface indica "hoje falta")
+    ResumoGamificacao:
+      type: object
+      required: [xpTotal, diaEstudo, meta, sequencia]
+      description: XP, meta e sequência calculados no servidor (RF-010, DTEC 063)
+      properties:
+        xpTotal:
+          type: integer
+          minimum: 0
+          description: Soma de todos os eventos de XP do estudante, preservada após a exclusão de cartões (US1-5)
+        diaEstudo:
+          type: string
+          format: date
+          description: Dia de estudo corrente no fuso do estudante
+        meta:
+          $ref: '#/components/schemas/ProgressoMeta'
+        sequencia:
+          $ref: '#/components/schemas/Sequencia'
+    Erro:
+      type: object
+      required: [codigo, mensagem, idRequisicao]
+      properties:
+        codigo:
+          type: string
+          enum:
+            # spec 001
+            - requisicao_malformada
+            - dados_invalidos
+            - email_em_uso
+            - credenciais_invalidas
+            - senha_atual_incorreta
+            - nao_autenticado
+            - csrf_invalido
+            - origem_nao_permitida
+            - recurso_nao_encontrado
+            - muitas_tentativas
+            - erro_interno
+            # spec 002
+            - materia_nome_em_uso
+            - cota_materias_excedida
+            - cota_fontes_excedida
+            - cota_armazenamento_excedida
+            - fonte_duplicada
+            - arquivo_muito_grande
+            - formato_nao_aceito
+            - tipo_divergente
+            - arquivo_vazio
+            - arquivo_corrompido
+            - pdf_protegido
+            - pdf_paginas_excedidas
+            - codificacao_invalida
+            - confirmacao_invalida
+            - impacto_alterado
+            - reprocessamento_indisponivel
+            # spec 003
+            - cursor_invalido
+            # spec 004
+            - ciencia_aviso_pendente
+            - aviso_desatualizado
+            - fonte_nao_concluida
+            - idempotencia_divergente
+            - sem_conteudo_novo
+            - limite_geracoes_excedido
+            - orcamento_ia_esgotado
+            - cartao_ja_decidido
+            # spec 005
+            - sem_cartoes_disponiveis
+            - licao_encerrada
+            - revelacao_pendente
+            - apresentacao_ja_avaliada
+            - cartao_indisponivel
+            - limite_novos_atingido
+            # spec 006: nenhum código novo
+            # spec 007: nenhum código novo
+          description: Estável e legível por máquina; as specs acrescentam códigos, sem renomear nem remover
+        mensagem:
+          type: string
+          description: Em português, para exibir ao estudante; nunca contém detalhes internos
+        campos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErroCampo'
+        idRequisicao:
+          type: string
+          format: uuid
+    ErroCampo:
+      type: object
+      required: [campo, mensagem]
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+security:
+  - sessao: []
