@@ -118,6 +118,16 @@ Etapa 5 (planejar), até o portão "Plano aprovado":
 | `docs/specs/005-licao-trilha/README.md` | alterado: ordem de leitura, status e histórico |
 | `docs/prompts/2026-10-13-005-licao-trilha-plano.md` | criado (este registro) |
 
+Portão "Plano aprovado" (13/10/2026): `plan.md`, `research.md` da spec, DTEC 048 em `docs/research.md`, README da spec, `docs/specs/README.md`, `.agents/AGENTS.md` e `docs/skills/contexto-tecnico.md` (DTEC 048 a 056, códigos de erro, migração `0007` como a próxima, obrigações) atualizados no commit da aprovação.
+
+Etapas 6 e 7, até o portão "Tarefas aprovadas":
+
+| Artefato | Ação |
+|---|---|
+| `docs/specs/005-licao-trilha/tasks.md` | criado: T001 a T049 |
+| `docs/specs/005-licao-trilha/traceability.md` | criado, com a análise de consistência |
+| `docs/specs/005-licao-trilha/README.md` | alterado: ordem de leitura, status e histórico |
+
 Ajustes feitos pelo agente sobre as recomendações aprovadas, explicitados ao autor no fim da etapa:
 
 - `GET /trilha` não escreve: a lição aberta de dia anterior aparece como "Começar lição" e só é encerrada no `POST /licoes`, que a página da lição chama ao carregar (DTEC 050).
@@ -133,12 +143,14 @@ Pendente de revisão.
 
 - `openapi-spec-validator` sobre `contracts/openapi.yaml`: OK.
 - Links relativos e âncoras dos arquivos alterados conferidos por script: nenhum quebrado.
+- Cobertura da matriz conferida por script: as 49 tarefas aparecem no `traceability.md` (a T035 faltava e foi incluída).
 - Ponto de *fuzz* da biblioteca `fsrs` conferido no código-fonte oficial (`from random import random`, só no estado *Review*).
 - Nenhum código implementado (decisão de 13/10/2026).
 
 ## Pendências
 
 - Portão "Plano aprovado": aprovado por Artur Lins em 13/10/2026; `docs/skills/contexto-tecnico.md`, o índice de specs, o README da spec e o estado atual do `AGENTS.md` atualizados no commit da aprovação.
-- Depois da aprovação: `tasks.md` (etapa 6) e `traceability.md` com análise de consistência (etapa 7).
+- Portão "Tarefas aprovadas" (Artur Lins); na aprovação, atualizar o status das tarefas e da rastreabilidade, o README da spec, o índice de specs e o estado atual do `AGENTS.md`.
+- Prompt da spec 006 para uma nova sessão, depois da aprovação das tarefas.
 - Q-001 (trilha, UI-05): decisão da equipe até 14/10/2026, com as opções do plano.
 - Q-002 (EX-05): resposta do PO.
