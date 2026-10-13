@@ -138,7 +138,18 @@ Consolidado das decisões (todas as recomendações da rodada 1) aplicado nos ar
 
 - Tarefas (T001 a T026) e rastreabilidade aprovadas por Artur Lins em 13/10/2026. Status atualizado em `tasks.md`, `traceability.md`, `README.md` da spec, índice de specs e `contexto-tecnico.md`.
 - `.agents/AGENTS.md` ("Estado atual"): documentação do MVP completa e implementação liberada; ordem de implementação pelos pré-requisitos das tarefas e pela sequência das migrações (001 → 002 → 003 → base da 004 → restante da 004 em paralelo com a 005 → 006 → 007), com as P1 antes das fases finais e a 007 como primeiro corte se o prazo apertar; divisão da implementação entre Artur Lins e Arthur Moura registrada como informada.
-- O plano de implementação dividido entre Artur Lins e Arthur Moura citado no prompt 4 não está no repositório (procurado na `develop`, na `main` e em `docs/reunioes/`). O agente não reproduziu o conteúdo dele.
+- O plano de implementação dividido entre Artur Lins e Arthur Moura citado no prompt 4 não estava no repositório remoto (procurado na `develop`, na `main` e em `docs/reunioes/`). O prompt 5 o identificou: `docs/specs/divisao-implementacao-mvp.md`, ainda sem push, enviado à sessão como anexo.
+
+### Prompt 5
+
+```text
+@"/root/.claude/uploads/c124a4f4-10e9-5c53-b03b-a06effb8a0d6/553a9ccc-divisao-implementacao-mvp.md" esse é o plano, está na pasta specs, mas ainda não dei o push, essa aqui é uma sessão online, então é mais limitada
+```
+
+### Ajuste após o prompt 5
+
+- `.agents/AGENTS.md` e `docs/skills/contexto-tecnico.md` passam a apontar para `docs/specs/divisao-implementacao-mvp.md` (sem link, porque o arquivo só existe no remoto depois do push), com a divisão (Artur Lins: 001, 005, 006 e 007; Arthur Moura: 002, 003 e 004) e as decisões D1 a D4 aguardando a concordância dos dois. A frase "nenhum código foi implementado" foi retirada, porque a 001 está em andamento localmente.
+- O agente não criou o arquivo da divisão nesta sessão, para não gerar conflito de adição com a versão local; a atualização da linha da 007 nele foi entregue na resposta, para aplicação local.
 
 ## Alterações humanas
 
@@ -153,7 +164,7 @@ Pendente de revisão.
 
 ## Pendências
 
-- Versionar no repositório o plano de implementação dividido entre Artur Lins e Arthur Moura (por exemplo, numa ata em `docs/reunioes/`) e registrar o responsável na T001 de cada spec.
+- Fazer o push de `docs/specs/divisao-implementacao-mvp.md` (com a linha da 007 atualizada: domínio `evolucao`, sem migração, 26 tarefas) depois de `git pull --rebase` sobre os commits desta sessão; obter a concordância de Arthur Moura nas D1 a D4; registrar o responsável na T001 de cada spec.
 - Implementação das specs 001 a 007, na `develop`, com a apresentação do MVP prevista para 15/10/2026.
 - Na implementação da 006 (T036), aplicar o recorte de `dias_no_intervalo` esclarecido pela DTEC 065; a T006 da 007 confere.
 - Na implementação da 007: a interpretação do contraste de 3:1 (DTEC 067) depende da paleta final (QA-19, UI-01 a UI-03); se o p95 do servidor reprovar (T022), a contingência da DTEC 066 vira tarefa nova com migração.
