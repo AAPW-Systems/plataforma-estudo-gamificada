@@ -163,7 +163,7 @@ Decisões tomadas em 29/09/2026 ([registro](../prompts/2026-09-29-brainstorming-
 - **Formato:** lições curtas (proposta: 10 cartões distintos), com tela de fechamento (XP ganho, sequência, cartões dominados) e a opção de continuar com lições extras enquanto houver cartões disponíveis. O tamanho é configurável.
 - **A lição segue o FSRS:** um cartão marcado Errei volta na mesma lição alguns minutos depois, como o algoritmo pede. Não há revisão antecipada: quem já revisou tudo o que estava disponível vê quando o próximo cartão vence.
 - **Retenção desejada:** preferência do perfil (padrão 90%) que o FSRS usa para espaçar as revisões. A personalização dos parâmetros pelo histórico do estudante fica para depois do MVP.
-- **Novos cartões por dia:** limite configurável pelo usuário (ponto de partida: 10, reconhecidamente baixo para quem estuda muito).
+- **Novos cartões por dia:** limite configurável pelo usuário, global (padrão: 20, de 0 a 100; decidido na [spec 001](../specs/001-conta-acesso/spec.md) em 12/10/2026).
 - Cada revisão enviada leva um identificador gerado no cliente. O reenvio não duplica efeitos. O mesmo identificador com conteúdo diferente gera conflito (Princípio IV).
 - Não há desfazer revisão no MVP.
 

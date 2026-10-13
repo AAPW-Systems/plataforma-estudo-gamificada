@@ -1,6 +1,6 @@
 # Base de especificação: Plataforma de Estudos Gamificada
 
-**Atualizado em:** 12/10/2026 ([registro da sessão](../prompts/2026-10-12-alinhamento-produto-arquitetura.md))
+**Atualizado em:** 12/10/2026 ([registro da sessão](../prompts/2026-10-12-alinhamento-produto-arquitetura.md); sincronizado com as specs 001 a 007 aprovadas, [registro](../prompts/2026-10-12-revisao-requisitos-specs-mvp.md))
 **Status:** rascunho de apoio às specs. Não é uma spec aprovada: o comportamento verificável de cada funcionalidade é definido em `docs/specs/NNN-nome-curto/spec.md`.
 
 ## 1. Objetivo
@@ -44,7 +44,7 @@ O produto é apresentado em três estágios. A [arquitetura](../arquitetura/READ
 | **Origem do cartão** | *Gerado e verificado* (IA, sustentado por trechos), *editado por você* ou *criado por você* |
 | **Aguardando revisão** | Estado de um cartão gerado que o estudante ainda não aceitou nem recusou. Não entra na trilha |
 | **Revisão** | Evento em que o estudante revela o verso e se autoavalia com um dos quatro botões |
-| **Lição** | Sessão de estudo curta montada pelo servidor a partir do FSRS (devidos primeiro, depois novos). Um cartão marcado Errei volta na mesma lição quando o passo curto do FSRS vence (RN-26) |
+| **Lição** | Sessão de estudo curta montada pelo servidor a partir do FSRS (devidos primeiro, depois novos). Um cartão marcado Errei volta na mesma lição quando o passo curto do FSRS vence, se a lição ainda estiver em andamento (RN-26) |
 | **Cartão novo** | Cartão ativo que nunca foi revisado |
 | **Cartão devido** | Cartão ativo cujo vencimento calculado pelo FSRS é anterior à próxima virada do dia de estudo (4h locais) |
 | **Cartão disponível** | Cartão devido, ou cartão novo dentro do limite diário de novos (RN-20) |
@@ -126,7 +126,7 @@ Toda revisão enviada carrega um identificador gerado no cliente. O reenvio com 
 - No diálogo de confirmação, o estudante escolhe entre **manter** os cartões aceitos ou **excluí-los junto**.
   - Cartões mantidos exibem "fonte apagada" junto da descrição da origem (RN-05), perdem o selo de verificado e preservam o histórico do FSRS.
   - Cartões aguardando revisão daquela fonte são sempre excluídos.
-- Revisões registradas, XP e sequência já conquistados nunca são removidos.
+- Revisões registradas, XP e sequência já conquistados nunca são removidos. A única exceção é a exclusão da conta pelo próprio estudante, que apaga todos os dados ([spec 001](../specs/001-conta-acesso/spec.md), RF-015).
 - No final acadêmico, citações do chat a uma fonte apagada passam a exibir "fonte apagada".
 - Não há arquivamento com restauração: "arquivar" significa guardar a fonte no acervo, não ocultá-la.
 
@@ -151,7 +151,7 @@ Exigência EX-03. Todo cartão gerado pela IA traz, criada junto com ele, uma ex
 Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.md)). O FSRS é o centro do produto, e as demais regras se adaptam a ele, nunca o contrário.
 
 - O vencimento de cada cartão é calculado **exclusivamente** pelo FSRS. Nenhuma regra do produto (lição, meta, XP, sequência, filtro por matéria, exibição da dificuldade) antecipa, adia ou altera esse cálculo.
-- **Passos curtos:** em aprendizado e reaprendizado, o FSRS agenda o cartão em minutos (padrão: 1 e 10 minutos no aprendizado; 10 minutos no reaprendizado). A lição reapresenta o cartão quando o passo vence. Se a lição for interrompida, o cartão vence no instante calculado e entra na próxima lição.
+- **Passos curtos:** em aprendizado e reaprendizado, o FSRS agenda o cartão em minutos (padrão: 1 e 10 minutos no aprendizado; 10 minutos no reaprendizado). A lição reapresenta o cartão quando o passo vence. Se a lição for interrompida, ou terminar antes do vencimento do passo, o cartão vence no instante calculado e entra na próxima lição.
 - **Dia de estudo:** o FSRS agenda instantes em UTC; um cartão é devido no dia de estudo se vencer antes da próxima virada das 4h no fuso do estudante (RN-15).
 - **Sem revisão antecipada:** cartões que ainda não venceram não entram em lições, nem nas extras.
 - **Intervalos com variação aleatória leve** (*fuzzing*) ficam ligados, para que cartões criados juntos não vençam sempre juntos.
@@ -164,12 +164,12 @@ Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.m
 
 - A **primeira revisão de cada cartão no dia de estudo** concede XP, **independentemente da nota**. Reapresentações do mesmo cartão no mesmo dia (passos curtos do FSRS, RN-26) não concedem XP, para que errar de propósito não renda pontos. Decidido em 12/10/2026 (Princípio de gamificação da [visão](../produto/visao.md#princípio-de-gamificação): nunca premiar a nota que o próprio estudante se atribui).
 - Um cartão que se torna **dominado** pela primeira vez concede um bônus.
-- XP é calculado no servidor, rastreável ao evento que o originou e nunca removido. Os valores (QA-24) ficam numa regra versionada: mudar valores não altera XP já concedido.
+- XP é calculado no servidor, rastreável ao evento que o originou e nunca removido, exceto na exclusão da conta pelo próprio estudante ([spec 001](../specs/001-conta-acesso/spec.md), RF-015). Os valores (QA-24) ficam numa regra versionada: mudar valores não altera XP já concedido.
 
 ### RN-19 Lição e trilha
 
 - A lição é uma sessão de estudo montada pelo servidor: primeiro os cartões devidos, depois os novos, até o tamanho da lição (em cartões distintos) e respeitando o limite diário de novos cartões (RN-20).
-- Um cartão em aprendizado ou reaprendizado que recebe um passo curto (minutos) volta na mesma lição quando o passo vence. A lição termina quando os cartões previstos foram revisados e nenhum deles tem passo curto pendente (RN-26).
+- Um cartão em aprendizado ou reaprendizado que recebe um passo curto (minutos) volta na mesma lição quando o passo vence. A lição termina quando todos os cartões previstos foram revisados ao menos uma vez e nenhum passo curto já vencido aguarda reapresentação; um cartão cujo passo curto ainda não venceu entra na próxima lição, no instante calculado (RN-26). Alterado em 12/10/2026 pela [spec 005](../specs/005-licao-trilha/spec.md) (D-004).
 - **MVP:** a lição mistura cartões de todas as matérias (trilha unificada, sem filtro).
 - **Final acadêmico:** é possível filtrar a lição por matéria, e cada matéria exibe seu domínio (cartões dominados sobre o total de cartões ativos).
 - A trilha mostra as lições concluídas como nós alcançados, a lição atual e o próximo passo. Concluir uma lição acende o nó.
@@ -178,7 +178,7 @@ Decidida em 12/10/2026 ([registro](../prompts/2026-10-12-esquema-inicial-banco.m
 
 ### RN-20 Novos cartões por dia
 
-O estudante configura o limite diário de cartões novos que entram nas lições (valor padrão em QA-23 e QA-24). Cartões aceitos além do limite aguardam os dias seguintes, na ordem de aceitação. O limite decide **quando** um cartão novo é apresentado pela primeira vez; depois disso, o agendamento é do FSRS.
+O estudante configura o limite diário de cartões novos que entram nas lições (padrão de 20 por dia, global, de 0 a 100; [spec 001](../specs/001-conta-acesso/spec.md), D-001). Um cartão novo conta no limite quando é revisado pela primeira vez ([spec 005](../specs/005-licao-trilha/spec.md), D-007). Cartões aceitos além do limite aguardam os dias seguintes, na ordem de aceitação. O limite decide **quando** um cartão novo é apresentado pela primeira vez; depois disso, o agendamento é do FSRS.
 
 ### RN-21 Meta diária e sequência
 
@@ -202,7 +202,7 @@ O estudante configura o limite diário de cartões novos que entram nas lições
 
 ### RN-23 Matérias
 
-O estudante cria, renomeia e exclui matérias (nome de 1 a 60 caracteres, único por estudante). Toda fonte e todo cartão pertencem a exatamente uma matéria. O comportamento da exclusão de uma matéria com fontes e cartões é definido na spec de F-02.
+O estudante cria, renomeia e exclui matérias (nome de 1 a 60 caracteres, único por estudante). Toda fonte e todo cartão pertencem a exatamente uma matéria. A exclusão de uma matéria é definitiva e em cascata (fontes, trechos e cartões), com o impacto exibido e a confirmação pelo nome digitado; revisões, XP e sequência são preservados ([spec 002](../specs/002-materias-fontes/spec.md), D-002).
 
 ### RN-24 Chat com as fontes e tira-dúvidas
 
