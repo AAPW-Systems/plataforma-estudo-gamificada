@@ -2,7 +2,8 @@
 
 As migrações usam o psycopg 3 em modo síncrono (o mesmo driver da aplicação). O banco
 alvo vem da configuração; `-x banco=<nome>` troca só o nome (ex.: `plataforma_teste`), e
-os testes podem passar uma conexão pronta em `config.attributes["connection"]`.
+os testes passam o nome em `config.attributes["banco"]` ou uma conexão em
+`config.attributes["connection"]`.
 """
 
 from __future__ import annotations
@@ -34,7 +35,9 @@ def executar_online() -> None:
     if isinstance(conexao_pronta, Connection):
         _executar(conexao_pronta)
         return
-    banco = context.get_x_argument(as_dictionary=True).get("banco")
+    banco = config.attributes.get("banco") or context.get_x_argument(as_dictionary=True).get(
+        "banco"
+    )
     engine = create_engine(
         url_banco(obter_configuracao(), banco),
         poolclass=pool.NullPool,
