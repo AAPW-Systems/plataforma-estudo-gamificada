@@ -60,6 +60,8 @@ Todas as sessões com agentes de programação que criem ou alterem arquivos sã
 
 ## Índice
 
+Retomada da implementação após a pausa de 13/10/2026: [prompt para o próximo agente](2026-10-13-001-conta-acesso-retomada.txt).
+
 | Data | Sessão | Etapa | Autor |
 |---|---|---|---|
 | 2026-09-29 | [Estruturação do projeto](2026-09-29-estruturacao-projeto.md) | Estruturação | Artur Lins |

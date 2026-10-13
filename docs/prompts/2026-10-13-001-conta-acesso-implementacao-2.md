@@ -31,6 +31,20 @@ Atenção especial (segurança): T031, T032, T034 e T035 (advisory lock antes da
 O registro docs/prompts/2026-10-13-001-conta-acesso-implementacao.md já traz as decisões desta sessão e as pendências (por exemplo, a resposta 413 que o contrato ainda não declara, para a T065).
 ```
 
+### Prompt 2
+
+```text
+realize uma pause segura no desenvolvimento do projeto, gerando um prompt para continuar o desenvolvimento em outro agente, seguindo o padrão do prompt que lhe foi passado inicialmente
+```
+
+### Prompt 3
+
+```text
+continue
+```
+
+Interpretado no contexto do pedido anterior como continuar o fechamento seguro e a preparação da retomada.
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -42,6 +56,14 @@ O registro docs/prompts/2026-10-13-001-conta-acesso-implementacao.md já traz as
 | `docs/specs/001-conta-acesso/tasks.md` | T021 marcada após execução |
 | `backend/src/app/principal.py`, `saude/`, `exportar_openapi.py`, `backend/openapi.json` | Aplicação, saúde e exportação do contrato (T022) |
 | `backend/tests/conftest.py`, `tests/integration/test_saude.py` | Cliente HTTPS com cookies/CSRF e seis testes da T022 |
+| `backend/tests/arquitetura/test_camadas.py` | Detector AST e testes da T023 |
+| `frontend/src/componentes/ui/`, `frontend/src/estilos/` | Oito componentes, tokens claro/escuro e 11 testes da T024 |
+| `frontend/Dockerfile` | Correção de propriedade de `/app` para permitir cache pelo usuário `node` |
+| `docs/prompts/2026-10-13-001-conta-acesso-retomada.txt` | Prompt de continuidade no formato solicitado |
+
+Pausa solicitada pelo usuário durante a T024. T025 a T045 não iniciadas. Nenhum push feito; S1 ainda não alcançado.
+
+Os testes e builds iniciados foram encerrados; o banco de desenvolvimento permaneceu saudável, sem exclusão de volumes ou dados. A T024 foi preservada em commit de incremento com checkbox aberto, para a próxima sessão concluir a validação padrão.
 
 ## Alterações humanas
 
@@ -59,9 +81,17 @@ Pendente de revisão.
 - T023: detector AST de importações absolutas/relativas e oito casos de violação deliberada; **216 passed** (9,62 s), Ruff e mypy passaram (55 arquivos).
 - Primeira execução identificou o vínculo incorreto ao nome do arquivo da revisão anterior; corrigido para o ID real `0001` e repetida a suíte com sucesso.
 - A migração cria apenas o valor `padrao` de `origem_parametros_fsrs`; `otimizado` fica fora do MVP conforme o plano. Modelos importam a Base compartilhada e tipos da biblioteca padrão: exceção estrutural necessária à tabela de camadas, sem importar comportamento de domínio.
+- T024: `npm run typecheck` e `npm run lint` passaram; `npm test` passou com **11 testes** (incluindo axe nos oito componentes e diálogo aberto, interação e retorno de foco); `npm run build` passou, todos em contêiner, usando temporariamente `--user root` devido à permissão herdada do Dockerfile.
+- A primeira execução do frontend falhou por `EACCES` em `/app/node_modules/.vitest-cache`. Correção: `RUN chown -R node:node /app` no estágio `dev`; validar a imagem reconstruída com o usuário padrão antes de marcar T024.
+- A reconstrução da imagem `web` com a correção terminou com sucesso. A execução final de `format:check`, lint, testes e build com o usuário padrão foi recusada pelo usuário no pedido de permissão e não executou. T024 permanece sem `[x]`; o commit registra o incremento e essa pendência, sem alegar conclusão.
+- O teste de retorno de foco inicialmente falhou por observar antes da restauração assíncrona do React Aria; foi corrigido para aguardar com `waitFor`, e passou.
+- Avisos do frontend: Vite sobre futura mudança de `configLoader`; jsdom sem `HTMLCanvasElement.getContext`. Os testes axe não comprovam contraste visual no jsdom; a verificação visual de RQ-004/T061 continua pendente. Nenhuma dependência adicional foi introduzida.
 
 ## Pendências
 
-- Implementar e verificar T021 a T045, respeitando S1.
+- T021, T022 e T023 concluídas e commitadas: `d614b73`, `b1e6779`, `266da48`.
+- Concluir validação da T024 com usuário padrão do contêiner; depois T025 a T045, respeitando S1. Não liberar a base da 002 ainda.
+- T006, T007 e T008 seguem pendentes de verificação; não foi executado Compose completo, CI remoto nem pre-commit.
+- O contrato gerado em `backend/openapi.json` contém apenas saúde por enquanto; as rotas de identidade chegam na T036 e a comparação completa é T037. T037 também cita rotas de US3/US4 posteriores a S1: a cobertura incremental deverá ser registrada explicitamente.
 - T041 menciona rotas implementadas só em T049/T056; registrar a cobertura incremental sem antecipar US3/US4.
 - Resposta 413 ausente no contrato: pendência herdada para T065.

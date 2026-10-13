@@ -15,6 +15,7 @@ RUN --mount=type=cache,target=/root/.npm \
 # --- dev: servidor do Vite com recarga; o código é montado por volume no Compose
 FROM deps AS dev
 COPY . .
+RUN chown -R node:node /app
 USER node
 EXPOSE 5173
 CMD ["npm", "run", "dev"]
