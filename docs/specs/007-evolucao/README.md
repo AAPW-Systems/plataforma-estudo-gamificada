@@ -19,7 +19,8 @@
 6. [`contracts/openapi.yaml`](contracts/openapi.yaml): contrato da rota `GET /api/v1/evolucao`.
 7. [`quickstart.md`](quickstart.md): validação local e demonstração.
 
-`tasks.md` e `traceability.md` nascem depois do portão "Plano aprovado" ([fluxo SDD](../../skills/fluxo-sdd.md)).
+8. [`tasks.md`](tasks.md): T001 a T026, por história. Em revisão (portão "Tarefas aprovadas").
+9. [`traceability.md`](traceability.md): matriz requisito, teste e tarefa, com a análise de consistência. Em revisão.
 
 ## Histórico
 
@@ -31,3 +32,4 @@
 | 12/10/2026 | Spec aprovada para planejamento por Artur Lins, depois da revisão individual ([registro](../../prompts/2026-10-12-revisao-requisitos-specs-mvp.md)) |
 | 13/10/2026 | Plano, pesquisa (DTEC 064 a 067), modelo de dados, contrato e quickstart escritos para revisão ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 064 a 067; esclarecimento da T036 da 006 e contexto técnico atualizados ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
+| 13/10/2026 | Tarefas (T001 a T026) e rastreabilidade com análise de consistência escritas para revisão ([registro](../../prompts/2026-10-13-007-evolucao-plano.md)) |
