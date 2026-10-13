@@ -108,6 +108,13 @@ plano aprovado
 tarefas aprovadas
 ```
 
+### Prompt 4
+
+```text
+Q-001: vamos de 1. Caminho vertical contínuo pro mvp, deixar registrado como pendência apenas para discutir se na entrega final acadêmica iremos manter esse padrão
+Q-002: remover do mvp, constar nas pendências para discutir com o PO
+```
+
 ## Saída aceita
 
 Etapa 5 (planejar), até o portão "Plano aprovado":
@@ -205,6 +212,17 @@ Ajustes feitos pelo agente sobre as recomendações aprovadas, explicitados ao a
 - `revisoes.apresentacao_public_id` guarda o valor sem FK, para sobreviver à exclusão do cartão (DTEC 049).
 - Dia de estudo num módulo único do núcleo, compartilhado com a 004 e a 006 (DTEC 048, transversal).
 
+Decisões da equipe depois da aprovação das tarefas (Prompt 4), propagadas pelo modelo ancorado:
+
+| Artefato | Ação |
+|---|---|
+| `docs/specs/005-licao-trilha/spec.md` | alterado: Q-001 e Q-002 resolvidas; D-008 (trilha em caminho vertical contínuo no MVP) e D-009 (EX-05 fora do MVP); escopo, exigências e verificação da constituição |
+| `docs/specs/005-licao-trilha/plan.md`, `research.md`, `tasks.md` (T037, T038), `traceability.md`, `README.md` | alterados: propagação das decisões, sem mudança de ID |
+| `docs/skills/contexto-tecnico.md` | alterado: trilha do MVP |
+| `docs/produto/pendencias.md` | alterado: QA-26 fora do MVP; nova QA-34 (composição da trilha no final acadêmico) |
+| `docs/produto/pauta-po.md`, `backlog.md`, `exigencias_po.md` | alterados: EX-05 fora do MVP, em pauta com o PO |
+| `docs/base-specs/design.md` | alterado: UI-05 decidida para o MVP |
+
 ## Alterações humanas
 
 Pendente de revisão.
@@ -223,5 +241,5 @@ Pendente de revisão.
 - Plano da spec 006 em nova sessão, com o prompt acima.
 - Implementação da 005 adiada até a documentação das specs do MVP ficar completa (decisão de 13/10/2026).
 - `git push`: os commits desta sessão estão só no repositório local.
-- Q-001 (trilha, UI-05): decisão da equipe até 14/10/2026, com as opções do plano.
-- Q-002 (EX-05): resposta do PO.
+- QA-34: composição da trilha no final acadêmico, a discutir com a equipe antes do plano da 012.
+- EX-05 (PO-01, QA-26): fora do MVP, em pauta com o PO.
