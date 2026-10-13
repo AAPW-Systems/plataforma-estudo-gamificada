@@ -123,7 +123,7 @@ Tarefas do Procrastinate, idempotentes e com estados visíveis (RN-03):
 | Tarefa | O que faz | Estágio |
 |---|---|---|
 | `processar_fonte` | Extrai texto (em subprocesso isolado, [DTEC 024](../research.md#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis)), divide em trechos com página e posição, persiste | MVP |
-| `gerar_cartoes` | Seleciona trechos, chama o agente gerador, valida estrutura e sustentação, grava como "aguardando revisão" | MVP |
+| `gerar_cartoes` | Seleciona a janela de trechos não cobertos, chama o agente gerador e a juíza, valida estrutura e sustentação, filtra repetidos e grava como "aguardando revisão" ([DTEC 041 a 043](../specs/004-geracao-cartoes/research.md)) | MVP |
 | `indexar_fonte` | Gera embeddings (bge-m3) e o `tsvector` dos trechos | Final |
 | `backup` | `pg_dump` para o bucket de backup no R2 | Final |
 | `reconciliar_objetos` | Periódica: apaga objetos do armazenamento sem linha correspondente, com margem de 1 hora ([DTEC 025](../research.md#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco)) | MVP |
@@ -134,10 +134,10 @@ A exclusão de uma fonte ou matéria aciona os **participantes** registrados por
 ### 5.4 IA
 
 - **Interface própria** para cada capacidade (gerar cartões, responder no chat, embutir texto, reordenar trechos), com adaptadores por provedor. Provedor, modelo e chaves vêm do ambiente.
-- **PydanticAI** define os agentes com saída tipada (modelos Pydantic). No MVP há um agente, o gerador de cartões. No final acadêmico entram o agente do chat e o do tira-dúvidas, que usam a busca como ferramenta.
-- **Limites operacionais** (guidelines): timeout, até 2 novas tentativas com espera crescente, orçamento diário de chamadas por estudante, e registro do consumo por chamada (provedor, modelo, tokens, latência, custo estimado, versão das instruções).
-- **Conteúdo é dado.** Trechos entram no prompt delimitados e rotulados como material do estudante. Instruções do sistema nunca são concatenadas ao conteúdo (CB-15).
-- **Privacidade.** Na camada gratuita do Gemini, o provedor pode usar o conteúdo enviado para melhorar seus produtos. O estudante é informado disso na primeira geração (Princípio II). O Groq é a alternativa configurável.
+- **PydanticAI** define os agentes com saída tipada (modelos Pydantic). No MVP há dois agentes: o gerador de cartões e a juíza de sustentação, que só reprova ([DTEC 042](../specs/004-geracao-cartoes/research.md#decisão-dtec-042-validação-estrutural-e-de-sustentação)). No final acadêmico entram o agente do chat e o do tira-dúvidas, que usam a busca como ferramenta.
+- **Limites operacionais** (guidelines): timeout, até 2 novas tentativas com espera crescente, orçamento diário de *tokens* por estudante e por dia de estudo, e registro do consumo por chamada (provedor, modelo, tokens, latência, custo estimado, versão das instruções), num único ponto de chamada ([DTEC 040](../research.md#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia)).
+- **Conteúdo é dado.** Trechos entram no prompt delimitados (com *nonce* por chamada) e rotulados como material do estudante ([DTEC 047](../specs/004-geracao-cartoes/research.md#decisão-dtec-047-instruções-embutidas-contradições-e-avaliação)). Instruções do sistema nunca são concatenadas ao conteúdo (CB-15).
+- **Privacidade.** Na camada gratuita do Gemini, o provedor pode usar o conteúdo enviado para melhorar seus produtos. O estudante é informado disso na primeira geração, e a ciência é registrada no servidor por versão do aviso do provedor configurado ([DTEC 039](../research.md#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo), Princípio II). O Groq é a alternativa configurável.
 
 ### 5.5 RAG no final acadêmico
 

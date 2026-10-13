@@ -35,8 +35,10 @@ A visão de conjunto das decisões, por estágio (MVP, final acadêmico e refer�
 | [DTEC 027](#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) | Participantes da exclusão de fontes e matérias | Aprovada em 13/10/2026 com o plano da 002; emenda de 13/10/2026 (`cartoes_suspensos`) aprovada com o plano da 003 |
 | [DTEC 033](#decisão-dtec-033-busca-sem-diferenciar-maiúsculas-e-acentos) | Busca sem diferenciar maiúsculas e acentos | Aprovada em 13/10/2026 com o plano da 003 |
 | [DTEC 034](#decisão-dtec-034-paginação-das-listagens-por-cursor) | Paginação das listagens por cursor | Aprovada em 13/10/2026 com o plano da 003 |
+| [DTEC 039](#decisão-dtec-039-aviso-e-ciência-do-uso-de-provedor-de-ia-externo) | Aviso e ciência do uso de provedor de IA externo | Proposta em 13/10/2026 com o plano da 004 |
+| [DTEC 040](#decisão-dtec-040-consumo-orçamento-e-limites-operacionais-da-ia) | Consumo, orçamento e limites operacionais da IA | Proposta em 13/10/2026 com o plano da 004 |
 
-A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), e as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
+A DTEC 002 tem uma emenda de 12/10/2026 (driver psycopg 3), e a DTEC 027, uma de 13/10/2026 (contagem dos suspensos). As decisões específicas da spec 001 (DTEC 019 a 023) estão no [`research.md` da spec](specs/001-conta-acesso/research.md), as da spec 002 (DTEC 028 a 032), no [`research.md` dela](specs/002-materias-fontes/research.md), as da spec 003 (DTEC 035 a 038), no [`research.md` da 003](specs/003-cartoes-manuais/research.md), e as da spec 004 (DTEC 041 a 047), no [`research.md` da 004](specs/004-geracao-cartoes/research.md). A numeração das DTEC é única no projeto, inclusive entre arquivos.
 
 ## Decisão DTEC 001 Ferramenta de testes do backend
 
@@ -523,6 +525,69 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 
 **Condição para revisão:** uma tela que precise saltar para páginas arbitrárias, o que nenhuma tela prevista exige.
 
+## Decisão DTEC 039 Aviso e ciência do uso de provedor de IA externo
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-004-geracao-cartoes-plano.md))  
+**Questão:** onde e como registrar a ciência do estudante de que trechos das suas fontes são enviados a um provedor de IA externo e do que esse provedor pode fazer com o conteúdo (RF-002 da [spec 004](specs/004-geracao-cartoes/spec.md), Princípio II, DTEC 007)? O mesmo aviso vai valer para o chat e o tira-dúvidas do final acadêmico.  
+**Critérios:**
+
+- a ciência fica no servidor (Princípio IV) e é verificada antes de qualquer envio;
+- o aviso descreve o provedor **configurado**, e trocar de provedor pede nova ciência;
+- cada domínio é dono das próprias tabelas (DTEC 018);
+- um clique a mais só na primeira vez;
+- a ciência é apagada com a conta (DTEC 021).
+
+**Alternativas consideradas:**
+
+1. **Tabela `ciencias_aviso_ia (usuario_id, versao_aviso, confirmada_em)` no domínio `ia`:** a versão do aviso vem da configuração do provedor (ex.: `gemini-v1`). O texto vem do servidor, e a ciência vale só para a versão vigente.
+2. **Coluna `usuarios.ciencia_ia_em`:** mais simples, mas o domínio `ia` passaria a escrever numa tabela de `identidade`, e a ciência sobreviveria a uma troca de provedor com outra política de dados.
+3. **Registro no navegador (`localStorage`):** não é verificável pelo servidor, se perde ao trocar de dispositivo e viola o Princípio IV.
+
+**Decisão:** alternativa 1.  
+**Justificativa:** a ciência fica atrelada ao que o estudante leu. Trocar Gemini por Groq, ou mudar a política de uso de dados, muda a versão, e o aviso volta a aparecer. O servidor recusa qualquer envio sem a ciência da versão vigente.  
+**Consequências:**
+
+- **Versão e texto:** a configuração do domínio `ia` define, para cada provedor, a versão e o texto do aviso, com o nome do provedor, a finalidade do envio (só os trechos da fonte pedida), o uso que o provedor pode fazer do conteúdo (na camada gratuita do Gemini, melhorar os produtos do provedor) e a recomendação de não enviar fontes com dados pessoais ou confidenciais. Mudar o texto exige mudar a versão, e um teste verifica que cada provedor configurado tem versão e texto.
+- **Rotas:**
+  - `GET /api/v1/ia/aviso` devolve a versão, o provedor, os parágrafos do texto e se há ciência da versão vigente, com `Cache-Control: no-store`.
+  - `POST /api/v1/ia/aviso/ciencia` recebe a `versao` lida. Ela é idempotente (`ON CONFLICT DO NOTHING`) e responde `204`. Uma versão diferente da vigente responde `409 aviso_desatualizado`, e a interface recarrega o aviso.
+- **Verificação:** toda operação que envia conteúdo ao provedor confere a ciência na mesma transação do pedido. Sem ela, a resposta é `409 ciencia_aviso_pendente`, e a interface abre o diálogo do aviso. O worker não repete essa conferência, porque o pedido já foi aceito com a ciência válida.
+- **Chave primária:** `(usuario_id, versao_aviso)`. O histórico das versões aceitas fica guardado, sem o texto.
+- **Exclusão da conta:** `apagar_dados_usuario` do domínio `ia` apaga as linhas do usuário.
+
+**Condição para revisão:** um requisito legal de consentimento revogável ou com finalidade granular, que pediria registro de revogação e de finalidade.
+
+## Decisão DTEC 040 Consumo, orçamento e limites operacionais da IA
+
+**Data:** 13/10/2026 ([registro](prompts/2026-10-13-004-geracao-cartoes-plano.md))  
+**Questão:** como aplicar os limites operacionais da IA (DTEC 007 e 011: timeout, novas tentativas, orçamento diário por estudante e consumo registrado por chamada) de forma uniforme para a geração de cartões (RQ-002 da [spec 004](specs/004-geracao-cartoes/spec.md)) e, depois, para o chat, sem conteúdo nos registros (RQ-003 da 004) e com garantia sob concorrência?  
+**Critérios:**
+
+- um único ponto de chamada ao provedor, independente de provedor (RQ-005 da base);
+- orçamento medido no que custa: os *tokens*;
+- sem serviço novo;
+- nenhum conteúdo de fontes, cartões ou instruções nos registros;
+- orçamento conferido antes de cada chamada, não só no pedido.
+
+**Alternativas consideradas:**
+
+1. **Orçamento em *tokens* por estudante e por dia de estudo, somado de `consumo_ia`:** cada chamada passa por `ia/cliente.py`, que confere o orçamento, aplica o timeout e o teto da execução (`UsageLimits` do PydanticAI) e registra o consumo numa transação própria, com sucesso ou falha.
+2. **Orçamento em número de chamadas:** mais simples, mas uma chamada com 30 mil caracteres custa dezenas de vezes mais que uma curta. O número não mede o recurso que se esgota na camada gratuita.
+3. **Contador em memória no processo:** se perde ao reiniciar e não é compartilhado entre a API e o worker.
+
+**Decisão:** alternativa 1.  
+**Justificativa:** mede o recurso que realmente acaba, usa a tabela que a DTEC 011 já previa e fica correta com vários workers, porque a soma vem do banco.  
+**Consequências:**
+
+- **Dia de estudo:** a soma vai da última virada das 4h no fuso do estudante até o instante atual (RN-15), coberta pelo índice `(usuario_id, criado_em)` de `consumo_ia`.
+- **Conferência:** no pedido (ex.: `POST /fontes/{id}/geracoes` responde `429 orcamento_ia_esgotado`, com `Retry-After` até a próxima virada) e no worker, antes de cada chamada (a operação termina com o código `orcamento_esgotado`). Uma chamada já iniciada não é interrompida, e o teto por execução (`UsageLimits`) limita o quanto ela pode passar do orçamento.
+- **Registro (`consumo_ia`):** operação, provedor, modelo, versão das instruções, *tokens* de entrada e de saída (quando o provedor informa), latência, sucesso e, quando houver, a geração. Nunca guarda conteúdo. As falhas também são registradas, com os *tokens* nulos quando o provedor não os informa.
+- **Timeout e novas tentativas:** `IA_TIMEOUT_SEGUNDOS` (padrão 60) por chamada. As novas tentativas ficam na fila (até 2, com espera crescente, no padrão da DTEC 030), só para erros transitórios do provedor: timeout, falha de conexão, 5xx e 429 por minuto. Cota diária do provedor esgotada não é transitória.
+- **Variáveis:** `IA_PROVEDOR` (`gemini`, `groq` ou `teste`), `IA_MODELO_GERACAO`, `IA_MODELO_VERIFICADOR`, `IA_TIMEOUT_SEGUNDOS`, `IA_ORCAMENTO_TOKENS_DIA` (padrão 300.000) e as chaves do provedor, só no `.env` (regra 9). Com `teste`, o adaptador simulado do PydanticAI é usado, sem rede.
+- **Exclusão da conta:** `apagar_dados_usuario` do domínio `ia` apaga o consumo do usuário. Na exclusão da fonte ou da matéria, o consumo permanece, sem conteúdo, com `geracao_id` nulo quando a geração some.
+
+**Condição para revisão:** uma API paga com custo por *token*, que pediria um orçamento em valor (`custo_estimado`) e um teto global do projeto, além do teto por estudante.
+
 ## Fontes consultadas
 
 - Documentação oficial do pytest (fixtures, parametrização, marcadores e plugins).
@@ -536,4 +601,5 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - Documentação do Procrastinate (`procrastinate.readthedocs.io/en/stable`, páginas "Retry a task", "Queueing locks" e "Retry stalled jobs"), consultada em 13/10/2026 para as DTEC 024 a 030.
 - Documentação da biblioteca padrão do Python (`multiprocessing` com o contexto `spawn` e `resource.setrlimit`), consultada em 13/10/2026 para a DTEC 024.
 - Documentação do PostgreSQL 17 (módulo `unaccent`, funções `lower` e `LIKE` com `ESCAPE`, comparação de linhas), consultada em 13/10/2026 para as DTEC 033 e 034.
+- Documentação do PydanticAI (`ai.pydantic.dev`: saída estruturada, `UsageLimits`, `RunUsage`, `FunctionModel` e `TestModel`) e do pydantic-evals, consultada em 13/10/2026 para as DTEC 039, 040 e as da spec 004.
 - Esboço de arquitetura de 12/10/2026, hoje [`arquitetura/referencia-pos-academica.md`](arquitetura/referencia-pos-academica.md).
