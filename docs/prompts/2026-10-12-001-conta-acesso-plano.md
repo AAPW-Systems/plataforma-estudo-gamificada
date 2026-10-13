@@ -65,6 +65,12 @@ hierarquia ErroAplicacao com handlers centrais; núcleo compartilhado). Confirma
 aprovo, faça os commits separados e siga
 ```
 
+### Prompt 3 (13/10/2026)
+
+```text
+volte pro python 3.13, fora isso, aprovado. Não vamos implementar código agora, vamos logo gerar toda a documentação necessária de todas as specs do mvp, conforme as guidelines. se já tiver implementado tudo da spec001, gere um prompt para gerar a 002 em nova sessão
+```
+
 ## Saída aceita
 
 | Artefato | Ação |
@@ -88,10 +94,12 @@ aprovo, faça os commits separados e siga
 | `docs/specs/001-conta-acesso/plan.md`, `research.md`, `README.md`, `docs/research.md`, `docs/produto/pendencias.md`, `docs/specs/README.md`, `.agents/AGENTS.md` | alterados depois do prompt 2 (registro da aprovação do plano) |
 | `docs/specs/001-conta-acesso/tasks.md` | criado (etapa 6, T001 a T065) |
 | `docs/specs/001-conta-acesso/traceability.md` | criado (etapa 7, com análise de consistência) |
+| `docs/specs/001-conta-acesso/plan.md`, `tasks.md`, `traceability.md`, `quickstart.md`, `README.md`, `docs/specs/README.md`, `.agents/AGENTS.md` | alterados depois do prompt 3 (Python 3.13; aprovação das tarefas; implementação adiada) |
 
 ## Alterações humanas
 
-Plano aprovado por Artur Lins em 12/10/2026 sem alterações (prompt 2), com a emenda da DTEC 002 e as DTEC 015 a 023.
+- Plano aprovado por Artur Lins em 12/10/2026 sem alterações (prompt 2), com a emenda da DTEC 002 e as DTEC 015 a 023.
+- Tarefas e rastreabilidade aprovadas por Artur Lins em 13/10/2026 (prompt 3), com uma alteração: Python 3.13 no lugar do 3.14.
 
 ## Verificação
 
@@ -100,11 +108,11 @@ Plano aprovado por Artur Lins em 12/10/2026 sem alterações (prompt 2), com a e
 - Conector do Procrastinate conferido na documentação oficial (sem conector asyncpg; conexão externa só com psycopg 3, `SyncPsycopgConnector` ou `SQLAlchemyPsycopg2Connector`), base da emenda da DTEC 002.
 - Commits do prompt 2: `e4f6777` (decisões transversais), `aa51e5b` (esquema), `1fb863d` (artefatos da 001), `5aabfd6` (registro).
 - Tarefas conferidas por script: 65 tarefas, todas citadas na rastreabilidade, e todo ID citado na rastreabilidade existe em `tasks.md`.
-- Nenhum código foi escrito nem executado: as versões exatas das dependências e a compatibilidade com Python 3.14 serão verificadas na tarefa de estrutura base.
+- Nenhum código foi escrito nem executado: as versões exatas das dependências e a compatibilidade com Python 3.13 serão verificadas na tarefa de estrutura base (T002).
 
 ## Pendências
 
-- Portão "Tarefas aprovadas": aprovação de `tasks.md` e `traceability.md` da 001 por uma pessoa da equipe, antes de qualquer implementação.
+- Plano, tarefas e rastreabilidade da 002 a 007, em sessões próprias (prompt da 002 entregue ao usuário na resposta ao prompt 3). A implementação da 001 só começa depois disso (prompt 3).
 - QA-30: proteção da `main` no GitHub e decisões de processo (revisão obrigatória, documentação pela `develop`) continuam com a equipe.
 - Lista curta de senhas comuns em português (DTEC 022): revisão pela equipe antes do merge.
 - Specs 002 e 004: os planos devem adotar o formato de chave `usuarios/{public_id}/...` e tarefas que terminam sem efeito quando o registro não existe mais (DTEC 021).
