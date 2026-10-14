@@ -10,7 +10,7 @@ export interface CampoTextoProps extends Omit<TextFieldProps, "children"> {
 
 export function CampoTexto({ rotulo, erro, ajuda, inputRef, ...props }: CampoTextoProps) {
   return (
-    <TextField {...props} className="campo" isInvalid={Boolean(erro)}>
+    <TextField {...props} className="campo" validationBehavior="aria" isInvalid={Boolean(erro)}>
       <Label>
         {rotulo}
         {props.isRequired ? " (obrigatório)" : ""}
@@ -18,7 +18,7 @@ export function CampoTexto({ rotulo, erro, ajuda, inputRef, ...props }: CampoTex
       <Input ref={inputRef} className="entrada" />
       {ajuda && <Text slot="description">{ajuda}</Text>}
       {erro && (
-        <Text slot="description" className="erro-campo">
+        <Text slot="errorMessage" className="erro-campo">
           {erro}
         </Text>
       )}

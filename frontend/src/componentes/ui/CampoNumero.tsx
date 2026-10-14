@@ -14,13 +14,13 @@ export interface CampoNumeroProps extends Omit<NumberFieldProps, "children"> {
 
 export function CampoNumero({ rotulo, erro, ...props }: CampoNumeroProps) {
   return (
-    <NumberField {...props} className="campo" isInvalid={Boolean(erro)}>
+    <NumberField {...props} className="campo" validationBehavior="aria" isInvalid={Boolean(erro)}>
       <Label>{rotulo}</Label>
       <Group>
         <Input className="entrada" />
       </Group>
       {erro && (
-        <Text slot="description" className="erro-campo">
+        <Text slot="errorMessage" className="erro-campo">
           {erro}
         </Text>
       )}
