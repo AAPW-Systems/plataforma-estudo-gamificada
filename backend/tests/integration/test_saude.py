@@ -1,7 +1,9 @@
 """T022: saúde, documentação e composição da aplicação real."""
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import cast
 from unittest.mock import patch
 
@@ -16,11 +18,14 @@ pytestmark = pytest.mark.integration
 
 
 async def test_saude(cliente: httpx.AsyncClient) -> None:
-    """T022: processo, banco e esquema da fila acessíveis."""
+    """T022 e T011: processo, banco, esquema da fila e armazenamento acessíveis."""
     assert (await cliente.get("/health")).json() == {"estado": "ok"}
     resposta = await cliente.get("/health/ready")
     assert resposta.status_code == 200
-    assert resposta.json() == {"estado": "ok", "verificacoes": {"banco": "ok", "fila": "ok"}}
+    assert resposta.json() == {
+        "estado": "ok",
+        "verificacoes": {"banco": "ok", "fila": "ok", "armazenamento": "ok"},
+    }
 
 
 async def test_banco_indisponivel(cliente: httpx.AsyncClient) -> None:
@@ -82,3 +87,78 @@ async def test_swagger_so_em_desenvolvimento(
     ):
         assert (await cliente.get("/api/docs")).status_code == esperado
         assert (await cliente.get("/api/openapi.json")).status_code == esperado
+
+
+# --- Armazenamento (T011): /health/ready grava e apaga um objeto de sonda ---------------------
+
+
+async def _aplicacao_com_disco(configuracao: Configuracao, raiz: Path) -> FastAPI:
+    return criar_aplicacao(
+        configuracao.model_copy(
+            update={"armazenamento_adaptador": "local", "armazenamento_diretorio": raiz}
+        )
+    )
+
+
+async def _prontidao(app: FastAPI) -> httpx.Response:
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="https://teste"
+        ) as cliente_http,
+    ):
+        return await cliente_http.get("/health/ready")
+
+
+async def test_armazenamento_gravavel_deixa_a_prontidao_em_200_sem_resíduo(
+    configuracao: Configuracao, tmp_path: Path
+) -> None:
+    resposta = await _prontidao(await _aplicacao_com_disco(configuracao, tmp_path / "arquivos"))
+    assert resposta.status_code == 200
+    assert resposta.json()["verificacoes"]["armazenamento"] == "ok"
+    # A sonda é apagada: nenhum objeto sobra no volume.
+    assert [p for p in (tmp_path / "arquivos").rglob("*") if p.is_file()] == []
+
+
+async def test_raiz_que_nao_e_diretorio_gera_503_sem_detalhes(
+    configuracao: Configuracao, tmp_path: Path
+) -> None:
+    raiz = tmp_path / "arquivos"
+    raiz.write_text("sou um arquivo, não um diretório")
+    resposta = await _prontidao(await _aplicacao_com_disco(configuracao, raiz))
+    assert resposta.status_code == 503
+    assert resposta.json()["verificacoes"] == {
+        "banco": "ok",
+        "fila": "ok",
+        "armazenamento": "falhou",
+    }
+    assert str(tmp_path) not in resposta.text
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="o superusuário ignora as permissões de escrita")
+async def test_diretorio_sem_permissao_de_escrita_gera_503(
+    configuracao: Configuracao, tmp_path: Path
+) -> None:
+    raiz = tmp_path / "arquivos"
+    raiz.mkdir()
+    raiz.chmod(0o500)
+    try:
+        resposta = await _prontidao(await _aplicacao_com_disco(configuracao, raiz))
+    finally:
+        raiz.chmod(0o700)
+    assert resposta.status_code == 503
+    assert resposta.json()["verificacoes"]["armazenamento"] == "falhou"
+
+
+async def test_falha_ao_gravar_a_sonda_gera_503(
+    configuracao: Configuracao, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.nucleo.armazenamento import ArmazenamentoDisco
+
+    async def falhar(self: ArmazenamentoDisco, chave: str, origem: Path) -> None:
+        raise OSError("disco cheio")
+
+    monkeypatch.setattr(ArmazenamentoDisco, "gravar", falhar)
+    resposta = await _prontidao(await _aplicacao_com_disco(configuracao, tmp_path / "arquivos"))
+    assert resposta.status_code == 503
+    assert "disco cheio" not in resposta.text

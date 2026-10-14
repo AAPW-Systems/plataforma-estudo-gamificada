@@ -11,6 +11,7 @@ import app.revisao.registros  # noqa: F401  (registra a exclusão de revisao)
 from app.identidade.dominio import carregar_senhas_comuns
 from app.identidade.rotas import roteador as identidade
 from app.identidade.servicos import ServicoIdentidade
+from app.nucleo.armazenamento import Armazenamento, criar_armazenamento
 from app.nucleo.banco import FabricaSessoes, criar_engine, criar_fabrica
 from app.nucleo.configuracao import Configuracao, obter_configuracao
 from app.nucleo.erros import MiddlewareErrosInesperados, registrar_handlers
@@ -34,6 +35,7 @@ def criar_aplicacao(
     relogio: Relogio | None = None,
     servico_senhas: ServicoSenhas | None = None,
     senhas_comuns: frozenset[str] | None = None,
+    armazenamento: Armazenamento | None = None,
 ) -> FastAPI:
     configuracao = configuracao or obter_configuracao()
 
@@ -42,6 +44,7 @@ def criar_aplicacao(
         configurar_logs(configuracao.log_nivel)
         engine = criar_engine(configuracao) if fabrica_sessoes is None else None
         app.state.fabrica_sessoes = criar_fabrica(engine) if engine is not None else fabrica_sessoes
+        app.state.armazenamento = armazenamento or criar_armazenamento(configuracao)
         # Sem a lista de senhas comuns (DTEC 022) ou com o Argon2 inviável, a app não sobe.
         senhas = servico_senhas or ServicoSenhas(configuracao.argon2_concorrencia)
         await senhas.preparar()
