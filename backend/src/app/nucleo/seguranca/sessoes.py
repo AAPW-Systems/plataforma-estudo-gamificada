@@ -11,6 +11,7 @@ import hashlib
 import re
 import secrets
 from datetime import datetime, timedelta
+from typing import TypeGuard
 
 TAMANHO_TOKEN_BYTES = 32
 INTERVALO_RENOVACAO = timedelta(seconds=60)
@@ -23,7 +24,7 @@ def gerar_token() -> str:
     return base64.urlsafe_b64encode(secrets.token_bytes(TAMANHO_TOKEN_BYTES)).rstrip(b"=").decode()
 
 
-def token_bem_formado(valor: str | None) -> bool:
+def token_bem_formado(valor: str | None) -> TypeGuard[str]:
     """Recusa de imediato o que não pode ser um identificador, sem consultar o banco."""
     return valor is not None and _TOKEN.fullmatch(valor) is not None
 

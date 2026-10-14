@@ -124,7 +124,7 @@
   - `app/revisao/repositorios.py`: criação da versão de `parametros_fsrs`.
 
   Testes de integração em `tests/integration/identidade/test_repositorios.py`.
-- [ ] T035 [US1] Implementar os serviços:
+- [x] T035 [US1] Implementar os serviços:
   - `app/identidade/servicos.py`: `cadastrar`, `entrar` e `sair`, com limites, hash fictício e novo hash quando os parâmetros mudam.
   - `app/revisao/servicos.py`: `criar_parametros_iniciais`, com os pesos de `fsrs.Scheduler()` e a versão da biblioteca.
 - [ ] T036 [US1] Implementar `app/identidade/dtos.py`, `mapeadores.py`, `dependencias.py` (`UsuarioAtual`) e `rotas.py`, com `GET /auth/csrf`, `POST /auth/cadastro`, `POST /auth/entrada`, `POST /auth/saida` e `GET /perfil`, até que as T030 a T032 passem.
