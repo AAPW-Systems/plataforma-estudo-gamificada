@@ -207,17 +207,17 @@
 
 ## Fase final Qualidade transversal
 
-- [ ] T060 Executar nos contêineres as suítes completas do backend e do frontend, a qualidade estática e a verificação do contrato, e confirmar a integração contínua aprovada na `develop`. Registrar as contagens de testes e a cobertura.
-- [ ] T061 Revisar os itens de segurança e acessibilidade e registrar as evidências:
+- [x] T060 Executar nos contêineres as suítes completas do backend e do frontend, a qualidade estática e a verificação do contrato, e confirmar a integração contínua aprovada na `develop`. Registrar as contagens de testes e a cobertura. **Evidência (14/10/2026):** ver "Evidência da fase final" no [registro da sessão](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md). CI verde na `develop` (execução 13, `9232f70`, nos dois jobs); backend 748 testes e frontend 75, com cobertura de 94% e 92,6%.
+- [ ] T061 Revisar os itens de segurança e acessibilidade e registrar as evidências. **Parcial (14/10/2026), não marcada:** tudo o que um agente executa está registrado no [registro da sessão](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md) (logs, segredos, cabeçalhos, mensagens em português, teclado, 320 px e contraste com axe no navegador real, nos dois temas); **falta a passagem com leitor de tela**, que exige uma pessoa e deve ser feita junto com a T063:
   - logs da `api` sem senha, e-mail, cookie ou corpo de autenticação (RQ-002);
   - ausência de segredos no repositório (regra 9);
   - cabeçalhos de segurança;
   - mensagens de erro em português;
   - teclado e leitor de tela nas três telas, uso em 320 px sem rolagem horizontal e contraste (RQ-004).
-- [ ] T062 Medir o tempo de resposta da entrada no ambiente local (meta: menos de 1 segundo, conforme o plano) e o pico de memória da `api` numa rajada de 10 entradas, e registrar.
+- [x] T062 Medir o tempo de resposta da entrada no ambiente local (meta: menos de 1 segundo, conforme o plano) e o pico de memória da `api` numa rajada de 10 entradas, e registrar. **Evidência (14/10/2026):** mediana de 87 ms e p95 de cerca de 100 ms por entrada (meta: menos de 1 s); rajada de 10 entradas simultâneas em cerca de 0,7 a 0,8 s, todas `200`; pico de memória da `api` de cerca de 363 MiB (base de 107 MiB). Detalhes no [registro da sessão](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md).
 - [ ] T063 Conduzir o teste guiado com três pessoas, que criam a conta e chegam à trilha em até 2 minutos, sem ajuda (CS-001). Registrar os tempos sem dados pessoais.
-- [ ] T064 Atualizar o [quickstart](quickstart.md) com os comandos realmente verificados, `docs/skills/padroes-implementacao.md` com os comandos e endereços, e o "Mapa do repositório" do `.agents/AGENTS.md` com `backend/` e `frontend/`.
-- [ ] T065 Atualizar o [traceability.md](traceability.md) com os nomes reais dos testes e corrigir requisitos sem teste ou tarefa.
+- [x] T064 Atualizar o [quickstart](quickstart.md) com os comandos realmente verificados, `docs/skills/padroes-implementacao.md` com os comandos e endereços, e o "Mapa do repositório" do `.agents/AGENTS.md` com `backend/` e `frontend/`. **Evidência (14/10/2026):** os comandos do CI foram executados; o `up -d --build --wait` foi verificado pelo usuário no Compose; os endereços (`/health/ready`, `/api/docs`, `/api/openapi.json`) responderam `200`.
+- [x] T065 Atualizar o [traceability.md](traceability.md) com os nomes reais dos testes e corrigir requisitos sem teste ou tarefa. **Evidência (14/10/2026):** os nomes citados foram conferidos mecanicamente contra o código; as lacunas (CS-001, leitor de tela, `413`, `securitySchemes`) estão registradas na seção própria.
 
 ## Dependências
 

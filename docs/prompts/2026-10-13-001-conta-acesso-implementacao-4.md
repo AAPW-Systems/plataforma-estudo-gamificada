@@ -145,6 +145,27 @@ Testes: backend 748 (era 665), frontend 75 (era 57). Logs da `api` e do `worker`
 
 Decisões da US4: a troca de senha e a exclusão rodam sob a mesma trava da conta e do endereço que a entrada, e a falha da senha atual conta como `falha_senha_atual` para o limite único da conta (RQ-003); a senha atual correta zera as falhas da conta; a exclusão trava o usuário (`FOR UPDATE`) e roda o registro de exclusão (`revisao` em 900, `identidade` em 950, que apaga sessões e o usuário), apaga as falhas da conta e enfileira `apagar_objetos_usuario` (com `queueing_lock`) na mesma transação; 6 pedidos paralelos de exclusão dão um `204` e cinco `401`; 4 trocas paralelas de senha dão um `204` e três `422`; a tabela de casos do isolamento passou a incluir senha e exclusão, e as listas de pendências do contrato e do isolamento ficaram vazias.
 
+### Evidência da fase final (T060 a T065, depois do Prompt 2)
+
+**T060.** CI na `develop`: a execução 13 (`9232f70`, cabeça com todo o código da spec) passou nos dois jobs ([run](https://github.com/AAPW-Systems/plataforma-estudo-gamificada/actions/runs/38493543653)). As contagens e a cobertura vêm da execução local (host, PostgreSQL 16), com os mesmos comandos do CI: backend **748 testes**, `ruff format`/`ruff check`/`mypy` limpos (103 arquivos), `exportar_openapi` sem diferença; frontend **75 testes** em 9 arquivos, `prettier`, `eslint` e `tsc` limpos, `gerar:api` sem diferença. Cobertura do backend **94%** (instruções e ramos) e do frontend **92,6% das instruções e 79,5% dos ramos**. A primeira medição do backend deu 91%: o *coverage* perdia as linhas depois de cada troca de *greenlet* do SQLAlchemy assíncrono (`servicos.py` aparecia com 74%, mas o limite de 10 cadastros por hora, por exemplo, é exercitado por teste). A configuração passou a medir `greenlet` e `thread` (commit `6378ceb`; `servicos.py` foi a 95%).
+
+**T061 (parcial; a tarefa segue aberta).** Executado:
+
+- *Logs:* ensaio real com API e worker (212 linhas da `api`, 13 do `worker`): eventos `requisicao`, `conta_criada`, `objetos_do_usuario_apagados` e `worker_iniciado`, só com `usuario_public_id` e `idRequisicao`; zero ocorrências de e-mail, senha, cookie, `argon2id`, nome do cookie, `SEGREDO_APLICACAO` ou `POSTGRES_PASSWORD`.
+- *Segredos:* nenhum `.env` versionado (`.gitignore` o cobre); nenhum padrão de chave privada ou token nos arquivos versionados; os valores do `.env` local não aparecem em arquivo versionado nem em nenhum commit do histórico (`git log -S`); `.env.example` com as duas variáveis vazias.
+- *Cabeçalhos:* a `api` responde `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY`, `Cache-Control: no-store` e `X-Request-Id`; a imagem estática da interface (`Caddyfile`) envia os três primeiros. CSP e HSTS ficam no Caddy de borda do final acadêmico (arquitetura, seções 5.2 e 8), fora desta spec.
+- *Mensagens em português:* sete respostas reais (401, 403 de CSRF, 404, 400, 422 com campos, credenciais inválidas) conferidas: todas em português, no corpo `Erro`.
+- *Acessibilidade:* axe-core no Chromium real, com as regras `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` e `best-practice` (inclui contraste de cor), em 8 telas e estados (entrada, entrada com erros, cadastro, cadastro com erro do servidor, trilha vazia, perfil, perfil com erro, diálogo de exclusão) nos temas claro e escuro: **16 verificações, 0 violações**. Teclado e 320 px: ordem de tabulação (T040), foco preso, `Esc` e devolução do foco no diálogo (T059), sem rolagem horizontal a 320 px em entrada, cadastro, perfil e diálogo (T040, T052, T059).
+- *Não executado:* passagem com leitor de tela (NVDA, VoiceOver ou TalkBack), que exige uma pessoa e um navegador com tecnologia assistiva. A estrutura (rótulos, descrição dos erros, papéis, foco) só foi conferida pelo axe e pelos testes de componente, o que não a substitui. Por isso a T061 não foi marcada.
+
+**T062.** API real (uvicorn, Argon2id da RFC 9106 em pouca memória, semáforo de 4 cálculos), PostgreSQL 16 local, 4 núcleos, contas fictícias: entradas sequenciais com **mediana de 85 a 89 ms e p95 de cerca de 100 ms** (meta: menos de 1 s); rajada de **10 entradas simultâneas** de contas e endereços distintos em 0,73 a 0,84 s no total (mediana por entrada de 0,56 a 0,61 s), todas `200`; memória do processo da `api`: 107 MiB em repouso e **pico (VmHWM) de cerca de 363 MiB**, igual antes e depois da rajada (base mais os 4 cálculos de 64 MiB que o semáforo permite). Uma primeira leitura de memória mediu por engano o processo-invólucro do `uv` (3 MiB) e foi descartada. A medição é local, não da VPS.
+
+**T063.** Não feita: depende de três pessoas.
+
+**T064.** Quickstart atualizado com os comandos do CI (`up -d --wait db`, `--no-deps`, `--frozen`, `--user root` no frontend), os endereços e as verificações das histórias P2 e P3; `docs/skills/padroes-implementacao.md` ganhou a seção "Comandos e endereços"; o "Mapa do repositório" do `.agents/AGENTS.md` descreve `backend/`, `frontend/`, `compose.yaml` e o CI. Corrigido no quickstart: o banco não publica porta no computador.
+
+**T065.** `traceability.md` reescrito com os nomes reais dos testes (111 nomes conferidos contra o código por script; os prefixos com `*` apontam para o arquivo) e com a seção "Lacunas registradas na implementação": CS-001 (T063), leitor de tela, `413` e `securitySchemes` ausentes do contrato de projeto (o ajuste do contrato aprovado depende da equipe), cobertura.
+
 ## Decisões e divergências
 
 1. **Ordem do limite de cadastros.** O plano põe o limite antes da validação; aqui valida-se antes (função pura, sem efeito) e só o pedido válido consome o limite de 10 por hora. Assim, erros de digitação não bloqueiam quem se cadastra, e o `409 email_em_uso` também conta (a enumeração por cadastro fica limitada). A contagem e o registro usam a mesma transação, sob *advisory lock*.
@@ -162,5 +183,6 @@ Decisões da US4: a troca de senha e a exclusão rodam sob a mesma trava da cont
 
 - ~~T006 e T027~~ (fechadas com o Compose do usuário, Prompt 2) e ~~revisão da lista em português (T028)~~.
 - **Ponto S1:** código na `develop`, CI verde e Compose completo verificado; o aviso a Arthur Moura para começar a base da 002 fica com o usuário.
-- Fase final (T060 a T065): T060, T061 e T062 em parte; T063 (teste guiado com três pessoas) é humano; a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
-- Contrato: `413` e `securitySchemes` (T065); a rota `PATCH /perfil` e as de senha e exclusão acrescentam casos de duas contas e de CSRF quando existirem.
+- **Spec 001, fase final:** T060, T062, T064 e T065 concluídas com evidência. **T061** segue aberta (falta a passagem com leitor de tela) e **T063** (teste guiado com três pessoas, CS-001) é humana. Sem elas, a 001 não passa a `Concluída`; permanece em `Implementando`.
+- **Contrato:** `413` e `securitySchemes` não estão em `contracts/openapi.yaml`; decidir com a equipe se o contrato de projeto é emendado ou se os desvios ficam documentados (registrado na rastreabilidade).
+- **Limpeza do ambiente da sessão (não versionada):** servidores de desenvolvimento e o banco `plataforma_e2e` do ensaio real.
