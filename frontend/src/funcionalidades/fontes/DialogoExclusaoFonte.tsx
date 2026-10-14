@@ -61,7 +61,8 @@ function Impacto({ contagens }: { contagens: Contagens }) {
 
 /**
  * Exclusão definitiva de uma fonte, com o impacto à vista e a escolha sobre os cartões (US2,
- * RN-14, D-009). A confirmação devolve ao servidor os números que o estudante viu; se eles
+ * RN-14, D-009). A escolha é sempre obrigatória e nunca pré-marcada, mesmo sem cartões (Princípio
+ * III e quickstart). A confirmação devolve ao servidor os números que o estudante viu; se eles
  * mudaram (`409 impacto_alterado`), o diálogo recarrega o impacto, avisa e pede nova confirmação,
  * mantendo a escolha já feita. Vale para fonte em qualquer estado, inclusive `falhou` (RF-012).
  */
@@ -79,8 +80,6 @@ export function DialogoExclusaoFonte({
   const [mensagem, definirMensagem] = useState<string>();
   const impacto = useQuery(consultaImpactoExclusaoFonte(fonte.id, aberto));
   const contagens = impacto.data?.contagens;
-  // A escolha só muda o destino dos cartões aceitos: sem eles, nada a decidir.
-  const precisaEscolher = (contagens?.cartoesGeradosAceitos ?? 0) > 0;
 
   function alterarAberto(proximo: boolean) {
     definirAberto(proximo);
@@ -106,13 +105,13 @@ export function DialogoExclusaoFonte({
 
   async function confirmar() {
     if (!contagens || ocupado) return;
-    const modo: Modo = precisaEscolher ? (escolha ?? "manter") : "manter";
+    if (escolha === undefined) return;
     definirOcupado(true);
     definirMensagem(undefined);
     try {
       await cliente.POST("/api/v1/fontes/{fonteId}/exclusao", {
         params: { path: { fonteId: fonte.id } },
-        body: { modoCartoes: modo, impactoConfirmado: contagens },
+        body: { modoCartoes: escolha, impactoConfirmado: contagens },
       });
       await concluir();
     } catch (erro) {
@@ -129,7 +128,6 @@ export function DialogoExclusaoFonte({
     }
   }
 
-  const semEscolha = precisaEscolher && escolha === undefined;
   return (
     <DialogoConfirmacao
       acionador={
@@ -143,7 +141,7 @@ export function DialogoExclusaoFonte({
       textoConfirmar="Excluir fonte"
       aoConfirmar={() => void confirmar()}
       ocupado={ocupado}
-      confirmarDesabilitado={!contagens || impacto.isFetching || semEscolha}
+      confirmarDesabilitado={!contagens || impacto.isFetching || escolha === undefined}
       mensagemErro={
         mensagem ??
         (impacto.isError
@@ -159,7 +157,7 @@ export function DialogoExclusaoFonte({
         <p role="status">Calculando o que será afetado…</p>
       )}
       {contagens && <Impacto contagens={contagens} />}
-      {contagens && precisaEscolher && (
+      {contagens && (
         <GrupoOpcoes
           rotulo="O que fazer com os cartões gerados e aceitos"
           opcoes={OPCOES}

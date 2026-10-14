@@ -128,7 +128,7 @@ describe("DialogoExclusaoFonte (T037; US2, RQ-004)", () => {
     });
   });
 
-  it("sem cartões aceitos a escolha não faz diferença: não é pedida e vai «manter»", async () => {
+  it("sem cartões o diálogo avisa, mas a escolha segue obrigatória e vai como foi feita", async () => {
     const zeros = { cartoesGeradosAceitos: 0, cartoesAguardandoRevisao: 0, cartoesReferencia: 0 };
     simularImpacto(() => zeros);
     const recebidos = capturarExclusao();
@@ -137,13 +137,15 @@ describe("DialogoExclusaoFonte (T037; US2, RQ-004)", () => {
     const dialogo = await abrir(usuario);
 
     expect(await within(dialogo).findByText(/não tem cartões ligados a ela/i)).toBeVisible();
-    expect(within(dialogo).queryByRole("radio")).toBeNull();
-    await usuario.click(within(dialogo).getByRole("button", { name: "Excluir fonte" }));
+    const confirmar = within(dialogo).getByRole("button", { name: "Excluir fonte" });
+    expect(confirmar).toBeDisabled();
+    await usuario.click(within(dialogo).getByRole("radio", { name: "Excluir os cartões junto" }));
+    await usuario.click(confirmar);
 
     await waitFor(() => {
       expect(aoExcluida).toHaveBeenCalled();
     });
-    expect(recebidos).toEqual([{ modoCartoes: "manter", impactoConfirmado: zeros }]);
+    expect(recebidos).toEqual([{ modoCartoes: "excluir", impactoConfirmado: zeros }]);
   });
 
   it("cancelar não muda nada e devolve o foco ao botão que abriu o diálogo", async () => {

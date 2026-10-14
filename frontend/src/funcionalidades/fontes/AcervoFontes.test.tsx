@@ -265,7 +265,8 @@ describe("Acervo da matéria (T029; US1 cenário 2, RN-03)", () => {
       await within(acervo()).findByRole("button", { name: "Excluir fonte: Citologia" }),
     );
     const dialogo = await screen.findByRole("dialog");
-    await usuario.click(await within(dialogo).findByRole("button", { name: "Excluir fonte" }));
+    await usuario.click(await within(dialogo).findByRole("radio", { name: "Manter os cartões" }));
+    await usuario.click(within(dialogo).getByRole("button", { name: "Excluir fonte" }));
 
     await within(acervo()).findByText("Enviar a primeira fonte");
     expect(within(acervo()).queryByText("Citologia")).toBeNull();
@@ -300,7 +301,8 @@ describe("Acervo da matéria (T029; US1 cenário 2, RN-03)", () => {
       await within(acervo()).findByRole("button", { name: "Excluir fonte: Citologia" }),
     );
     const dialogo = await screen.findByRole("dialog");
-    await usuario.click(await within(dialogo).findByRole("button", { name: "Excluir fonte" }));
+    await usuario.click(await within(dialogo).findByRole("radio", { name: "Manter os cartões" }));
+    await usuario.click(within(dialogo).getByRole("button", { name: "Excluir fonte" }));
 
     await waitFor(() => {
       expect(roteador.state.location.pathname).toBe(`/materias/${ID_MATERIA}`);
