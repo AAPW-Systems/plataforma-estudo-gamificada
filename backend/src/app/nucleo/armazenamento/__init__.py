@@ -6,6 +6,8 @@ from app.nucleo.armazenamento.disco import ArmazenamentoDisco
 from app.nucleo.armazenamento.interface import (
     Armazenamento,
     ChaveInvalida,
+    ObjetoArmazenado,
+    ObjetoInexistente,
     prefixo_usuario,
     validar_chave,
     validar_prefixo,
@@ -18,6 +20,8 @@ __all__ = [
     "ArmazenamentoDisco",
     "ArmazenamentoMemoria",
     "ChaveInvalida",
+    "ObjetoArmazenado",
+    "ObjetoInexistente",
     "criar_armazenamento",
     "prefixo_usuario",
     "validar_chave",
