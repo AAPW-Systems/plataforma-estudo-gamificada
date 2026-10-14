@@ -6,7 +6,6 @@ conteúdo ilegível. Os limites de tempo e memória são reais (`spawn` + `RLIMI
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
@@ -19,6 +18,7 @@ from app.fontes.processamento import (
     LimitesExtracao,
     processar_arquivo,
 )
+from app.nucleo.isolamento import ResultadoIsolado, StatusIsolado
 from tests import fabricas_arquivos as fab
 
 pytestmark = pytest.mark.integration
@@ -147,14 +147,36 @@ async def test_pdf_que_estoura_o_tempo_devolve_conteudo_invalido(
     assert resultado == FalhaDeProcessamento(CodigoFalha.CONTEUDO_INVALIDO)
 
 
-@pytest.mark.skipif(
-    not sys.platform.startswith("linux"), reason="RLIMIT_AS só existe em Linux (DTEC 024)"
+@pytest.mark.parametrize(
+    "status",
+    [
+        StatusIsolado.TEMPO_ESGOTADO,
+        StatusIsolado.MEMORIA_ESGOTADA,
+        StatusIsolado.ERRO,
+        StatusIsolado.FALHA_PROCESSO,
+    ],
 )
-async def test_pdf_que_estoura_a_memoria_devolve_conteudo_invalido(
-    tmp_path: Path, validos: dict[str, fab.ArquivoGerado]
+async def test_isolamento_que_nao_termina_bem_devolve_conteudo_invalido(
+    tmp_path: Path, validos: dict[str, fab.ArquivoGerado], status: StatusIsolado
 ) -> None:
-    limites = LimitesExtracao(tempo_s=60, memoria_mb=1, max_paginas=500)
-    resultado = await _processar(tmp_path, validos["pdf-2mb.pdf"], limites)
+    """Qualquer fim anormal do filho (inclusive o estouro de memória) é conteúdo inválido.
+
+    O estouro real de memória é verificado em `test_isolamento.py` (1 GB contra 128 MB). Aqui o
+    executor é simulado de propósito: o `RLIMIT_AS` soma o tamanho virtual atual do filho, que
+    já traz o PyMuPDF carregado, e a folga do alocador muda de uma máquina para outra; um teto
+    "baixo" com um PDF real acabava passando no CI. A regra testada é o mapeamento do status.
+    """
+
+    async def executor_que_falha(*_: object, **__: object) -> ResultadoIsolado:
+        return ResultadoIsolado(status)
+
+    resultado = await processar_arquivo(
+        _gravar(tmp_path, validos["pdf-uma-pagina.pdf"]),
+        "application/pdf",
+        limites=LIMITES,
+        parametros=PARAMETROS,
+        executor=executor_que_falha,
+    )
     assert resultado == FalhaDeProcessamento(CodigoFalha.CONTEUDO_INVALIDO)
 
 
