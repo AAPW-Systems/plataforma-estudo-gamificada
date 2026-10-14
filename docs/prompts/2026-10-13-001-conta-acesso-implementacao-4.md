@@ -32,9 +32,32 @@ Atenção especial à segurança: T031, T032, T034 e T035 exigem advisory lock a
 Registre no tasks.md e no novo registro as divergências do plano: T037 terá cobertura incremental do contrato porque algumas rotas só chegam depois de S1; T041 não pode declarar cobertas as rotas de perfil, senha e exclusão previstas para T049/T056. A resposta 413 ainda falta no contrato (pendência T065). O OpenAPI gerado ainda contém só saúde; regenere os tipos após criar as rotas de identidade em T036/T037. A consulta de perfil do frontend usa temporariamente retorno unknown e deve passar ao cliente tipado na T037; o tratamento global de 401 chega na T044. app/nucleo/fila.py mantém MODULOS_TAREFAS vazio até T056. Não reinicie T021 a T026: o ponto de retomada é T027.
 ```
 
+### Prompt 2
+
+```text
+$ docker compose up -d --build --wait
+[+] Building 260.3s (32/32) FINISHED
+[… log de construção omitido neste registro; as etapas relevantes:]
+ => [web dev 2/2] RUN chown -R node:node /app                                                                                                                                                                    240.5s
+[+] up 7/7
+ ✔ Image plataforma-api:dev              Built                                                                                                                                                                    260.5s
+ ✔ Image plataforma-web:dev              Built                                                                                                                                                                    260.5s
+ ✔ Container plataforma-estudo-migrate-1 Exited                                                                                                                                                                    18.2s
+ ✔ Container plataforma-estudo-worker-1  Healthy                                                                                                                                                                   16.7s
+ ✔ Container plataforma-estudo-api-1     Healthy                                                                                                                                                                   16.7s
+ ✔ Container plataforma-estudo-web-1     Healthy                                                                                                                                                                   21.4s
+ ✔ Container plataforma-estudo-db-1      Healthy
+
+t28 revisada
+
+prossiga
+```
+
+Interpretado como: a verificação do Compose completo foi feita pelo usuário (fecha T006 e T027), a lista de senhas da T028 foi revisada pela equipe, e a sessão deve seguir para a US3 da 001 (T046 em diante), que é a próxima da divisão da implementação.
+
 ## Saída aceita
 
-T028 a T045 concluídas e publicadas na `develop` (US1 e US2, ponto S1 em termos de código). Parada na T045, como pedido. T006 e T027 seguem **sem** `[x]` (ver "Pendências"); T007 e T008 foram verificadas e marcadas.
+T028 a T045 concluídas e publicadas na `develop` (US1 e US2, ponto S1 em termos de código). Parada na T045, como pedido. T006 e T027 foram marcadas depois da execução do Compose pelo usuário (Prompt 2); T007 e T008 foram verificadas e marcadas.
 
 | Artefato | Ação |
 |---|---|
@@ -105,8 +128,7 @@ Testes: `pytest -m functional` (28), `security` (29 da US1) e `adversarial` (38)
 
 ## Pendências
 
-- **T006 e T027** (Compose completo): rodar `docker compose up -d --build --wait` e conferir `/health/ready` numa máquina com acesso ao `ghcr.io`. Conferido nesta sessão: `docker compose config` e o banco saudável.
-- **Ponto S1:** em termos de código, T045 está na `develop`. Antes de avisar Arthur Moura para começar a base da 002, o CI da cabeça da `develop` está verde (execução 9); falta a verificação do Compose acima.
-- Revisão da lista de senhas em português (T028).
+- ~~T006 e T027~~ (fechadas com o Compose do usuário, Prompt 2) e ~~revisão da lista em português (T028)~~.
+- **Ponto S1:** código na `develop`, CI verde e Compose completo verificado; o aviso a Arthur Moura para começar a base da 002 fica com o usuário.
 - US3 (T046 a T052), US4 (T053 a T059) e fase final (T060 a T065); a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
 - Contrato: `413` e `securitySchemes` (T065); a rota `PATCH /perfil` e as de senha e exclusão acrescentam casos de duas contas e de CSRF quando existirem.
