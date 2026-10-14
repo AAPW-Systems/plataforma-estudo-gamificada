@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import math
 import secrets
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,7 +39,7 @@ from app.nucleo.seguranca.sessoes import (
     sessao_valida,
     token_bem_formado,
 )
-from app.revisao.servicos import criar_parametros_iniciais, retencao_vigente
+from app.revisao.servicos import alterar_retencao, criar_parametros_iniciais, retencao_vigente
 
 logger = structlog.get_logger(__name__)
 
@@ -278,3 +280,28 @@ class ServicoIdentidade:
             if usuario is None:
                 raise NaoAutenticado()
             return PerfilConsultado(usuario, await retencao_vigente(sessao, usuario_id))
+
+    async def alterar_perfil(
+        self, usuario_id: int, enviados: Mapping[str, Any]
+    ) -> PerfilConsultado:
+        """Altera nome, fuso e preferências, tudo ou nada (RF-008, RF-010).
+
+        A validação acontece antes de qualquer escrita. A linha do usuário é travada
+        (`FOR UPDATE`) durante a escrita, o que serializa alterações concorrentes e, com elas,
+        as novas versões dos parâmetros do FSRS.
+        """
+        alteracao = dominio.validar_alteracao_perfil(enviados)
+        agora = self._relogio.agora()
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            usuarios = RepositorioUsuarios(sessao)
+            usuario = await usuarios.travar_por_id(usuario_id)
+            if usuario is None:
+                raise NaoAutenticado()
+            await usuarios.aplicar_alteracao(usuario, alteracao, agora)
+            if alteracao.retencao_desejada is not None:
+                retencao = await alterar_retencao(
+                    sessao, usuario_id, alteracao.retencao_desejada, agora
+                )
+            else:
+                retencao = await retencao_vigente(sessao, usuario_id)
+        return PerfilConsultado(usuario, retencao)

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from app.identidade.dtos import PerfilDTO
+from typing import Any
+
+from app.identidade.dtos import PerfilAlteracaoDTO, PerfilDTO
 from app.identidade.servicos import PerfilConsultado
 
 
@@ -19,3 +21,8 @@ def perfil_para_dto(perfil: PerfilConsultado) -> PerfilDTO:
         retencao_desejada=float(perfil.retencao_desejada),
         criado_em=usuario.criado_em,
     )
+
+
+def alteracao_para_mapa(dto: PerfilAlteracaoDTO) -> dict[str, Any]:
+    """Os campos presentes no corpo, em snake_case (um `null` enviado conta como enviado)."""
+    return dto.model_dump(exclude_unset=True, by_alias=False)

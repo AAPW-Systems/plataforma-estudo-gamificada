@@ -15,6 +15,7 @@ from sqlalchemy import CursorResult, delete, func, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.identidade.dominio import AlteracaoPerfil
 from app.identidade.excecoes import EmailEmUso
 from app.identidade.modelos import Sessao, TentativaAcesso, Usuario
 
@@ -80,6 +81,17 @@ class RepositorioUsuarios:
             .execution_options(populate_existing=True)
         )
         return (await self._sessao.execute(consulta)).scalar_one_or_none()
+
+    async def aplicar_alteracao(
+        self, usuario: Usuario, alteracao: AlteracaoPerfil, agora: datetime
+    ) -> None:
+        """Grava só os campos presentes da alteração, no usuário já travado por quem chama."""
+        for campo in ("nome", "fuso", "meta_diaria", "tamanho_licao", "limite_novos_dia"):
+            valor = getattr(alteracao, campo)
+            if valor is not None:
+                setattr(usuario, campo, valor)
+        usuario.atualizado_em = agora
+        await self._sessao.flush()
 
     async def atualizar_senha_hash(self, usuario_id: int, senha_hash: str, agora: datetime) -> None:
         await self._sessao.execute(

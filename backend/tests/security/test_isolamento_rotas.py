@@ -61,7 +61,6 @@ CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {}
 
 # Rotas do contrato que ainda não existem -> tarefa que as entrega.
 ROTAS_PENDENTES: dict[tuple[str, str], str] = {
-    ("PATCH", "/api/v1/perfil"): "T049",
     ("POST", "/api/v1/perfil/senha"): "T056",
     ("POST", "/api/v1/perfil/exclusao"): "T056",
 }
@@ -145,9 +144,11 @@ async def test_a_lista_de_rotas_protegidas_nao_e_vazia(aplicacao: FastAPI) -> No
 
 async def rotas_que_nao_respondem_401(app: FastAPI, cliente: httpx.AsyncClient) -> list[str]:
     """Rotas protegidas que, sem sessão, não respondem `401` sem dados do recurso."""
-    await obter_csrf(cliente)  # o token pré-sessão passa pelo CSRF; quem barra é a autenticação
     problemas: list[str] = []
     for metodo, caminho in rotas_protegidas(app):
+        # O token pré-sessão passa pelo CSRF; quem barra é a autenticação. A resposta 401 apaga
+        # os cookies, então o token é pedido de novo antes de cada requisição (como faz o SPA).
+        await obter_csrf(cliente)
         resposta = await cliente.request(
             metodo, _url(caminho), json={} if metodo != "GET" else None
         )
@@ -215,6 +216,23 @@ async def test_perfil_e_saida_de_uma_conta_nao_afetam_a_outra(
         assert (await cliente_bia.post("/api/v1/auth/saida")).status_code == 204
         assert (await cliente_bia.get("/api/v1/perfil")).status_code == 401
         assert (await cliente.get("/api/v1/perfil")).json() == perfil_ana
+
+
+async def test_alteracao_do_perfil_de_uma_conta_nao_afeta_a_outra(
+    aplicacao: FastAPI, cliente: httpx.AsyncClient
+) -> None:
+    """`PATCH /perfil` (T049) entrou na tabela de duas contas, fora de `ROTAS_PENDENTES`."""
+    ana, bia = dados_conta(), dados_conta()
+    async with abrir_cliente(aplicacao, ip="198.51.100.34") as cliente_bia:
+        await cadastrar(cliente, ana)
+        await cadastrar(cliente_bia, bia)
+        antes_ana = (await cliente.get("/api/v1/perfil")).json()
+        resposta = await cliente_bia.patch(
+            "/api/v1/perfil",
+            json={"nome": "Bia Alterada", "metaDiaria": 3, "retencaoDesejada": 0.71},
+        )
+        assert resposta.status_code == 200 and resposta.json()["email"] == bia.email
+        assert (await cliente.get("/api/v1/perfil")).json() == antes_ana
 
 
 async def test_a_sessao_de_uma_conta_nunca_devolve_dados_de_outra(

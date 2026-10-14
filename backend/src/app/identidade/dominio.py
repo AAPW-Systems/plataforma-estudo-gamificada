@@ -11,9 +11,10 @@ import hashlib
 import hmac
 import unicodedata
 import zoneinfo
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from pathlib import Path
 
@@ -254,3 +255,95 @@ def liberado_cadastro_em(
     if len(recentes) < limite:
         return None
     return recentes[len(recentes) - limite] + janela
+
+
+# --- Alteração do perfil (RF-008, RF-010, US3) -------------------------------------------
+
+_CENTESIMO = Decimal("0.01")
+_CAMPOS_ALTERAVEIS = frozenset(
+    {"nome", "fuso", "meta_diaria", "tamanho_licao", "limite_novos_dia", "retencao_desejada"}
+)
+_NOME_JSON = {
+    "meta_diaria": "metaDiaria",
+    "tamanho_licao": "tamanhoLicao",
+    "limite_novos_dia": "limiteNovosDia",
+    "retencao_desejada": "retencaoDesejada",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class AlteracaoPerfil:
+    """Só os campos enviados (e válidos) vêm preenchidos; `None` significa "não alterar"."""
+
+    nome: str | None = None
+    fuso: str | None = None
+    meta_diaria: int | None = None
+    tamanho_licao: int | None = None
+    limite_novos_dia: int | None = None
+    retencao_desejada: Decimal | None = None
+
+    def vazia(self) -> bool:
+        return all(getattr(self, campo) is None for campo in _CAMPOS_ALTERAVEIS)
+
+
+def _inteiro_no_limite(valor: object, limite: preferencias.LimiteInteiro) -> int:
+    # `bool` é subclasse de `int`: `true` não é um número de cartões.
+    if isinstance(valor, bool) or not isinstance(valor, int) or not limite.contem(valor):
+        raise ValorInvalido(f"Use um valor de {limite.minimo} a {limite.maximo}.")
+    return valor
+
+
+def _retencao(valor: object) -> Decimal:
+    limite = preferencias.RETENCAO_DESEJADA
+    mensagem = (
+        f"Use um valor de {str(limite.minimo).replace('.', ',')} a "
+        f"{str(limite.maximo).replace('.', ',')}, com no máximo duas casas decimais."
+    )
+    if isinstance(valor, bool) or not isinstance(valor, int | float | Decimal):
+        raise ValorInvalido(mensagem)
+    try:
+        decimal = Decimal(str(valor))
+        arredondado = decimal.quantize(_CENTESIMO)
+    except InvalidOperation:
+        raise ValorInvalido(mensagem) from None
+    if not decimal.is_finite() or decimal != arredondado or not limite.contem(arredondado):
+        raise ValorInvalido(mensagem)
+    return arredondado
+
+
+def _texto(valor: object, validar: Callable[[str], str], mensagem: str) -> str:
+    if not isinstance(valor, str):
+        raise ValorInvalido(mensagem)
+    return validar(valor)
+
+
+def validar_alteracao_perfil(enviados: Mapping[str, object]) -> AlteracaoPerfil:
+    """Valida a alteração inteira ou nada (RF-008): informa todos os campos inválidos.
+
+    `enviados` traz só os campos presentes no corpo, com nomes em snake_case. Um campo
+    desconhecido é erro de programação (o DTO já recusa campos extras), não de entrada.
+    """
+    desconhecidos = set(enviados) - _CAMPOS_ALTERAVEIS
+    if desconhecidos:
+        raise ValueError(f"campo não alterável: {sorted(desconhecidos)}")
+    if not enviados:
+        raise EntradaInvalida("Informe ao menos um campo para alterar.")
+
+    verificacoes: dict[str, Callable[[object], object]] = {
+        "nome": lambda v: _texto(v, validar_nome, "Informe o nome."),
+        "fuso": lambda v: _texto(v, validar_fuso, "Fuso desconhecido."),
+        "meta_diaria": lambda v: _inteiro_no_limite(v, preferencias.META_DIARIA),
+        "tamanho_licao": lambda v: _inteiro_no_limite(v, preferencias.TAMANHO_LICAO),
+        "limite_novos_dia": lambda v: _inteiro_no_limite(v, preferencias.LIMITE_NOVOS_DIA),
+        "retencao_desejada": _retencao,
+    }
+    erros: list[ErroCampo] = []
+    validados: dict[str, object] = {}
+    for campo, valor in enviados.items():
+        try:
+            validados[campo] = verificacoes[campo](valor)
+        except ValorInvalido as erro:
+            erros.append(ErroCampo(_NOME_JSON.get(campo, campo), erro.mensagem))
+    if erros:
+        raise EntradaInvalida(campos=erros)
+    return AlteracaoPerfil(**validados)  # type: ignore[arg-type]

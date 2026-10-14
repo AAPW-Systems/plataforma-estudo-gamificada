@@ -159,18 +159,18 @@
 **Objetivo:** o estudante ajusta nome, fuso e ritmo, só com valores válidos, e a retenção cria uma nova versão dos parâmetros do FSRS.  
 **Teste independente:** alterar cada preferência para um valor válido e um inválido; alterar a retenção e conferir que a versão nova vale e que a anterior continua intacta.
 
-- [ ] T046 [P] [US3] Criar os testes unitários dos limites de D-001 nas fronteiras e da regra de nova versão (o mesmo valor não cria versão) em `tests/unit/identidade/test_preferencias.py` e `tests/unit/revisao/test_parametros_fsrs.py`.
-- [ ] T047 [P] [US3] Criar os testes funcionais dos cenários 1 a 4 da US3 em `tests/functional/identidade/test_us3_perfil.py`:
+- [x] T046 [P] [US3] Criar os testes unitários dos limites de D-001 nas fronteiras e da regra de nova versão (o mesmo valor não cria versão) em `tests/unit/identidade/test_preferencias.py` e `tests/unit/revisao/test_parametros_fsrs.py`.
+- [x] T047 [P] [US3] Criar os testes funcionais dos cenários 1 a 4 da US3 em `tests/functional/identidade/test_us3_perfil.py`:
   - alteração tudo ou nada com vários campos inválidos;
   - versão n+1 criada e versão n intacta (RF-010, CB-29);
   - fuso alterado sem mexer em dados anteriores.
-- [ ] T048 [P] [US3] Criar os testes adversariais em `tests/adversarial/identidade/test_perfil_adversarial.py`:
+- [x] T048 [P] [US3] Criar os testes adversariais em `tests/adversarial/identidade/test_perfil_adversarial.py`:
   - trocas de retenção concorrentes (versões sem lacuna nem duplicata);
   - fuso `../../etc/passwd`;
   - retenção com três casas;
   - corpo vazio;
   - campos extras (`papel`, `email`).
-- [ ] T049 [US3] Implementar `PATCH /perfil`: regras em `app/identidade/dominio.py`, `alterar_perfil` em `app/identidade/servicos.py` (com `FOR UPDATE`), `nova_versao_retencao` em `app/revisao/servicos.py`, e os DTOs, mapeadores e rota. **Pronto quando:** as T046 a T048 passam.
+- [x] T049 [US3] Implementar `PATCH /perfil`: regras em `app/identidade/dominio.py`, `alterar_perfil` em `app/identidade/servicos.py` (com `FOR UPDATE`), `nova_versao_retencao` em `app/revisao/servicos.py`, e os DTOs, mapeadores e rota. **Pronto quando:** as T046 a T048 passam.
 - [ ] T050 [P] [US3] Criar o teste de componente em `frontend/src/funcionalidades/identidade/FormularioPerfil.test.tsx`: explicação em linguagem simples do efeito da retenção (cenário 1), erros por campo, valores preservados e axe sem violações.
 - [ ] T051 [US3] Implementar a tela `frontend/src/rotas/_autenticado/perfil.tsx` ([design, 9.11](../../base-specs/design.md#911-perfil)), que invalida a consulta do perfil depois de salvar.
 - [ ] T052 [US3] Executar o teste independente da US3 e registrar a evidência.

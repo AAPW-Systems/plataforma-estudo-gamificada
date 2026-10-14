@@ -29,12 +29,10 @@ pytestmark = pytest.mark.integration
 
 # (método, caminho) -> tarefa que entrega a rota.
 OPERACOES_PENDENTES = {
-    ("patch", "/api/v1/perfil"): "T049",
     ("post", "/api/v1/perfil/senha"): "T056",
     ("post", "/api/v1/perfil/exclusao"): "T056",
 }
 ESQUEMAS_PENDENTES = {
-    "PerfilAlteracao": "T049",
     "TrocaSenhaEntrada": "T056",
     "ExclusaoContaEntrada": "T056",
 }

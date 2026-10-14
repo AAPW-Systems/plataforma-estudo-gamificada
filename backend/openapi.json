@@ -200,6 +200,92 @@
         "title": "PerfilDTO",
         "type": "object"
       },
+      "PerfilAlteracao": {
+        "additionalProperties": false,
+        "description": "Alteração parcial: só os campos enviados mudam (`model_fields_set`); ao menos um.\n\nO domínio impõe os limites (tudo ou nada, todos os erros de uma vez); aqui só se garante\no tipo: inteiros de verdade (sem `\"5\"`, `5.5` nem `true`) e número JSON finito para a retenção\n(sem `\"0.9\"`).",
+        "properties": {
+          "fuso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maxLength": 64,
+            "title": "Fuso"
+          },
+          "limiteNovosDia": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Limitenovosdia"
+          },
+          "metaDiaria": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Metadiaria"
+          },
+          "nome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "retencaoDesejada": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maximum": 0.97,
+            "minimum": 0.7,
+            "multipleOf": 0.01,
+            "title": "Retencaodesejada"
+          },
+          "tamanhoLicao": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maximum": 50.0,
+            "minimum": 5.0,
+            "title": "Tamanholicao"
+          }
+        },
+        "title": "PerfilAlteracaoDTO",
+        "type": "object"
+      },
       "Saude": {
         "properties": {
           "estado": {
@@ -470,6 +556,75 @@
           }
         },
         "summary": "Obter Perfil",
+        "tags": [
+          "perfil"
+        ]
+      },
+      "patch": {
+        "operationId": "alterarPerfil",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerfilAlteracao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Alterar Perfil",
         "tags": [
           "perfil"
         ]

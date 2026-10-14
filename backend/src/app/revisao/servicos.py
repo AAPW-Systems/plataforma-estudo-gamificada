@@ -9,6 +9,7 @@ from importlib.metadata import version
 from fsrs import Scheduler
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.revisao import dominio
 from app.revisao.modelos import ParametrosFsrs
 from app.revisao.repositorios import RepositorioParametrosFsrs
 
@@ -38,3 +39,33 @@ async def retencao_vigente(sessao: AsyncSession, usuario_id: int) -> Decimal:
     if vigente is None:
         raise LookupError(f"o usuário {usuario_id} não tem parâmetros do FSRS")
     return vigente.retencao_desejada
+
+
+async def alterar_retencao(
+    sessao: AsyncSession, usuario_id: int, retencao_nova: Decimal, agora: datetime
+) -> Decimal:
+    """Aplica a retenção desejada e devolve a vigente depois da alteração (RF-010, CB-29).
+
+    Um valor diferente grava a versão n+1, copiando os demais parâmetros da versão vigente; a
+    versão n nunca é alterada, e o mesmo valor não cria versão. Quem chama já trava a linha do
+    usuário (`FOR UPDATE`), o que serializa as trocas concorrentes: sem lacuna e sem repetição.
+    """
+    repositorio = RepositorioParametrosFsrs(sessao)
+    vigente = await repositorio.buscar_vigente(usuario_id)
+    if vigente is None:
+        raise LookupError(f"o usuário {usuario_id} não tem parâmetros do FSRS")
+    if not dominio.precisa_nova_versao(vigente.retencao_desejada, retencao_nova):
+        return vigente.retencao_desejada
+    nova = await repositorio.criar(
+        usuario_id=usuario_id,
+        versao=dominio.proxima_versao(vigente.versao),
+        pesos=list(vigente.pesos),
+        retencao_desejada=retencao_nova,
+        passos_aprendizado_s=list(vigente.passos_aprendizado_s),
+        passos_reaprendizado_s=list(vigente.passos_reaprendizado_s),
+        intervalo_maximo_dias=vigente.intervalo_maximo_dias,
+        fuzzing=vigente.fuzzing,
+        versao_biblioteca=vigente.versao_biblioteca,
+        agora=agora,
+    )
+    return nova.retencao_desejada

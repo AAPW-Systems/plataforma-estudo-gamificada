@@ -61,3 +61,57 @@ class PerfilDTO(ModeloDTO):
     limite_novos_dia: int
     retencao_desejada: float
     criado_em: datetime
+
+
+class PerfilAlteracaoDTO(EntradaDTO):
+    """Alteração parcial: só os campos enviados mudam (`model_fields_set`); ao menos um.
+
+    O domínio impõe os limites (tudo ou nada, todos os erros de uma vez); aqui só se garante
+    o tipo: inteiros de verdade (sem `"5"`, `5.5` nem `true`) e número JSON finito para a retenção
+    (sem `"0.9"`).
+    """
+
+    nome: str | None = Field(
+        default=None,
+        json_schema_extra={
+            "minLength": preferencias.NOME_MINIMO,
+            "maxLength": preferencias.NOME_MAXIMO,
+        },
+    )
+    fuso: str | None = Field(
+        default=None, json_schema_extra={"maxLength": preferencias.FUSO_MAXIMO}
+    )
+    meta_diaria: int | None = Field(
+        default=None,
+        strict=True,
+        json_schema_extra={
+            "minimum": preferencias.META_DIARIA.minimo,
+            "maximum": preferencias.META_DIARIA.maximo,
+        },
+    )
+    tamanho_licao: int | None = Field(
+        default=None,
+        strict=True,
+        json_schema_extra={
+            "minimum": preferencias.TAMANHO_LICAO.minimo,
+            "maximum": preferencias.TAMANHO_LICAO.maximo,
+        },
+    )
+    limite_novos_dia: int | None = Field(
+        default=None,
+        strict=True,
+        json_schema_extra={
+            "minimum": preferencias.LIMITE_NOVOS_DIA.minimo,
+            "maximum": preferencias.LIMITE_NOVOS_DIA.maximo,
+        },
+    )
+    retencao_desejada: float | None = Field(
+        default=None,
+        strict=True,
+        allow_inf_nan=False,
+        json_schema_extra={
+            "minimum": float(preferencias.RETENCAO_DESEJADA.minimo),
+            "maximum": float(preferencias.RETENCAO_DESEJADA.maximo),
+            "multipleOf": 0.01,
+        },
+    )

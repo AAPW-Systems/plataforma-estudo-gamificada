@@ -84,7 +84,8 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** Alterar Perfil */
+    patch: operations["alterarPerfil"];
     trace?: never;
   };
   "/health": {
@@ -215,6 +216,28 @@ export interface components {
       retencaoDesejada: number;
       /** Tamanholicao */
       tamanhoLicao: number;
+    };
+    /**
+     * PerfilAlteracaoDTO
+     * @description Alteração parcial: só os campos enviados mudam (`model_fields_set`); ao menos um.
+     *
+     *     O domínio impõe os limites (tudo ou nada, todos os erros de uma vez); aqui só se garante
+     *     o tipo: inteiros de verdade (sem `"5"`, `5.5` nem `true`) e número JSON finito para a retenção
+     *     (sem `"0.9"`).
+     */
+    PerfilAlteracao: {
+      /** Fuso */
+      fuso?: string | null;
+      /** Limitenovosdia */
+      limiteNovosDia?: number | null;
+      /** Metadiaria */
+      metaDiaria?: number | null;
+      /** Nome */
+      nome?: string | null;
+      /** Retencaodesejada */
+      retencaoDesejada?: number | null;
+      /** Tamanholicao */
+      tamanhoLicao?: number | null;
     };
     /** Saude */
     Saude: {
@@ -440,6 +463,66 @@ export interface operations {
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  alterarPerfil: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PerfilAlteracao"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Perfil"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
         headers: {
           [name: string]: unknown;
         };

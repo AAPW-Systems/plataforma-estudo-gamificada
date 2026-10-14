@@ -7,8 +7,13 @@ from typing import Any
 from fastapi import APIRouter, Request, Response
 
 from app.identidade.dependencias import Configuracoes, Contexto, Servico, UsuarioAtual
-from app.identidade.dtos import CadastroEntradaDTO, EntradaEntradaDTO, PerfilDTO
-from app.identidade.mapeadores import perfil_para_dto
+from app.identidade.dtos import (
+    CadastroEntradaDTO,
+    EntradaEntradaDTO,
+    PerfilAlteracaoDTO,
+    PerfilDTO,
+)
+from app.identidade.mapeadores import alteracao_para_mapa, perfil_para_dto
 from app.identidade.servicos import SessaoIniciada
 from app.nucleo.configuracao import Configuracao
 from app.nucleo.cookies import apagar_cookies, definir_cookie_csrf, definir_cookie_sessao
@@ -105,3 +110,16 @@ async def sair(request: Request, servico: Servico, configuracao: Configuracoes) 
 @roteador.get("/perfil", operation_id="obterPerfil", tags=["perfil"], responses={401: _ERRO})
 async def obter_perfil(atual: UsuarioAtual, servico: Servico) -> PerfilDTO:
     return perfil_para_dto(await servico.consultar_perfil(atual.usuario.id))
+
+
+@roteador.patch(
+    "/perfil",
+    operation_id="alterarPerfil",
+    tags=["perfil"],
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 422: _ERRO},
+)
+async def alterar_perfil(
+    entrada: PerfilAlteracaoDTO, atual: UsuarioAtual, servico: Servico
+) -> PerfilDTO:
+    perfil = await servico.alterar_perfil(atual.usuario.id, alteracao_para_mapa(entrada))
+    return perfil_para_dto(perfil)
