@@ -46,6 +46,34 @@ def test_migracoes_sobem_descem(configuracao: Configuracao, banco_migrado: None)
         executar_alembic("upgrade", "head")
 
 
+def test_migracao_0003_do_acervo_sobe_e_desce(
+    configuracao: Configuracao, banco_migrado: None
+) -> None:
+    """T008: a 0003 cria e remove tabelas e enums do acervo sem deixar resíduos."""
+    acervo = {"materias", "fontes", "trechos"}
+    try:
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            presentes = {
+                r[0]
+                for r in conexao.execute(
+                    "SELECT tablename FROM pg_tables WHERE schemaname='public'"
+                )
+            }
+            assert acervo <= presentes
+        executar_alembic("downgrade", "0002")
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            for tabela in acervo:
+                assert conexao.execute("SELECT to_regclass(%s)", (tabela,)).fetchone() == (None,)
+            assert conexao.execute(
+                "SELECT count(*) FROM pg_type WHERE typname IN "
+                "('estado_fonte', 'codigo_falha_fonte')"
+            ).fetchone() == (0,)
+            assert conexao.execute("SELECT to_regclass('usuarios')").fetchone() == ("usuarios",)
+        executar_alembic("upgrade", "head")
+    finally:
+        executar_alembic("upgrade", "head")
+
+
 @pytest.mark.parametrize(
     "campo,valor",
     [
