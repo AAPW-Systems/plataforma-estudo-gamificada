@@ -1,11 +1,14 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
 import { criarCliente } from "./cliente";
 import { ErroApi } from "./erros";
 
 interface ContratoTeste {
+  "/leitura": {
+    get: { responses: { 200: { content: never } } };
+  };
   "/teste": {
     post: {
       requestBody: { content: { "application/json": { nome: string } } };
@@ -91,4 +94,48 @@ it("T025: falha sem JSON vira erro seguro e tipado", async () => {
   await expect(cliente.POST("/teste", { body: { nome: "Exemplo" } })).rejects.toBeInstanceOf(
     ErroApi,
   );
+});
+
+it("T044: um 401 nao_autenticado avisa o tratador global uma vez e o erro continua tipado", async () => {
+  const aoNaoAutenticado = vi.fn();
+  servidor.use(
+    http.get("https://teste/leitura", () =>
+      HttpResponse.json(erro("nao_autenticado"), { status: 401 }),
+    ),
+  );
+  const cliente = criarCliente<ContratoTeste>({ baseUrl: "https://teste", aoNaoAutenticado });
+  await expect(cliente.GET("/leitura")).rejects.toMatchObject({
+    status: 401,
+    codigo: "nao_autenticado",
+  });
+  expect(aoNaoAutenticado).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+  [401, "credenciais_invalidas"],
+  [403, "csrf_invalido"],
+  [429, "muitas_tentativas"],
+  [500, "erro_interno"],
+])("T044: o %i %s não é tratado como sessão encerrada", async (status, codigo) => {
+  const aoNaoAutenticado = vi.fn();
+  servidor.use(
+    http.get("https://teste/api/v1/auth/csrf", () => {
+      document.cookie = "__Host-csrf=token; Path=/; Secure";
+      return new HttpResponse(null, { status: 204 });
+    }),
+    http.get("https://teste/leitura", () => HttpResponse.json(erro(codigo), { status: status })),
+  );
+  const cliente = criarCliente<ContratoTeste>({ baseUrl: "https://teste", aoNaoAutenticado });
+  await expect(cliente.GET("/leitura")).rejects.toMatchObject({ status, codigo });
+  expect(aoNaoAutenticado).not.toHaveBeenCalled();
+});
+
+it("T044: sem tratador registrado, o 401 só lança o erro", async () => {
+  servidor.use(
+    http.get("https://teste/leitura", () =>
+      HttpResponse.json(erro("nao_autenticado"), { status: 401 }),
+    ),
+  );
+  const cliente = criarCliente<ContratoTeste>({ baseUrl: "https://teste" });
+  await expect(cliente.GET("/leitura")).rejects.toBeInstanceOf(ErroApi);
 });

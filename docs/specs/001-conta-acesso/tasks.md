@@ -151,7 +151,7 @@
   - tem uma rota de teste com identificador, que só existe no teste, para provar que um recurso de outro dono responde `404` idêntico ao de inexistente (cenário 1).
 - [x] T042 [P] [US2] Criar `tests/security/test_csrf_origem.py`, parametrizado por todas as rotas que alteram estado (cenário 3): sem cabeçalho, com token de outra sessão, com `Origin` fora da lista e com `Sec-Fetch-Site: cross-site`, todas recusadas com `403`.
 - [x] T043 [US2] Implementar em `app/nucleo/` o auxiliar de busca por dono (`public_id` e `usuario_id`, `RecursoNaoEncontrado`), usado pelas specs 002 em diante, até que a T041 passe. `app/nucleo/dono.py` (`buscar_do_dono`, com `para_atualizar` para `FOR UPDATE`).
-- [ ] T044 [US2] Implementar no `frontend/src/api/cliente.ts` o tratamento global de `401`: limpa o cache do TanStack Query e redireciona para `/entrar`. Teste em `frontend/src/api/cliente.test.ts`.
+- [x] T044 [US2] Implementar no `frontend/src/api/cliente.ts` o tratamento global de `401`: limpa o cache do TanStack Query e redireciona para `/entrar`. Teste em `frontend/src/api/cliente.test.ts`.
 - [ ] T045 [US2] Executar os passos da US2 no quickstart e `pytest -m security`, e registrar a evidência.
 
 ## Fase 5 História de usuário 3 Ajustar perfil e preferências (P2)

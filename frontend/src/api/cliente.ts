@@ -13,9 +13,22 @@ function tokenCsrf(): string | undefined {
     ?.slice("__Host-csrf=".length);
 }
 
+/**
+ * Avisado quando o servidor diz que a sessão terminou (`401 nao_autenticado`). O roteador o
+ * registra para limpar o cache do TanStack Query e levar o estudante à entrada (T044).
+ */
+export type TratadorNaoAutenticado = () => void;
+
+let tratadorGlobal: TratadorNaoAutenticado | undefined;
+
+export function definirTratadorNaoAutenticado(tratador: TratadorNaoAutenticado | undefined): void {
+  tratadorGlobal = tratador;
+}
+
 export function criarCliente<Contrato extends object = paths>({
   baseUrl = window.location.origin,
-}: { baseUrl?: string } = {}) {
+  aoNaoAutenticado,
+}: { baseUrl?: string; aoNaoAutenticado?: TratadorNaoAutenticado } = {}) {
   const cliente = createClient<Contrato>({
     baseUrl,
     credentials: "same-origin",
@@ -58,7 +71,15 @@ export function criarCliente<Contrato extends object = paths>({
         // Fetch direto evita reentrar no middleware: no máximo uma repetição.
         resposta = await fetch(copia);
       }
-      if (!resposta.ok) throw await lerErro(resposta);
+      if (!resposta.ok) {
+        const erro = await lerErro(resposta);
+        // Só `nao_autenticado` encerra a sessão: o 401 `credenciais_invalidas` da entrada é
+        // uma resposta normal do formulário e não pode limpar nada nem redirecionar.
+        if (erro.status === 401 && erro.codigo === "nao_autenticado") {
+          (aoNaoAutenticado ?? tratadorGlobal)?.();
+        }
+        throw erro;
+      }
       return resposta;
     },
   };
