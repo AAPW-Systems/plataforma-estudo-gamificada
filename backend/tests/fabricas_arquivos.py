@@ -284,7 +284,7 @@ _PASTAS = {"digitalizado.pdf": "processamento"}
 
 
 def gravar_em(diretorio: Path) -> list[Path]:
-    """Grava os conjuntos em ``validos/``, ``invalidos/``, ``processamento/`` e ``adversariais/``."""
+    """Grava os conjuntos em ``validos/``, ``invalidos/``, ``processamento/``, ``adversariais/``."""
     gravados: list[Path] = []
     conjuntos = (
         ("validos", validos()),
