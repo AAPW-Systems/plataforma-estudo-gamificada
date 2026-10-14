@@ -53,7 +53,7 @@ Cada spec pertence a um único estágio. Os incrementos do final acadêmico de u
 | [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Tarefas aprovadas |
 | [007-evolucao](007-evolucao/README.md) | F-12 (parte): evolução mínima | Tarefas aprovadas |
 
-A divisão da implementação do MVP entre os responsáveis, com a ordem das ondas e o protocolo de trabalho na `develop`, está em [`divisao-implementacao-mvp.md`](divisao-implementacao-mvp.md).
+As specs do MVP são implementadas em sequência (001 → 002 → 003 → 004 → 005 → 006 → 007), uma de cada vez, por Artur Lins com o agente (decisão de 14/10/2026). A proposta de divisão entre duas pessoas, com ondas e pontos de sincronização, foi descontinuada e fica em [`divisao-implementacao-mvp.md`](divisao-implementacao-mvp.md) como histórico.
 
 ### Final acadêmico
 

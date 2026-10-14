@@ -1,6 +1,6 @@
 # Divisão da implementação do MVP
 
-**Situação:** proposta de 13/10/2026, escrita por Artur Lins com agente ([registro](../prompts/2026-10-13-divisao-implementacao-mvp.md)). Fica valendo depois que **Artur Lins e Arthur Moura** concordarem e a seção [Decisões para aprovação](#decisões-para-aprovação) for respondida.
+**Situação:** descontinuada em 14/10/2026 por decisão de Artur Lins; implementação sequencial (001 → 002 → 003 → 004 → 005 → 006 → 007), uma spec de cada vez, por Artur Lins com o agente, sem ondas, antecipações nem pontos de sincronização com outra pessoa. O texto abaixo é mantido como histórico da proposta de 13/10/2026 ([registro](../prompts/2026-10-13-divisao-implementacao-mvp.md)).
 
 **Escopo:** implementação das specs 001 a 007 por Artur Lins e Arthur Moura. Este documento só distribui e ordena tarefas que já foram aprovadas. Ele não cria tarefa, requisito nem decisão técnica: a fonte de cada tarefa continua sendo o `tasks.md` da spec. A 007 entra quando o plano e as tarefas dela forem aprovados (regra 1).
 
