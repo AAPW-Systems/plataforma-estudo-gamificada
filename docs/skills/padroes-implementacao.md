@@ -121,3 +121,21 @@ A estrutura de pastas completa está no [plano da spec 001](../specs/001-conta-a
 
 - Todo serviço tem imagem própria e sobe via orquestração declarativa (ex.: arquivo Compose), com um comando documentado no `quickstart.md`.
 - As imagens não contêm segredos. A configuração vem de variáveis de ambiente, documentadas em `.env.example`.
+
+### Comandos e endereços (verificados na spec 001)
+
+Copie `.env.example` para `.env` e preencha `POSTGRES_PASSWORD` e `SEGREDO_APLICACAO` (no mínimo 32 bytes). O `.env` é ignorado pelo git.
+
+| O quê | Comando |
+|---|---|
+| Subir tudo | `docker compose up -d --build --wait` (o `migrate` roda uma vez e termina; `db`, `api`, `worker` e `web` ficam saudáveis) |
+| Testes do backend | `docker compose up -d --wait db` e `docker compose run --rm --no-deps api uv run --frozen pytest` (acrescente `-m security` para um marcador, `--cov` para a cobertura) |
+| Qualidade do backend | `docker compose run --rm --no-deps api uv run --frozen ruff format --check .`, `... ruff check .` e `... mypy` |
+| Contrato do backend | `docker compose run --rm --no-deps api uv run --frozen python -m app.exportar_openapi`, depois `git diff --exit-code backend/openapi.json` |
+| Frontend | `docker compose run --rm --no-deps web npm run format:check`, `lint`, `typecheck` e `test:cobertura` |
+| Tipos da API | `docker compose run --rm --no-deps --user root web npm run gerar:api`, depois `git diff --exit-code frontend/src/api/` |
+
+- Os mesmos comandos rodam na integração contínua ([`ci.yml`](../../.github/workflows/ci.yml)); o `--user root` existe porque, no runner, o diretório montado pertence a outro usuário.
+- Endereços: interface em `http://localhost:5173` (o Vite repassa `/api` para a API), API e Swagger UI em `http://localhost:8000` (`/health/ready`, `/api/docs` só em desenvolvimento). O banco não publica porta; use `docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"`.
+- A suíte do backend cria e migra o banco `plataforma_teste` no mesmo Postgres; os testes de contrato leem `docs/specs/NNN/contracts/openapi.yaml` pelo volume `./docs:/docs:ro`.
+- O `worker` precisa carregar as tarefas dos domínios (`carregar_tarefas()` em `app/worker.py`, lista em `nucleo/fila.py`): sem isso ele sobe saudável e não executa nenhuma tarefa de domínio.
