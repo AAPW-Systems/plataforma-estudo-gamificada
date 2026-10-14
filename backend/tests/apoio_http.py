@@ -100,3 +100,9 @@ def cookies_da_resposta(resposta: httpx.Response) -> dict[str, str]:
     for bruto in resposta.headers.get_list("set-cookie"):
         cookies[bruto.split("=", 1)[0]] = bruto
     return cookies
+
+
+def definir_cookie(cliente: httpx.AsyncClient, nome: str, valor: str) -> None:
+    """Planta um cookie no cliente, trocando o que existir com o mesmo nome (sem conflito)."""
+    cliente.cookies.delete(nome)
+    cliente.cookies.set(nome, valor, domain="teste", path="/")

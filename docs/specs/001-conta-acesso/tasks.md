@@ -144,13 +144,13 @@
 **Objetivo:** nenhuma operação entrega, altera ou confirma recurso de outro estudante, e as requisições sem sessão ou sem proteção anti-CSRF são recusadas.  
 **Teste independente:** com as contas fictícias A e B, a conta B usa nas operações expostas os identificadores e as credenciais da conta A, e nada vaza. `pytest -m security` passa, inclusive o teste que percorre as rotas.
 
-- [ ] T041 [P] [US2] Criar `tests/security/test_isolamento_rotas.py` (DTEC 019). O teste:
+- [x] T041 [P] [US2] Criar `tests/security/test_isolamento_rotas.py` (DTEC 019). O teste: **Cobertura incremental (13/10/2026):** as rotas `PATCH /perfil` (T049) e `POST /perfil/senha` e `/perfil/exclusao` (T056) ainda não existem e **não** são declaradas cobertas: estão em `ROTAS_PENDENTES`, e o teste `test_pendentes_ainda_nao_existem` obriga a movê-las para os testes de duas contas quando passarem a existir. Hoje nenhuma rota da 001 recebe identificador no caminho, então `CASOS_DE_ISOLAMENTO` está vazio; o mecanismo é provado com uma rota que só existe no teste (busca por dono, `404` idêntico ao do inexistente) e por um detector que acusa rota nova sem caso e rota protegida sem `401`. A enumeração de rotas (`tests/apoio_rotas.py`) percorre os `_IncludedRouter` do FastAPI 0.143 e é conferida contra o OpenAPI.
   - lista `app.routes` e falha se alguma rota com parâmetro de caminho não estiver na tabela de casos;
   - confirma `401` sem dados em toda rota protegida sem sessão (cenário 2);
   - com duas contas, confirma que perfil, senha, exclusão e saída da conta B não afetam a conta A;
   - tem uma rota de teste com identificador, que só existe no teste, para provar que um recurso de outro dono responde `404` idêntico ao de inexistente (cenário 1).
-- [ ] T042 [P] [US2] Criar `tests/security/test_csrf_origem.py`, parametrizado por todas as rotas que alteram estado (cenário 3): sem cabeçalho, com token de outra sessão, com `Origin` fora da lista e com `Sec-Fetch-Site: cross-site`, todas recusadas com `403`.
-- [ ] T043 [US2] Implementar em `app/nucleo/` o auxiliar de busca por dono (`public_id` e `usuario_id`, `RecursoNaoEncontrado`), usado pelas specs 002 em diante, até que a T041 passe.
+- [x] T042 [P] [US2] Criar `tests/security/test_csrf_origem.py`, parametrizado por todas as rotas que alteram estado (cenário 3): sem cabeçalho, com token de outra sessão, com `Origin` fora da lista e com `Sec-Fetch-Site: cross-site`, todas recusadas com `403`.
+- [x] T043 [US2] Implementar em `app/nucleo/` o auxiliar de busca por dono (`public_id` e `usuario_id`, `RecursoNaoEncontrado`), usado pelas specs 002 em diante, até que a T041 passe. `app/nucleo/dono.py` (`buscar_do_dono`, com `para_atualizar` para `FOR UPDATE`).
 - [ ] T044 [US2] Implementar no `frontend/src/api/cliente.ts` o tratamento global de `401`: limpa o cache do TanStack Query e redireciona para `/entrar`. Teste em `frontend/src/api/cliente.test.ts`.
 - [ ] T045 [US2] Executar os passos da US2 no quickstart e `pytest -m security`, e registrar a evidência.
 
