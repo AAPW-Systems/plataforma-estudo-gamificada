@@ -1,4 +1,21 @@
 export interface paths {
+  "/api/v1/acervo/uso": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar Uso Acervo */
+    get: operations["consultarUsoAcervo"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/auth/cadastro": {
     parameters: {
       query?: never;
@@ -64,6 +81,93 @@ export interface paths {
     put?: never;
     /** Sair */
     post: operations["sair"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/fontes/{fonteId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar Fonte */
+    get: operations["consultarFonte"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/fontes/{fonteId}/reprocessamento": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reprocessar Fonte */
+    post: operations["reprocessarFonte"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/materias": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar Materias */
+    get: operations["listarMaterias"];
+    put?: never;
+    /** Criar Materia */
+    post: operations["criarMateria"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/materias/{materiaId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar Materia */
+    get: operations["consultarMateria"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/materias/{materiaId}/fontes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar Fontes */
+    get: operations["listarFontes"];
+    put?: never;
+    /** Enviar Fonte */
+    post: operations["enviarFonte"];
     delete?: never;
     options?: never;
     head?: never;
@@ -207,12 +311,35 @@ export interface components {
       | "confirmacao_invalida"
       | "impacto_alterado"
       | "reprocessamento_indisponivel";
+    /**
+     * CodigoFalhaFonte
+     * @description Nome do contrato (`CodigoFalhaFonte`); no código, `CodigoFalha` basta.
+     * @enum {string}
+     */
+    CodigoFalhaFonte: "falha_tecnica" | "sem_texto" | "conteudo_invalido";
     /** EntradaEntradaDTO */
     EntradaEntrada: {
       /** Email */
       email: string;
       /** Senha */
       senha: string;
+    };
+    /**
+     * EnvioFonteEntradaDTO
+     * @description Corpo *multipart* do envio: um arquivo e, opcionalmente, o título.
+     *
+     *     Fica aqui, e não em `dtos.py`, porque `UploadFile` é um tipo do FastAPI (a camada de DTOs
+     *     não importa o framework, DTEC 018): o formulário é um detalhe de transporte do controlador.
+     */
+    EnvioFonteEntrada: {
+      /**
+       * Arquivo
+       * Format: binary
+       * @description Um único arquivo .pdf, .txt, .md ou .markdown
+       */
+      arquivo: string;
+      /** Titulo */
+      titulo?: string | null;
     };
     /**
      * Erro
@@ -237,10 +364,102 @@ export interface components {
       /** Mensagem */
       mensagem: string;
     };
+    /**
+     * EstadoFonte
+     * @enum {string}
+     */
+    EstadoFonte: "pendente" | "processando" | "concluido" | "falhou";
     /** ExclusaoContaEntradaDTO */
     ExclusaoContaEntrada: {
       /** Senhaatual */
       senhaAtual: string;
+    };
+    /** FonteDTO */
+    Fonte: {
+      codigoFalha: components["schemas"]["CodigoFalhaFonte"] | null;
+      /**
+       * Enviadaem
+       * Format: date-time
+       */
+      enviadaEm: string;
+      estado: components["schemas"]["EstadoFonte"];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Materiaid
+       * Format: uuid
+       */
+      materiaId: string;
+      /** Mensagemfalha */
+      mensagemFalha: string | null;
+      /** Nomearquivo */
+      nomeArquivo: string;
+      /** Podetentarnovamente */
+      podeTentarNovamente: boolean;
+      /** Processadaem */
+      processadaEm: string | null;
+      /** Tamanhobytes */
+      tamanhoBytes: number;
+      /**
+       * Tipomidia
+       * @enum {string}
+       */
+      tipoMidia: "application/pdf" | "text/plain" | "text/markdown";
+      /** Titulo */
+      titulo: string;
+      /** Totalpaginas */
+      totalPaginas: number | null;
+      /** Totaltrechos */
+      totalTrechos: number | null;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** ListaFontesDTO */
+    ListaFontes: {
+      /** Itens */
+      itens: components["schemas"]["Fonte"][];
+    };
+    /** ListaMateriasDTO */
+    ListaMaterias: {
+      /** Itens */
+      itens: components["schemas"]["Materia"][];
+    };
+    /** MateriaDTO */
+    Materia: {
+      /**
+       * Atualizadoem
+       * Format: date-time
+       */
+      atualizadoEm: string;
+      /** Cartoesaguardandorevisao */
+      cartoesAguardandoRevisao: number;
+      /** Cartoesativos */
+      cartoesAtivos: number;
+      /**
+       * Criadoem
+       * Format: date-time
+       */
+      criadoEm: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Nome */
+      nome: string;
+      /** Totalfontes */
+      totalFontes: number;
+    };
+    /** MateriaEntradaDTO */
+    MateriaEntrada: {
+      /** Nome */
+      nome: string;
     };
     /** PerfilDTO */
     Perfil: {
@@ -313,6 +532,38 @@ export interface components {
       /** Senhaatual */
       senhaAtual: string;
     };
+    /** UsoAcervoDTO */
+    UsoAcervo: {
+      /** Cotaarmazenamentobytes */
+      cotaArmazenamentoBytes: number;
+      /** Cotafontespormateria */
+      cotaFontesPorMateria: number;
+      /** Cotamaterias */
+      cotaMaterias: number;
+      /** Extensoesaceitas */
+      extensoesAceitas: string[];
+      /** Paginasmaximaspdf */
+      paginasMaximasPdf: number;
+      /** Tamanhomaximobytes */
+      tamanhoMaximoBytes: number;
+      /** Totalmaterias */
+      totalMaterias: number;
+      /** Usoarmazenamentobytes */
+      usoArmazenamentoBytes: number;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Context */
+      ctx?: Record<string, never>;
+      /** Input */
+      input?: unknown;
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -322,6 +573,35 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  consultarUsoAcervo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UsoAcervo"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
   cadastrar: {
     parameters: {
       query?: never;
@@ -496,6 +776,421 @@ export interface operations {
       };
       /** @description Forbidden */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da fonte */
+        fonteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Fonte"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reprocessarFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da fonte */
+        fonteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Fonte"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  listarMaterias: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ListaMaterias"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  criarMateria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MateriaEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Materia"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarMateria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Materia"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  listarFontes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ListaFontes"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  enviarFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["EnvioFonteEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Fonte"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
         headers: {
           [name: string]: unknown;
         };

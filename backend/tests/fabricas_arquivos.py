@@ -183,8 +183,8 @@ def _texto_txt() -> str:
     return "\n\n".join(_paragrafos(8, semente=11)) + "\n"
 
 
-def _texto_md() -> str:
-    paragrafos = _paragrafos(6, semente=12)
+def _texto_md(semente: int = 12) -> str:
+    paragrafos = _paragrafos(6, semente=semente)
     return (
         "# Biologia celular\n\n"
         f"{paragrafos[0]}\n\n"
@@ -218,7 +218,7 @@ def validos() -> list[ArquivoGerado]:
         _texto("anotacoes.md", _texto_md()),
         _texto("anotacoes-com-bom.md", _texto_md(), bom=True),
         _texto("um-paragrafo.txt", _paragrafos(1, semente=13)[0] + "\n"),
-        _texto("notas.markdown", _texto_md()),
+        _texto("notas.markdown", _texto_md(semente=14)),  # conteúdo próprio: não é duplicata
     ]
 
 

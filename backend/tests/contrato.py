@@ -17,6 +17,9 @@ import yaml
 
 RAIZ = Path(__file__).parents[2]
 CONTRATO_001 = RAIZ / "docs" / "specs" / "001-conta-acesso" / "contracts" / "openapi.yaml"
+CONTRATO_002 = RAIZ / "docs" / "specs" / "002-materias-fontes" / "contracts" / "openapi.yaml"
+# O enum `Erro.codigo` é cumulativo: o da última spec contém os códigos de todas as anteriores.
+CONTRATOS = (CONTRATO_001, CONTRATO_002)
 
 RESTRICOES = (
     "minLength",
@@ -81,7 +84,7 @@ def resumo_do_esquema(documento: Mapping[str, Any], no: Any) -> dict[str, Any]:
 
 def validar_corpo_erro(corpo: Any, contrato: Mapping[str, Any] | None = None) -> None:
     """Valida `corpo` contra o esquema `Erro` do contrato (campos, tipos e códigos)."""
-    contrato = contrato or carregar_contrato()
+    contrato = contrato or carregar_contrato(CONTRATOS[-1])
     esquema = contrato["components"]["schemas"]["Erro"]
     assert isinstance(corpo, dict), f"o corpo de erro não é um objeto: {corpo!r}"
     faltando = set(esquema["required"]) - set(corpo)

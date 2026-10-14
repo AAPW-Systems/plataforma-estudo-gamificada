@@ -203,3 +203,26 @@ async def fila(configuracao: Configuracao, fabrica_real: FabricaSessoes) -> Asyn
 async def executar_jobs(app: App) -> None:
     """Executa os jobs pendentes e volta (o worker termina quando alcança a fila)."""
     await app.run_worker_async(wait=False, install_signal_handlers=False)
+
+
+@pytest.fixture
+async def acervo(aplicacao_real: FastAPI, fila: App) -> AsyncIterator[FastAPI]:
+    """API e worker em processo sobre o mesmo banco real e o mesmo armazenamento (spec 002).
+
+    Os jobs enfileirados pela API só são visíveis ao worker com a transação confirmada, por
+    isso estes testes usam conexões reais (`aplicacao_real`) e não savepoints. Depois de enviar,
+    chame `executar_jobs(fila)` para processar o que estiver pendente.
+    """
+    from app.fontes import tarefas
+
+    tarefas.usar_dependencias(
+        tarefas.DependenciasTarefas(
+            fabrica=aplicacao_real.state.fabrica_sessoes,
+            armazenamento=aplicacao_real.state.armazenamento,
+            configuracao=aplicacao_real.state.configuracao,
+        )
+    )
+    try:
+        yield aplicacao_real
+    finally:
+        tarefas.restaurar_dependencias()

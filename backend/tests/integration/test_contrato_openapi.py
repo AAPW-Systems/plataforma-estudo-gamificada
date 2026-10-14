@@ -1,8 +1,8 @@
-"""O OpenAPI gerado contém o contrato de projeto da spec 001 (T037; RQ-005).
+"""O OpenAPI gerado contém os contratos de projeto das specs 001 e 002 (T037 e T028; RQ-005).
 
-Cobertura incremental: as rotas que só chegam depois do ponto S1 (US3 e US4) estão em
-`PENDENTES`, cada uma com a tarefa que a entrega. Quando a rota passa a existir, o teste
-`test_pendentes_ainda_nao_existem` falha e obriga a tirá-la da lista, de modo que a
+Cobertura incremental: as rotas que só chegam em tarefas posteriores estão em
+`OPERACOES_PENDENTES`, cada uma com a tarefa que a entrega. Quando a rota passa a existir, o
+teste `test_pendentes_ainda_nao_existem` falha e obriga a tirá-la da lista, de modo que a
 comparação completa passa a valer sem ninguém precisar lembrar.
 """
 
@@ -18,6 +18,7 @@ from openapi_spec_validator import validate
 
 from app.principal import criar_aplicacao
 from tests.contrato import (
+    CONTRATOS,
     carregar_contrato,
     nome_da_referencia,
     resolver,
@@ -27,9 +28,24 @@ from tests.contrato import (
 
 pytestmark = pytest.mark.integration
 
-# (método, caminho) -> tarefa que entrega a rota. Vazia desde a T056 (contrato da 001 completo).
-OPERACOES_PENDENTES: dict[tuple[str, str], str] = {}
-ESQUEMAS_PENDENTES: dict[str, str] = {}
+# (método, caminho) -> tarefa que entrega a rota (contrato da 002; o da 001 está completo).
+OPERACOES_PENDENTES: dict[tuple[str, str], str] = {
+    ("get", "/api/v1/fontes/{fonteId}/impacto-exclusao"): "T036",
+    ("post", "/api/v1/fontes/{fonteId}/exclusao"): "T036",
+    ("patch", "/api/v1/materias/{materiaId}"): "T043",
+    ("get", "/api/v1/materias/{materiaId}/impacto-exclusao"): "T043",
+    ("post", "/api/v1/materias/{materiaId}/exclusao"): "T043",
+    ("patch", "/api/v1/fontes/{fonteId}"): "T043",
+}
+ESQUEMAS_PENDENTES: dict[str, str] = {
+    "ContagensExclusaoFonte": "T036",
+    "ImpactoExclusaoFonte": "T036",
+    "ExclusaoFonteEntrada": "T036",
+    "ContagensExclusaoMateria": "T043",
+    "ImpactoExclusaoMateria": "T043",
+    "ExclusaoMateriaEntrada": "T043",
+    "RenomeacaoFonteEntrada": "T043",
+}
 RAIZ_BACKEND = Path(__file__).parents[2]
 
 
@@ -38,9 +54,9 @@ def gerado(configuracao: Any) -> dict[str, Any]:
     return criar_aplicacao(configuracao).openapi()
 
 
-@pytest.fixture(scope="module")
-def contrato() -> dict[str, Any]:
-    return carregar_contrato()
+@pytest.fixture(scope="module", params=CONTRATOS, ids=[c.parts[-3][:3] for c in CONTRATOS])
+def contrato(request: pytest.FixtureRequest) -> dict[str, Any]:
+    return carregar_contrato(request.param)
 
 
 def _operacoes(documento: dict[str, Any]) -> dict[tuple[str, str], dict[str, Any]]:
@@ -80,13 +96,14 @@ def test_todas_as_operacoes_do_contrato_existem_exceto_as_pendentes(
     esperadas = set(_operacoes(contrato)) - set(OPERACOES_PENDENTES)
     existentes = set(_operacoes(gerado))
     assert esperadas <= existentes, f"faltam no OpenAPI gerado: {sorted(esperadas - existentes)}"
-    assert len(esperadas) >= 7
+    assert esperadas, "o contrato não declara nenhuma operação"
 
 
-def test_a_aplicacao_nao_expoe_rota_fora_do_contrato_nem_das_pendentes(
-    contrato: dict[str, Any], gerado: dict[str, Any]
-) -> None:
-    extras = set(_operacoes(gerado)) - set(_operacoes(contrato))
+def test_a_aplicacao_nao_expoe_rota_fora_dos_contratos(gerado: dict[str, Any]) -> None:
+    previstas: set[tuple[str, str]] = set()
+    for caminho in CONTRATOS:
+        previstas |= set(_operacoes(carregar_contrato(caminho)))
+    extras = set(_operacoes(gerado)) - previstas
     assert not extras, f"rota sem contrato de projeto: {sorted(extras)}"
 
 
@@ -120,16 +137,16 @@ def test_operacoes_tem_o_mesmo_id_respostas_e_corpos(
         corpo_esperado = esperada.get("requestBody")
         if corpo_esperado:
             corpo_obtido = obtida.get("requestBody") or {}
-            esperado_ref = nome_da_referencia(
-                corpo_esperado["content"]["application/json"]["schema"]
-            )
-            obtido_ref = nome_da_referencia(
-                corpo_obtido.get("content", {}).get("application/json", {}).get("schema", {})
-            )
-            if esperado_ref != obtido_ref or not corpo_obtido.get("required"):
-                problemas.append(
-                    f"{chave}: corpo da requisição {obtido_ref!r}, esperado {esperado_ref!r}"
+            for tipo, conteudo in corpo_esperado["content"].items():
+                esperado_ref = nome_da_referencia(conteudo["schema"])
+                obtido_ref = nome_da_referencia(
+                    corpo_obtido.get("content", {}).get(tipo, {}).get("schema", {})
                 )
+                if esperado_ref != obtido_ref or not corpo_obtido.get("required"):
+                    problemas.append(
+                        f"{chave} ({tipo}): corpo da requisição {obtido_ref!r}, "
+                        f"esperado {esperado_ref!r}"
+                    )
     assert not problemas, "\n".join(problemas)
 
 
@@ -186,9 +203,8 @@ def test_codigos_de_erro_do_contrato_existem_no_codigo_da_aplicacao(
     assert esperado <= obtido["enum"], sorted(esperado - obtido["enum"])
 
 
-def test_validador_de_corpo_de_erro_aceita_o_exemplo_do_contrato_e_recusa_o_invalido(
-    contrato: dict[str, Any],
-) -> None:
+def test_validador_de_corpo_de_erro_aceita_o_exemplo_do_contrato_e_recusa_o_invalido() -> None:
+    contrato = carregar_contrato(CONTRATOS[0])
     exemplo = contrato["paths"]["/api/v1/auth/entrada"]["post"]["responses"]["401"]["content"][
         "application/json"
     ]["example"]

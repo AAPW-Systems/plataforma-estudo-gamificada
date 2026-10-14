@@ -58,7 +58,14 @@ ROTAS_PUBLICAS: dict[tuple[str, str], str] = {
 }
 
 # Rotas com identificador de recurso no caminho -> teste de duas contas que as cobre.
-CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {}
+CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {
+    # Spec 002 (T021): tests/security/fontes/test_acervo_seguranca.py
+    ("GET", "/api/v1/materias/{materiaId}"): "test_consulta_de_materia_de_outro_estudante_e_404",
+    ("GET", "/api/v1/materias/{materiaId}/fontes"): "test_acervo_de_outro_estudante_e_404",
+    ("POST", "/api/v1/materias/{materiaId}/fontes"): "test_envio_para_materia_de_outro_e_404",
+    ("GET", "/api/v1/fontes/{fonteId}"): "test_consulta_de_fonte_de_outro_estudante_e_404",
+    ("POST", "/api/v1/fontes/{fonteId}/reprocessamento"): "test_reprocessar_fonte_de_outro_e_404",
+}
 
 # Rotas do contrato que ainda não existem -> tarefa que as entrega.
 ROTAS_PENDENTES: dict[tuple[str, str], str] = {}
@@ -98,15 +105,16 @@ def test_toda_rota_com_identificador_no_caminho_tem_caso_de_isolamento(
 def test_o_detector_acusa_rota_nova_com_identificador_sem_caso(aplicacao: FastAPI) -> None:
     """Prova que a verificação acima falha de verdade quando alguém esquece o caso."""
 
-    @aplicacao.get("/api/v1/materias/{materia_id}")
-    async def ler_materia(materia_id: uuid.UUID) -> dict[str, str]:
-        return {"id": str(materia_id)}
+    @aplicacao.get("/api/v1/_teste/novos/{novo_id}")
+    async def ler_novo(novo_id: uuid.UUID) -> dict[str, str]:
+        return {"id": str(novo_id)}
 
     assert rotas_com_identificador_sem_caso(aplicacao, CASOS_DE_ISOLAMENTO) == [
-        ("GET", "/api/v1/materias/{materia_id}")
+        ("GET", "/api/v1/_teste/novos/{novo_id}")
     ]
     assert not rotas_com_identificador_sem_caso(
-        aplicacao, {("GET", "/api/v1/materias/{materia_id}"): "teste de duas contas"}
+        aplicacao,
+        {**CASOS_DE_ISOLAMENTO, ("GET", "/api/v1/_teste/novos/{novo_id}"): "teste de duas contas"},
     )
 
 
@@ -169,12 +177,12 @@ async def test_a_verificacao_de_401_acusa_uma_rota_esquecida_sem_autenticacao(
 ) -> None:
     """Prova que o teste acima falha de verdade quando uma rota nova esquece a sessão."""
 
-    @aplicacao.get("/api/v1/materias")
+    @aplicacao.get("/api/v1/_teste/sem-autenticar")
     async def listar_sem_autenticar() -> list[dict[str, str]]:
         return [{"nome": "dado de estudante"}]
 
     problemas = await rotas_que_nao_respondem_401(aplicacao, cliente)
-    assert [p for p in problemas if p.startswith("GET /api/v1/materias:")], problemas
+    assert [p for p in problemas if p.startswith("GET /api/v1/_teste/sem-autenticar:")], problemas
     assert len(problemas) == 1
 
 

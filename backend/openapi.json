@@ -78,6 +78,16 @@
         "title": "CodigoErro",
         "type": "string"
       },
+      "CodigoFalhaFonte": {
+        "description": "Nome do contrato (`CodigoFalhaFonte`); no código, `CodigoFalha` basta.",
+        "enum": [
+          "falha_tecnica",
+          "sem_texto",
+          "conteudo_invalido"
+        ],
+        "title": "CodigoFalhaFonte",
+        "type": "string"
+      },
       "EntradaEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -99,6 +109,37 @@
           "senha"
         ],
         "title": "EntradaEntradaDTO",
+        "type": "object"
+      },
+      "EnvioFonteEntrada": {
+        "additionalProperties": false,
+        "description": "Corpo *multipart* do envio: um arquivo e, opcionalmente, o título.\n\nFica aqui, e não em `dtos.py`, porque `UploadFile` é um tipo do FastAPI (a camada de DTOs\nnão importa o framework, DTEC 018): o formulário é um detalhe de transporte do controlador.",
+        "properties": {
+          "arquivo": {
+            "contentMediaType": "application/octet-stream",
+            "description": "Um único arquivo .pdf, .txt, .md ou .markdown",
+            "format": "binary",
+            "title": "Arquivo",
+            "type": "string"
+          },
+          "titulo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Titulo"
+          }
+        },
+        "required": [
+          "arquivo"
+        ],
+        "title": "EnvioFonteEntradaDTO",
         "type": "object"
       },
       "Erro": {
@@ -157,6 +198,16 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "EstadoFonte": {
+        "enum": [
+          "pendente",
+          "processando",
+          "concluido",
+          "falhou"
+        ],
+        "title": "EstadoFonte",
+        "type": "string"
+      },
       "ExclusaoContaEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -172,6 +223,239 @@
           "senhaAtual"
         ],
         "title": "ExclusaoContaEntradaDTO",
+        "type": "object"
+      },
+      "Fonte": {
+        "properties": {
+          "codigoFalha": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodigoFalhaFonte"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enviadaEm": {
+            "format": "date-time",
+            "title": "Enviadaem",
+            "type": "string"
+          },
+          "estado": {
+            "$ref": "#/components/schemas/EstadoFonte"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "materiaId": {
+            "format": "uuid",
+            "title": "Materiaid",
+            "type": "string"
+          },
+          "mensagemFalha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensagemfalha"
+          },
+          "nomeArquivo": {
+            "title": "Nomearquivo",
+            "type": "string"
+          },
+          "podeTentarNovamente": {
+            "title": "Podetentarnovamente",
+            "type": "boolean"
+          },
+          "processadaEm": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processadaem"
+          },
+          "tamanhoBytes": {
+            "minimum": 1.0,
+            "title": "Tamanhobytes",
+            "type": "integer"
+          },
+          "tipoMidia": {
+            "enum": [
+              "application/pdf",
+              "text/plain",
+              "text/markdown"
+            ],
+            "title": "Tipomidia",
+            "type": "string"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          },
+          "totalPaginas": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totalpaginas"
+          },
+          "totalTrechos": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totaltrechos"
+          }
+        },
+        "required": [
+          "id",
+          "materiaId",
+          "titulo",
+          "nomeArquivo",
+          "tipoMidia",
+          "tamanhoBytes",
+          "estado",
+          "codigoFalha",
+          "mensagemFalha",
+          "podeTentarNovamente",
+          "totalPaginas",
+          "totalTrechos",
+          "enviadaEm",
+          "processadaEm"
+        ],
+        "title": "FonteDTO",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ListaFontes": {
+        "properties": {
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/Fonte"
+            },
+            "title": "Itens",
+            "type": "array"
+          }
+        },
+        "required": [
+          "itens"
+        ],
+        "title": "ListaFontesDTO",
+        "type": "object"
+      },
+      "ListaMaterias": {
+        "properties": {
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/Materia"
+            },
+            "title": "Itens",
+            "type": "array"
+          }
+        },
+        "required": [
+          "itens"
+        ],
+        "title": "ListaMateriasDTO",
+        "type": "object"
+      },
+      "Materia": {
+        "properties": {
+          "atualizadoEm": {
+            "format": "date-time",
+            "title": "Atualizadoem",
+            "type": "string"
+          },
+          "cartoesAguardandoRevisao": {
+            "minimum": 0.0,
+            "title": "Cartoesaguardandorevisao",
+            "type": "integer"
+          },
+          "cartoesAtivos": {
+            "minimum": 0.0,
+            "title": "Cartoesativos",
+            "type": "integer"
+          },
+          "criadoEm": {
+            "format": "date-time",
+            "title": "Criadoem",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          },
+          "totalFontes": {
+            "minimum": 0.0,
+            "title": "Totalfontes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "nome",
+          "totalFontes",
+          "cartoesAtivos",
+          "cartoesAguardandoRevisao",
+          "criadoEm",
+          "atualizadoEm"
+        ],
+        "title": "MateriaDTO",
+        "type": "object"
+      },
+      "MateriaEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "nome": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome"
+        ],
+        "title": "MateriaEntradaDTO",
         "type": "object"
       },
       "Perfil": {
@@ -378,6 +662,99 @@
         ],
         "title": "TrocaSenhaEntradaDTO",
         "type": "object"
+      },
+      "UsoAcervo": {
+        "properties": {
+          "cotaArmazenamentoBytes": {
+            "title": "Cotaarmazenamentobytes",
+            "type": "integer"
+          },
+          "cotaFontesPorMateria": {
+            "title": "Cotafontespormateria",
+            "type": "integer"
+          },
+          "cotaMaterias": {
+            "title": "Cotamaterias",
+            "type": "integer"
+          },
+          "extensoesAceitas": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extensoesaceitas",
+            "type": "array"
+          },
+          "paginasMaximasPdf": {
+            "title": "Paginasmaximaspdf",
+            "type": "integer"
+          },
+          "tamanhoMaximoBytes": {
+            "title": "Tamanhomaximobytes",
+            "type": "integer"
+          },
+          "totalMaterias": {
+            "minimum": 0.0,
+            "title": "Totalmaterias",
+            "type": "integer"
+          },
+          "usoArmazenamentoBytes": {
+            "minimum": 0.0,
+            "title": "Usoarmazenamentobytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tamanhoMaximoBytes",
+          "extensoesAceitas",
+          "paginasMaximasPdf",
+          "cotaMaterias",
+          "totalMaterias",
+          "cotaFontesPorMateria",
+          "cotaArmazenamentoBytes",
+          "usoArmazenamentoBytes"
+        ],
+        "title": "UsoAcervoDTO",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
       }
     }
   },
@@ -387,6 +764,37 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/acervo/uso": {
+      "get": {
+        "operationId": "consultarUsoAcervo",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsoAcervo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Consultar Uso Acervo",
+        "tags": [
+          "acervo"
+        ]
+      }
+    },
     "/api/v1/auth/cadastro": {
       "post": {
         "operationId": "cadastrar",
@@ -585,6 +993,519 @@
         "summary": "Sair",
         "tags": [
           "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/fontes/{fonteId}": {
+      "get": {
+        "operationId": "consultarFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da fonte",
+            "in": "path",
+            "name": "fonteId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da fonte",
+              "format": "uuid",
+              "title": "Fonteid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fonte"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Fonte",
+        "tags": [
+          "fontes"
+        ]
+      }
+    },
+    "/api/v1/fontes/{fonteId}/reprocessamento": {
+      "post": {
+        "operationId": "reprocessarFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da fonte",
+            "in": "path",
+            "name": "fonteId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da fonte",
+              "format": "uuid",
+              "title": "Fonteid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fonte"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reprocessar Fonte",
+        "tags": [
+          "fontes"
+        ]
+      }
+    },
+    "/api/v1/materias": {
+      "get": {
+        "operationId": "listarMaterias",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaMaterias"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Listar Materias",
+        "tags": [
+          "materias"
+        ]
+      },
+      "post": {
+        "operationId": "criarMateria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MateriaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Materia"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Criar Materia",
+        "tags": [
+          "materias"
+        ]
+      }
+    },
+    "/api/v1/materias/{materiaId}": {
+      "get": {
+        "operationId": "consultarMateria",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Materia"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Materia",
+        "tags": [
+          "materias"
+        ]
+      }
+    },
+    "/api/v1/materias/{materiaId}/fontes": {
+      "get": {
+        "operationId": "listarFontes",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaFontes"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Listar Fontes",
+        "tags": [
+          "fontes"
+        ]
+      },
+      "post": {
+        "operationId": "enviarFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvioFonteEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fonte"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Enviar Fonte",
+        "tags": [
+          "fontes"
         ]
       }
     },

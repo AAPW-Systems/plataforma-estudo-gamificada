@@ -19,7 +19,7 @@ print(json.dumps(sorted(app_fila.tasks)))
 """
 
 
-def test_o_worker_registra_as_tarefas_da_identidade_num_processo_novo() -> None:
+def test_o_worker_registra_as_tarefas_dos_dominios_num_processo_novo() -> None:
     """Num processo limpo, só `carregar_tarefas` pode registrá-las (sem importar `servicos`)."""
     resultado = subprocess.run(  # noqa: S603
         [sys.executable, "-c", SCRIPT], capture_output=True, text=True, check=True, timeout=60
@@ -28,3 +28,5 @@ def test_o_worker_registra_as_tarefas_da_identidade_num_processo_novo() -> None:
     assert "identidade.apagar_objetos_usuario" in tarefas
     assert "identidade.limpar_registros_expirados" in tarefas
     assert "nucleo.reenfileirar_tarefas_travadas" in tarefas
+    assert "fontes.processar_fonte" in tarefas
+    assert "fontes.reconciliar_objetos" in tarefas
