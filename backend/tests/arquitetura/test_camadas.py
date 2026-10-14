@@ -18,6 +18,13 @@ PROIBIDOS = {
 }
 
 
+# Spec 002 (plano, "Dependências entre domínios"): `materias` não importa `fontes` (as contagens e
+# a exclusão das fontes chegam pelo participante da DTEC 027). Os módulos puros de `fontes` não
+# conhecem framework nem banco; `extracao` roda no subprocesso e também não importa o núcleo.
+MODULOS_PUROS_FONTES = {"app.fontes.extracao", "app.fontes.divisao", "app.fontes.validacao"}
+FRAMEWORKS = {"fastapi", "starlette", "sqlalchemy"}
+
+
 def importacoes(codigo: str, modulo: str) -> list[str]:
     encontrados: list[str] = []
     for no in ast.walk(ast.parse(codigo)):
@@ -36,6 +43,12 @@ def violacoes(codigo: str, modulo: str) -> list[str]:
     for importacao in importacoes(codigo, modulo):
         partes = set(importacao.split("."))
         if partes & PROIBIDOS.get(camada, set()):
+            erros.append(importacao)
+        if modulo.startswith("app.materias.") and importacao.startswith("app.fontes"):
+            erros.append(importacao)
+        if modulo in MODULOS_PUROS_FONTES and partes & FRAMEWORKS:
+            erros.append(importacao)
+        if modulo == "app.fontes.extracao" and importacao.startswith("app.nucleo"):
             erros.append(importacao)
         # Modelos precisam dos tipos padrão e da Base compartilhada, sem comportamento.
         if camada == "modelos" and not (
@@ -70,6 +83,13 @@ def test_camadas_respeitam_dtec018() -> None:
         ("app.identidade.mapeadores", "from app.nucleo.banco import FabricaSessoes"),
         ("app.identidade.repositorios", "import fastapi as web"),
         ("app.identidade.modelos", "from .dominio import normalizar"),
+        ("app.materias.servicos", "from app.fontes.repositorios import RepositorioFontes"),
+        ("app.materias.dominio", "from app.fontes import dominio"),
+        ("app.fontes.extracao", "import fastapi"),
+        ("app.fontes.extracao", "from sqlalchemy import text"),
+        ("app.fontes.extracao", "from app.nucleo.erros import ErroAplicacao"),
+        ("app.fontes.divisao", "from starlette.responses import Response"),
+        ("app.fontes.validacao", "from sqlalchemy.ext.asyncio import AsyncSession"),
     ],
 )
 def test_detector_recusa_importacao_proibida(modulo: str, codigo: str) -> None:
