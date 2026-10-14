@@ -20,7 +20,10 @@ export function FormularioEntrada({ aoConcluir }: { aoConcluir: (perfil: Perfil)
   const [mensagem, definirMensagem] = useState<string>();
   const formulario = useForm<DadosEntrada>({
     resolver: zodResolver(esquemaEntrada),
-    mode: "onTouched",
+    // Valida no envio (e revalida a cada alteração depois dele): um erro no *blur* empurraria o
+    // botão e o clique do estudante se perderia.
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: { email: "", senha: "" },
   });
   const { control, handleSubmit, formState, resetField, setFocus } = formulario;
