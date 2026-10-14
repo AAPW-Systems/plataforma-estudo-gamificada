@@ -64,7 +64,7 @@ Pendente de revisão. A lista de senhas em português (parte 2 de `senhas_comuns
 
 - **Backend:** 496 testes passando (216 no início da sessão), repetidos 3 vezes sem oscilação; `ruff check`, `ruff format --check` e `mypy --strict` limpos (89 arquivos); `exportar_openapi` sem diferença.
 - **Frontend:** 47 testes (18 no início); lint, tipos, `prettier --check`, `vite build` e `gerar:api` sem diferença.
-- **CI remoto na `develop`:** as execuções 1 a 4 estavam vermelhas (job `frontend`: `EACCES` em `/app/coverage`); depois da correção, a 5 (`9b239d6`) e a 7 (`8288389`) passaram nos dois jobs. A 6 (`c197650`) falhou porque os testes de contrato leem `docs/.../openapi.yaml`, que não estava montado no contêiner de teste; reproduzido e corrigido (`9790138`). A execução 8 (`0e8a2e1`) é conferida na seção "Pendências".
+- **CI remoto na `develop`:** as execuções 1 a 4 estavam vermelhas (job `frontend`: `EACCES` em `/app/coverage`); depois da correção, a 5 (`9b239d6`) e a 7 (`8288389`) passaram nos dois jobs. A 6 (`c197650`) falhou porque os testes de contrato leem `docs/.../openapi.yaml`, que não estava montado no contêiner de teste; reproduzido e corrigido (`9790138`). A execução 8 (`0e8a2e1`) foi cancelada pela execução seguinte; a **9 (`e9acfca`, cabeça da `develop`, que contém todo o código das T028 a T045) passou nos dois jobs** ([run](https://github.com/AAPW-Systems/plataforma-estudo-gamificada/actions/runs/38489553575)).
 - **Mutação:** sem o *advisory lock*, as rajadas por endereço, por cadastro e por conta (30 clientes preparados, POSTs simultâneos) falham; sem o hash fictício, o teste de tempo falha (diferença de 72% entre as medianas, tolerância de 25%); uma rota nova com identificador sem caso, ou protegida sem `401`, é acusada pelos testes de isolamento. Uma primeira versão das rajadas não detectava a falta da trava (os POSTs eram escalonados) e foi reescrita.
 - **pre-commit:** `pre-commit run --all-files` passou (Ruff, Prettier, ESLint) e reprova um arquivo com importação sobrando.
 
@@ -106,7 +106,7 @@ Testes: `pytest -m functional` (28), `security` (29 da US1) e `adversarial` (38)
 ## Pendências
 
 - **T006 e T027** (Compose completo): rodar `docker compose up -d --build --wait` e conferir `/health/ready` numa máquina com acesso ao `ghcr.io`. Conferido nesta sessão: `docker compose config` e o banco saudável.
-- **Ponto S1:** em termos de código, T045 está na `develop`. Antes de avisar Arthur Moura para começar a base da 002, falta o CI da cabeça da `develop` verde e a verificação do Compose acima.
+- **Ponto S1:** em termos de código, T045 está na `develop`. Antes de avisar Arthur Moura para começar a base da 002, o CI da cabeça da `develop` está verde (execução 9); falta a verificação do Compose acima.
 - Revisão da lista de senhas em português (T028).
 - US3 (T046 a T052), US4 (T053 a T059) e fase final (T060 a T065); a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
 - Contrato: `413` e `securitySchemes` (T065); a rota `PATCH /perfil` e as de senha e exclusão acrescentam casos de duas contas e de CSRF quando existirem.
