@@ -4,7 +4,7 @@
 **Data:** 12/10/2026 ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)); nomes reais dos testes consolidados em 14/10/2026 (T065, [registro](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md))  
 **Status:** aprovada em 13/10/2026 por Artur Lins (equipe)
 
-Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo comportamento. Os nomes abaixo são os **reais**, conferidos contra o código em 14/10/2026 (backend: 748 testes; frontend: 75). Os caminhos de teste do backend são relativos a `backend/tests/`; os do frontend começam por `frontend/src/`. Onde um grupo tem vários testes parecidos, o prefixo comum aparece seguido de `*` e o arquivo é a referência exata.
+Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo comportamento. Os nomes abaixo são os **reais**, conferidos contra o código em 14/10/2026 (backend: 750 testes; frontend: 75). Os caminhos de teste do backend são relativos a `backend/tests/`; os do frontend começam por `frontend/src/`. Onde um grupo tem vários testes parecidos, o prefixo comum aparece seguido de `*` e o arquivo é a referência exata.
 
 ## Requisitos funcionais
 
@@ -33,7 +33,7 @@ Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo com
 | RQ-001 | `security/identidade/test_autenticacao.py::test_atributos_dos_cookies_de_sessao_e_csrf`, `::test_identificador_tem_256_bits_e_o_banco_guarda_so_o_sha256`, `::test_tentativas_guardam_so_a_chave_hmac_e_nunca_o_email`; `functional/.../test_us1_conta_entrada.py::test_o_banco_nao_guarda_a_senha_em_texto_legivel`; `functional/.../test_us4_senha_exclusao.py::test_cenario1_a_nova_senha_fica_guardada_so_como_hash`; `unit/nucleo/test_seguranca.py::test_hash_usa_o_perfil_de_pouca_memoria_da_rfc_9106` | T020 T031 |
 | RQ-002 | `unit/nucleo/test_logs.py::test_chaves_sensiveis_sao_mascaradas`, `::test_mascaramento_alcanca_estruturas_aninhadas`, `::test_saida_json_numa_linha_sem_dados_sensiveis`; `security/.../test_autenticacao.py::test_logs_nao_registram_senha_email_cookie_nem_corpo`; revisão dos logs do ensaio real (T061, 14/10/2026: 212 linhas da `api` e 13 do `worker`, zero ocorrências) | T011 T031 T061 |
 | RQ-003 | `security/.../test_autenticacao.py::test_bloqueio_por_conta_vale_igual_para_email_com_e_sem_conta`, `::test_limite_de_10_cadastros_por_hora_por_endereco`, `::test_cadastro_recusado_por_validacao_nao_consome_o_limite`; `functional/.../test_us4_senha_exclusao.py::test_cenario2_senha_atual_errada_nao_muda_nada_e_conta_para_o_limite`; `adversarial/.../test_exclusao_adversarial.py::test_rajada_de_exclusoes_erradas_nao_ultrapassa_o_limite_da_conta`; `unit/nucleo/test_configuracao.py::test_nao_sobe_com_limite_invalido` | T009 T031 T032 T034 |
-| RQ-004 | Axe nos testes de componente: `frontend/src/funcionalidades/identidade/{FormularioCadastro,FormularioEntrada,FormularioPerfil,FormularioSenha,DialogoExclusao}.test.tsx` ("RQ-004: não tem violações do axe…") e `frontend/src/testes/fluxo-identidade.test.tsx` ("T039 / RQ-004", "T051 / RQ-004"); axe com contraste no navegador real (T061): 8 telas e estados nos dois temas, 0 violações; 320 px sem rolagem horizontal (T040, T052, T059); teclado: ordem de tabulação (T040), foco preso e `Esc` no diálogo (T059, `DialogoExclusao.test.tsx`, `componentes/ui/ui.test.tsx`). **Pendente:** leitor de tela (não executado; depende de pessoa, ver lacunas) | T024 T038 T050 T057 T061 |
+| RQ-004 | Axe nos testes de componente: `frontend/src/funcionalidades/identidade/{FormularioCadastro,FormularioEntrada,FormularioPerfil,FormularioSenha,DialogoExclusao}.test.tsx` ("RQ-004: não tem violações do axe…") e `frontend/src/testes/fluxo-identidade.test.tsx` ("T039 / RQ-004", "T051 / RQ-004"); axe com contraste no navegador real (T061): 8 telas e estados nos dois temas, 0 violações; 320 px sem rolagem horizontal (T040, T052, T059); teclado: ordem de tabulação (T040), foco preso e `Esc` no diálogo (T059, `DialogoExclusao.test.tsx`, `componentes/ui/ui.test.tsx`). leitor de tela: Narrador do Windows, passagem manual de Artur Lins em 14/10/2026 (T061), sem anotação por item | T024 T038 T050 T057 T061 |
 | RQ-005 | `integration/test_contrato_openapi.py::test_*` (documentos válidos, `openapi.json` atualizado, operações, respostas, esquemas, códigos de erro); etapas "Contrato OpenAPI atualizado" e "Tipos da API atualizados" do CI | T037 |
 
 ## Critérios de sucesso
@@ -42,7 +42,7 @@ Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo com
 |---|---|---|
 | CS-001 | Teste guiado com três pessoas, até 2 minutos sem ajuda. **Não executado:** depende de pessoas | T063 |
 | CS-002 | `security/test_isolamento_rotas.py::test_toda_rota_com_identificador_no_caminho_tem_caso_de_isolamento` (falha com rota nova sem caso), `::test_o_detector_acusa_rota_nova_com_identificador_sem_caso`, `::test_a_verificacao_de_401_acusa_uma_rota_esquecida_sem_autenticacao`, `::test_a_enumeracao_de_rotas_cobre_tudo_o_que_o_openapi_publica` | T041 |
-| CS-003 | `security/identidade/test_autenticacao.py::test_entrada_tem_corpo_e_status_identicos_para_conta_inexistente_e_senha_errada`, `::test_tempo_de_resposta_nao_revela_se_o_email_tem_conta`, `::test_bloqueio_por_conta_vale_igual_para_email_com_e_sem_conta`; `unit/nucleo/test_seguranca.py::test_hash_ficticio_recusa_sempre_e_e_calculado_uma_vez` | T031 |
+| CS-003 | `security/identidade/test_autenticacao.py::test_entrada_tem_corpo_e_status_identicos_para_conta_inexistente_e_senha_errada`, `::test_tempo_de_resposta_nao_revela_se_o_email_tem_conta`, `::test_bloqueio_por_conta_vale_igual_para_email_com_e_sem_conta`; `unit/nucleo/test_seguranca.py::test_hash_ficticio_recusa_sempre_e_e_calculado_uma_vez`; `unit/nucleo/test_cookies.py::test_cookies_apagados_nao_dependem_do_instante_da_resposta` (o `Set-Cookie` dos 401 não varia com o relógio) | T031 |
 | CS-004 | `security/identidade/test_exclusao_completa.py::test_nenhuma_tabela_com_usuario_id_guarda_linhas_da_conta_excluida` (catálogo do PostgreSQL), `::test_o_catalogo_acusa_uma_tabela_de_dominio_que_esqueceu_de_se_registrar`, `::test_nenhum_objeto_resta_sob_o_prefixo_do_usuario_depois_da_tarefa` (armazenamento) | T054 |
 
 ## Decisões técnicas
@@ -80,7 +80,7 @@ Conferência feita em 12/10/2026 entre spec, plano, pesquisa, modelo de dados, c
 
 | Verificação | Resultado |
 |---|---|
-| Todo RF, RQ e CS da spec tem teste e tarefa | Sim: RF-001 a RF-015, RQ-001 a RQ-005 e CS-001 a CS-004. **Sem teste automatizado completo:** CS-001 (teste guiado, T063) e a parte de leitor de tela do RQ-004 (T061) |
+| Todo RF, RQ e CS da spec tem teste e tarefa | Sim: RF-001 a RF-015, RQ-001 a RQ-005 e CS-001 a CS-004. **Sem teste automatizado:** CS-001 (teste guiado, T063) e o leitor de tela do RQ-004, que é verificação manual (T061) |
 | Todo cenário de aceitação (US1-1 a US4-4) tem teste funcional | Sim. Os cenários da US2 estão em `security/` (isolamento e CSRF), não em `functional/`; o cenário 8 da US1 e o 3 da US4 são testes de interface |
 | Todo caso de borda da spec tem teste | Sim. A borda "exclusão com processamento em andamento" é coberta na 001 só pelo enfileiramento atômico (`test_falha_no_meio_da_exclusao_desfaz_tudo_e_nao_enfileira_a_tarefa`, `test_exclusao_pedida_duas_vezes_em_paralelo_tem_um_unico_efeito`). O comportamento das tarefas de processamento cabe às specs 002 e 004 (DTEC 021) |
 | Toda tarefa cita caminho exato e resultado verificável | Sim |
@@ -94,7 +94,7 @@ Conferência feita em 12/10/2026 entre spec, plano, pesquisa, modelo de dados, c
 ## Lacunas registradas na implementação (14/10/2026)
 
 - **CS-001 e T063:** o teste guiado com três pessoas não foi feito; é uma atividade humana. A spec 001 não deve ser dada como concluída sem ele.
-- **RQ-004, leitor de tela:** nenhuma tecnologia assistiva foi usada. A estrutura (rótulos, descrição de erro, papéis, foco) é conferida pelo axe e pelos testes de componente, o que não substitui uma passagem com leitor de tela. Fica para a mesma rodada da T063.
+- **RQ-004, leitor de tela:** verificado por Artur Lins com o Narrador do Windows em 14/10/2026, em relato de resultado geral (sem anotação por tela nem por item). Outros leitores (NVDA, VoiceOver, TalkBack) não foram usados; o axe e os testes de componente seguem como a verificação automática da estrutura.
 - **Contrato (`contracts/openapi.yaml`):** a resposta `413` (corpo acima de 64 KiB, `test_corpo_acima_de_64_kib_e_recusado_com_413`) não está declarada no contrato de projeto, e o OpenAPI gerado não declara `securitySchemes` (a sessão vai por cookie). O teste de contrato aceita esses desvios; o ajuste do contrato aprovado depende de decisão da equipe e não foi feito.
 - **Lista de senhas em português (T028):** revisada pela equipe em 14/10/2026.
 - **Tolerância de tempo (CS-003):** calibrada na T031 com a mediana de várias amostras e tolerância de 25%; sem a defesa (hash fictício), o teste falha com 72% de diferença.

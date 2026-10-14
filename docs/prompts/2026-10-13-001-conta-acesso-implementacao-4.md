@@ -166,6 +166,16 @@ Decisões da US4: a troca de senha e a exclusão rodam sob a mesma trava da cont
 
 **T065.** `traceability.md` reescrito com os nomes reais dos testes (111 nomes conferidos contra o código por script; os prefixos com `*` apontam para o arquivo) e com a seção "Lacunas registradas na implementação": CS-001 (T063), leitor de tela, `413` e `securitySchemes` ausentes do contrato de projeto (o ajuste do contrato aprovado depende da equipe), cobertura.
 
+### Verificação de Artur Lins no Windows (Prompt 3, 14/10/2026)
+
+Prompt 3 (literal, resumido do que foi colado): o usuário rodou `docker compose up -d --build --wait` e os comandos de teste do quickstart, e informou: "rodei os testes, apenas um falhou. os demais testes estão ok, incluindo as telas e narrador". A saída colada mostrava o `up` saudável, `pytest` com 747 passando e 1 falha, `ruff` e `mypy` limpos, e os três comandos do frontend (`lint`, `typecheck`, `test:cobertura`) sem executar, com `Address already in use`.
+
+Achados e correções:
+
+1. **Teste intermitente de cabeçalhos (CS-003).** `test_entrada_tem_corpo_e_status_identicos_para_conta_inexistente_e_senha_errada` falhou porque o `Set-Cookie` dos 401 (cookies apagados) levava `Expires` igual ao instante da resposta: o `delete_cookie` do Starlette grava "agora". Com a virada do segundo entre as quatro requisições (no log colado, `...24.987` e `...25.002`), os cabeçalhos diferiam. Passou antes no CI e no ambiente do agente por sorte, não por estar correto. Dois testes novos (`tests/unit/nucleo/test_cookies.py`) falharam antes da correção e passam depois; os cookies agora expiram em 01/01/1970 com `Max-Age=0`, em qualquer instante (commit `4ad9e24`). Backend: 750 testes passando, `ruff` e `mypy` limpos.
+2. **Comandos do frontend com `run` (T064).** O serviço `web` tem IP fixo (`172.28.0.10`) e `docker compose run web ...` cria outro contêiner na mesma rede com o mesmo IP, o que falha com o `web` de pé. O CI não sobe o `web`, e o agente não executou o Compose. Quickstart e `padroes-implementacao.md` passaram a usar `exec` com o ambiente de pé (não executado pelo agente; depende da confirmação do usuário).
+3. **T061.** O usuário relatou as telas e o Narrador do Windows como corretos (sem detalhe por item). A T061 foi marcada com essa evidência, registrada como relato.
+
 ## Decisões e divergências
 
 1. **Ordem do limite de cadastros.** O plano põe o limite antes da validação; aqui valida-se antes (função pura, sem efeito) e só o pedido válido consome o limite de 10 por hora. Assim, erros de digitação não bloqueiam quem se cadastra, e o `409 email_em_uso` também conta (a enumeração por cadastro fica limitada). A contagem e o registro usam a mesma transação, sob *advisory lock*.
@@ -183,6 +193,6 @@ Decisões da US4: a troca de senha e a exclusão rodam sob a mesma trava da cont
 
 - ~~T006 e T027~~ (fechadas com o Compose do usuário, Prompt 2) e ~~revisão da lista em português (T028)~~.
 - **Ponto S1:** código na `develop`, CI verde e Compose completo verificado; o aviso a Arthur Moura para começar a base da 002 fica com o usuário.
-- **Spec 001, fase final:** T060, T062, T064 e T065 concluídas com evidência. **T061** segue aberta (falta a passagem com leitor de tela) e **T063** (teste guiado com três pessoas, CS-001) é humana. Sem elas, a 001 não passa a `Concluída`; permanece em `Implementando`.
+- **Spec 001, fase final:** T060 a T062, T064 e T065 concluídas com evidência (T061 com o relato de Artur Lins sobre as telas e o Narrador). **T063** (teste guiado com três pessoas, CS-001) é humana e segue aberta; a 001 permanece em `Implementando`.
 - **Contrato:** `413` e `securitySchemes` não estão em `contracts/openapi.yaml`; decidir com a equipe se o contrato de projeto é emendado ou se os desvios ficam documentados (registrado na rastreabilidade).
 - **Limpeza do ambiente da sessão (não versionada):** servidores de desenvolvimento e o banco `plataforma_e2e` do ensaio real.
