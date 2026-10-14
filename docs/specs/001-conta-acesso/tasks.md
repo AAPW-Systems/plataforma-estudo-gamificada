@@ -171,8 +171,8 @@
   - corpo vazio;
   - campos extras (`papel`, `email`).
 - [x] T049 [US3] Implementar `PATCH /perfil`: regras em `app/identidade/dominio.py`, `alterar_perfil` em `app/identidade/servicos.py` (com `FOR UPDATE`), `nova_versao_retencao` em `app/revisao/servicos.py`, e os DTOs, mapeadores e rota. **Pronto quando:** as T046 a T048 passam.
-- [ ] T050 [P] [US3] Criar o teste de componente em `frontend/src/funcionalidades/identidade/FormularioPerfil.test.tsx`: explicação em linguagem simples do efeito da retenção (cenário 1), erros por campo, valores preservados e axe sem violações.
-- [ ] T051 [US3] Implementar a tela `frontend/src/rotas/_autenticado/perfil.tsx` ([design, 9.11](../../base-specs/design.md#911-perfil)), que invalida a consulta do perfil depois de salvar.
+- [x] T050 [P] [US3] Criar o teste de componente em `frontend/src/funcionalidades/identidade/FormularioPerfil.test.tsx`: explicação em linguagem simples do efeito da retenção (cenário 1), erros por campo, valores preservados e axe sem violações.
+- [x] T051 [US3] Implementar a tela `frontend/src/rotas/_autenticado/perfil.tsx` ([design, 9.11](../../base-specs/design.md#911-perfil)), que invalida a consulta do perfil depois de salvar.
 - [ ] T052 [US3] Executar o teste independente da US3 e registrar a evidência.
 
 ## Fase 6 História de usuário 4 Proteger e encerrar a conta (P3)

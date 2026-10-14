@@ -141,3 +141,50 @@ it("T039: falha ao sair mantém o estudante na área e avisa", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent(/não foi possível sair/i);
   expect(roteador.state.location.pathname).toBe("/");
 });
+
+it("T051: a tela de perfil carrega, salva só o que mudou e invalida a consulta do perfil", async () => {
+  let atual = perfilFicticio();
+  let leituras = 0;
+  const recebidos: unknown[] = [];
+  servidor.use(
+    http.get("https://teste/api/v1/perfil", () => {
+      leituras += 1;
+      return HttpResponse.json(atual);
+    }),
+    http.patch("https://teste/api/v1/perfil", async ({ request }) => {
+      const corpo = (await request.json()) as Record<string, unknown>;
+      recebidos.push(corpo);
+      atual = { ...atual, ...corpo };
+      return HttpResponse.json(atual);
+    }),
+  );
+  const usuario = userEvent.setup();
+  const { roteador } = renderizarComRoteador("/");
+  await screen.findByRole("heading", { name: "Seus estudos" });
+
+  await usuario.click(screen.getByRole("link", { name: "Perfil" }));
+  expect(await screen.findByRole("heading", { name: "Perfil" })).toBeInTheDocument();
+  expect(roteador.state.location.pathname).toBe("/perfil");
+  const campo = await screen.findByLabelText(/^Cartões por lição/);
+  expect(campo).toHaveValue("10");
+
+  const antes = leituras;
+  await usuario.clear(campo);
+  await usuario.type(campo, "12");
+  await usuario.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+  expect(await screen.findByRole("status")).toHaveTextContent("Alterações salvas.");
+  expect(recebidos).toEqual([{ tamanhoLicao: 12 }]);
+  await waitFor(() => {
+    expect(leituras).toBeGreaterThan(antes);
+  });
+  expect(screen.getByLabelText(/^Cartões por lição/)).toHaveValue("12");
+});
+
+it("T051 / RQ-004: a tela de perfil não tem violações do axe", async () => {
+  servidor.use(http.get("https://teste/api/v1/perfil", () => HttpResponse.json(perfilFicticio())));
+  const { container } = renderizarComRoteador("/perfil");
+  await screen.findByRole("heading", { name: "Perfil" });
+  await screen.findByLabelText(/^Meta diária/);
+  expect((await axe(container)).violations).toEqual([]);
+});

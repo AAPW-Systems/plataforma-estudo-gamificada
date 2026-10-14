@@ -166,6 +166,7 @@
   }
   .cabecalho {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: calc(var(--spacing) * 4);
@@ -199,5 +200,22 @@
     .autenticacao-formulario {
       align-content: center;
     }
+  }
+}
+
+@layer components {
+  .campo-leitura {
+    display: grid;
+    gap: calc(var(--spacing));
+    margin: 0;
+  }
+  .pagina-estreita {
+    max-width: 36rem;
+  }
+  .cabecalho-navegacao {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 4);
   }
 }

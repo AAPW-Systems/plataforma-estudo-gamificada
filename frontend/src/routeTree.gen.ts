@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './rotas/__root'
 import { Route as AutenticadoRouteImport } from './rotas/_autenticado'
 import { Route as PublicoRouteImport } from './rotas/_publico'
 import { Route as AutenticadoIndexRouteImport } from './rotas/_autenticado/index'
+import { Route as AutenticadoPerfilRouteImport } from './rotas/_autenticado/perfil'
 import { Route as PublicoCadastroRouteImport } from './rotas/_publico/cadastro'
 import { Route as PublicoEntrarRouteImport } from './rotas/_publico/entrar'
 
@@ -28,6 +29,11 @@ const AutenticadoIndexRoute = AutenticadoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AutenticadoRoute,
 } as any)
+const AutenticadoPerfilRoute = AutenticadoPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AutenticadoRoute,
+} as any)
 const PublicoCadastroRoute = PublicoCadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
@@ -41,11 +47,13 @@ const PublicoEntrarRoute = PublicoEntrarRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AutenticadoIndexRoute
+  '/perfil': typeof AutenticadoPerfilRoute
   '/cadastro': typeof PublicoCadastroRoute
   '/entrar': typeof PublicoEntrarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AutenticadoIndexRoute
+  '/perfil': typeof AutenticadoPerfilRoute
   '/cadastro': typeof PublicoCadastroRoute
   '/entrar': typeof PublicoEntrarRoute
 }
@@ -53,19 +61,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_autenticado': typeof AutenticadoRouteWithChildren
   '/_publico': typeof PublicoRouteWithChildren
+  '/_autenticado/perfil': typeof AutenticadoPerfilRoute
   '/_publico/cadastro': typeof PublicoCadastroRoute
   '/_publico/entrar': typeof PublicoEntrarRoute
   '/_autenticado/': typeof AutenticadoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cadastro' | '/entrar'
+  fullPaths: '/' | '/perfil' | '/cadastro' | '/entrar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar'
+  to: '/' | '/perfil' | '/cadastro' | '/entrar'
   id:
     | '__root__'
     | '/_autenticado'
     | '/_publico'
+    | '/_autenticado/perfil'
     | '/_publico/cadastro'
     | '/_publico/entrar'
     | '/_autenticado/'
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoIndexRouteImport
       parentRoute: typeof AutenticadoRoute
     }
+    '/_autenticado/perfil': {
+      id: '/_autenticado/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AutenticadoPerfilRouteImport
+      parentRoute: typeof AutenticadoRoute
+    }
     '/_publico/cadastro': {
       id: '/_publico/cadastro'
       path: '/cadastro'
@@ -117,10 +134,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AutenticadoRouteChildren {
+  AutenticadoPerfilRoute: typeof AutenticadoPerfilRoute
   AutenticadoIndexRoute: typeof AutenticadoIndexRoute
 }
 
 const AutenticadoRouteChildren: AutenticadoRouteChildren = {
+  AutenticadoPerfilRoute: AutenticadoPerfilRoute,
   AutenticadoIndexRoute: AutenticadoIndexRoute,
 }
 

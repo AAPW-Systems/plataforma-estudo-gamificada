@@ -17,11 +17,12 @@ export function aplicarErroDaApi<Campos extends FieldValues>(
   const conhecidos = erro.campos.filter((item): item is { campo: Path<Campos>; mensagem: string } =>
     (campos as readonly string[]).includes(item.campo),
   );
-  const primeiro = conhecidos[0];
+  // O foco vai para o primeiro campo com erro na ordem do formulário, não na ordem da resposta.
+  const primeiro = campos.find((campo) => conhecidos.some((item) => item.campo === campo));
   if (!primeiro) return erro.message;
   for (const item of conhecidos) {
     formulario.setError(item.campo, { type: "servidor", message: item.mensagem });
   }
-  formulario.setFocus(primeiro.campo);
+  formulario.setFocus(primeiro);
   return undefined;
 }

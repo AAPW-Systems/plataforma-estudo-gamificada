@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { cliente } from "../api/cliente";
@@ -53,6 +53,10 @@ function AreaDoEstudante() {
     <>
       <header className="cabecalho">
         <span className="cabecalho-marca">Plataforma de estudos</span>
+        <nav aria-label="Principal" className="cabecalho-navegacao">
+          <Link to="/">Estudos</Link>
+          <Link to="/perfil">Perfil</Link>
+        </nav>
         <Botao variante="secundario" carregando={saindo} onPress={() => void sair()}>
           Sair
         </Botao>

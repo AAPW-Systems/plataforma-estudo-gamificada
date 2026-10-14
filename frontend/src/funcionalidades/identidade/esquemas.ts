@@ -43,3 +43,48 @@ export const esquemaEntrada = z.object({
 
 export type DadosCadastro = z.infer<typeof esquemaCadastro>;
 export type DadosEntrada = z.infer<typeof esquemaEntrada>;
+
+const alteravel = limites.PerfilAlteracao;
+
+const inteiroNoLimite = (limite: { minimum: number; maximum: number }) => {
+  const mensagem = `Use um valor de ${String(limite.minimum)} a ${String(limite.maximum)}.`;
+  return z
+    .number({ error: "Informe um número." })
+    .int(mensagem)
+    .min(limite.minimum, mensagem)
+    .max(limite.maximum, mensagem);
+};
+
+const formatarDecimal = (valor: number) => valor.toFixed(2).replace(".", ",");
+
+export const MENSAGEM_RETENCAO = `Use um valor de ${formatarDecimal(alteravel.retencaoDesejada.minimum)} a ${formatarDecimal(alteravel.retencaoDesejada.maximum)}, com no máximo duas casas decimais.`;
+
+/** Lê "0,85" ou "0.85" como 0.85; `undefined` se não for um número com até duas casas. */
+export function lerRetencao(texto: string): number | undefined {
+  const normalizado = texto.trim().replace(",", ".");
+  if (!/^\d+(\.\d{1,2})?$/.test(normalizado)) return undefined;
+  const valor = Number(normalizado);
+  const { minimum, maximum } = alteravel.retencaoDesejada;
+  return valor >= minimum && valor <= maximum ? valor : undefined;
+}
+
+export const esquemaPerfil = z.object({
+  nome: z
+    .string()
+    .trim()
+    .min(alteravel.nome.minLength, "Informe o nome.")
+    .max(alteravel.nome.maxLength, `Use no máximo ${String(alteravel.nome.maxLength)} caracteres.`),
+  fuso: z
+    .string()
+    .trim()
+    .min(1, "Informe o fuso.")
+    .max(alteravel.fuso.maxLength, "Fuso desconhecido."),
+  metaDiaria: inteiroNoLimite(alteravel.metaDiaria),
+  tamanhoLicao: inteiroNoLimite(alteravel.tamanhoLicao),
+  limiteNovosDia: inteiroNoLimite(alteravel.limiteNovosDia),
+  retencaoDesejada: z
+    .string()
+    .refine((texto) => lerRetencao(texto) !== undefined, { error: MENSAGEM_RETENCAO }),
+});
+
+export type DadosPerfil = z.infer<typeof esquemaPerfil>;
