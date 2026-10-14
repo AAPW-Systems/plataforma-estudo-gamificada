@@ -127,6 +127,24 @@ Achados da verificação no navegador, corrigidos antes do commit:
 
 Decisões da US3: `PATCH /perfil` valida tudo antes de gravar e informa todos os campos inválidos; a retenção é um número JSON estrito (sem `"0.9"`) com até duas casas, e um `null` enviado conta como valor inválido; as trocas concorrentes de retenção são serializadas pelo `FOR UPDATE` do usuário (testadas com 20 trocas simultâneas: versões 1 a 21 sem lacuna nem repetição); o contrato e o teste de isolamento deixaram de listar `PATCH /perfil` como pendente.
 
+### Evidência da T059 (US4, depois do Prompt 2)
+
+Teste independente no Chromium, com API, **worker** do Procrastinate e armazenamento em disco reais (banco `plataforma_e2e`), duas sessões da mesma conta em dois contextos de navegador; 14 verificações, 0 falhas:
+
+1. senha atual errada: erro junto do campo, foco nele, nenhuma sessão revogada;
+2. nova senha comum (`12345678`): recusada junto do campo da nova senha;
+3. troca válida: aviso "as outras sessões foram encerradas"; a outra sessão cai (recarregar leva à entrada) e a atual continua; a senha antiga não entra e a nova entra;
+4. diálogo de exclusão: explica que é definitiva e o que é apagado (matérias, fontes, cartões, revisões, XP e sequência); o foco fica preso (10 Tabs); Escape fecha e devolve o foco ao botão "Excluir conta"; nada é excluído;
+5. senha errada no diálogo: erro dentro dele, que segue aberto, sem excluir;
+6. senha certa: redireciona ao cadastro; `usuarios`, `sessoes` e `parametros_fsrs` ficam em 0; a tarefa `identidade.apagar_objetos_usuario` termina `succeeded` e o worker apaga os 3 arquivos de `usuarios/{public_id}/`, sem tocar o prefixo de outro estudante;
+7. o mesmo e-mail se cadastra de novo; `/perfil` e o diálogo a 320 px sem rolagem horizontal.
+
+Testes: backend 748 (era 665), frontend 75 (era 57). Logs da `api` e do `worker`: eventos `senha_trocada`, `senha_atual_recusada`, `conta_excluida` e `objetos_do_usuario_apagados`, com zero ocorrências de e-mail, nome, senhas ou cookies.
+
+**Achado da verificação:** o worker iniciou só com as tarefas internas do Procrastinate. O Procrastinate importa `import_paths` pela linha de comando dele, não por `run_worker_async`; o `worker.py` do projeto passou a chamar `carregar_tarefas()` (teste em processo novo, vermelho sem a correção). Sem isso, a remoção de objetos da exclusão nunca rodaria. Outros achados: `senhasenha123` não consta na lista de senhas comuns (só `senhasenha`), e o `autoFocus` do campo de senha do diálogo foi retirado pela regra `jsx-a11y/no-autofocus` (o React Aria já leva o foco para o diálogo).
+
+Decisões da US4: a troca de senha e a exclusão rodam sob a mesma trava da conta e do endereço que a entrada, e a falha da senha atual conta como `falha_senha_atual` para o limite único da conta (RQ-003); a senha atual correta zera as falhas da conta; a exclusão trava o usuário (`FOR UPDATE`) e roda o registro de exclusão (`revisao` em 900, `identidade` em 950, que apaga sessões e o usuário), apaga as falhas da conta e enfileira `apagar_objetos_usuario` (com `queueing_lock`) na mesma transação; 6 pedidos paralelos de exclusão dão um `204` e cinco `401`; 4 trocas paralelas de senha dão um `204` e três `422`; a tabela de casos do isolamento passou a incluir senha e exclusão, e as listas de pendências do contrato e do isolamento ficaram vazias.
+
 ## Decisões e divergências
 
 1. **Ordem do limite de cadastros.** O plano põe o limite antes da validação; aqui valida-se antes (função pura, sem efeito) e só o pedido válido consome o limite de 10 por hora. Assim, erros de digitação não bloqueiam quem se cadastra, e o `409 email_em_uso` também conta (a enumeração por cadastro fica limitada). A contagem e o registro usam a mesma transação, sob *advisory lock*.
@@ -144,5 +162,5 @@ Decisões da US3: `PATCH /perfil` valida tudo antes de gravar e informa todos os
 
 - ~~T006 e T027~~ (fechadas com o Compose do usuário, Prompt 2) e ~~revisão da lista em português (T028)~~.
 - **Ponto S1:** código na `develop`, CI verde e Compose completo verificado; o aviso a Arthur Moura para começar a base da 002 fica com o usuário.
-- US4 (T053 a T059) e fase final (T060 a T065); a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
+- Fase final (T060 a T065): T060, T061 e T062 em parte; T063 (teste guiado com três pessoas) é humano; a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
 - Contrato: `413` e `securitySchemes` (T065); a rota `PATCH /perfil` e as de senha e exclusão acrescentam casos de duas contas e de CSRF quando existirem.

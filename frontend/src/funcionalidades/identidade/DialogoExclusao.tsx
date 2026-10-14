@@ -66,9 +66,9 @@ export function DialogoExclusao({ aoExcluir }: { aoExcluir: () => void }) {
             >
               <Heading slot="title">Excluir a conta definitivamente?</Heading>
               <p>
-                A exclusão é definitiva e não pode ser desfeita. Serão apagados todas as suas
-                matérias, fontes, cartões, revisões, XP e sequência, além dos arquivos enviados, e
-                todas as sessões serão encerradas. O e-mail poderá ser usado em um novo cadastro.
+                A exclusão é definitiva e não pode ser desfeita. Serão apagados: matérias, fontes,
+                cartões, revisões, XP e sequência, além dos arquivos enviados. Todas as sessões
+                serão encerradas, e o e-mail poderá ser usado em um novo cadastro.
               </p>
               <MensagemErroFormulario mensagem={mensagem} />
               <Controller

@@ -32,4 +32,4 @@
 | 12/10/2026 | Plano aprovado por Artur Lins, com a emenda da DTEC 002 e as DTEC 015 a 023 ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
 | 12/10/2026 | Tarefas (T001 a T065) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins, com o Python 3.13 no lugar do 3.14; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-12-001-conta-acesso-plano.md)) |
-| 13/10/2026 a 14/10/2026 | Implementação: Fases 1 e 2 e as histórias US1, US2 e US3 (T028 a T052) concluídas na `develop`. Pendentes: US4 e a fase final ([registro](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md)) |
+| 13/10/2026 a 14/10/2026 | Implementação: Fases 1 e 2 e as histórias US1 a US4 (T028 a T059) concluídas na `develop`. Pendente: a fase final ([registro](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md)) |

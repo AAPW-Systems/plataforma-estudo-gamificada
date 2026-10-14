@@ -191,7 +191,7 @@
   - exclusão pedida duas vezes em paralelo (um único efeito; o segundo pedido recebe `401`);
   - trocas de senha concorrentes;
   - exclusão com a conta bloqueada (`429`).
-- [x] T056 [US4] Implementar `trocar_senha` e `excluir_conta` em `app/identidade/servicos.py`:
+- [x] T056 [US4] Implementar `trocar_senha` e `excluir_conta` em `app/identidade/servicos.py`: **Nota (14/10/2026):** `MODULOS_TAREFAS` passou a listar `app.identidade.tarefas`, e o `worker` chama `carregar_tarefas()` ao iniciar (`app_fila.perform_import_paths()`): sem isso o Procrastinate só importa os módulos pela linha de comando dele, e o worker próprio iniciava sem as tarefas dos domínios (achado no ensaio real, coberto por `tests/integration/nucleo/test_worker.py`). A retentativa de `apagar_objetos_usuario` usa `RetryStrategy(max_attempts=5, exponential_wait=10)`.
   - a exclusão roda numa transação, com `FOR UPDATE`, o registro de exclusão e o enfileiramento de `apagar_objetos_usuario`;
   - as funções `apagar_dados_usuario` de `identidade` e `revisao` entram no registro.
 
@@ -203,7 +203,7 @@
   - mostrar o erro de senha incorreta;
   - passar no axe sem violações.
 - [x] T058 [US4] Implementar no perfil a seção de segurança, com a troca de senha e o diálogo de exclusão. Depois da exclusão, a tela limpa o cache e redireciona para o cadastro.
-- [ ] T059 [US4] Executar o teste independente da US4 e registrar a evidência.
+- [x] T059 [US4] Executar o teste independente da US4 e registrar a evidência. **Evidência (14/10/2026):** ver "Evidência da T059" no [registro da sessão](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md).
 
 ## Fase final Qualidade transversal
 
