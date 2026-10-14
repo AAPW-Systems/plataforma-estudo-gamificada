@@ -38,6 +38,15 @@ def tem_caractere_proibido(texto: str) -> bool:
     )
 
 
+def remover_proibidos(texto: str) -> str:
+    """O texto sem controle, substituto isolado, uso privado e controle de direção."""
+    return "".join(
+        c
+        for c in texto
+        if unicodedata.category(c) not in _CATEGORIAS_PROIBIDAS and c not in CONTROLES_DE_DIRECAO
+    )
+
+
 def tem_caractere_visivel(texto: str) -> bool:
     """Verdadeiro se há ao menos um caractere que não é espaço nem invisível."""
     return any(not unicodedata.category(c).startswith(_PREFIXOS_INVISIVEIS) for c in texto)
