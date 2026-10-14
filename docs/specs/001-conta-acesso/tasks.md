@@ -31,7 +31,7 @@
 - [x] T005 [P] Criar `frontend/Dockerfile` multi-stage (`deps`, `dev` com o servidor do Vite, `build`, `prod` com os estáticos) e `frontend/.dockerignore`.
 - [ ] T006 Criar o `compose.yaml` com os serviços `db` (`pgvector/pgvector`, volume e *healthcheck*), `migrate` (execução única), `api` e `worker` (que dependem do `migrate` concluído) e `web`, além do `.env.example` com todas as variáveis da tabela do plano, sem valores secretos (regra 9).
 - [x] T007 [P] Criar `.github/workflows/ci.yml` com as etapas da tabela "Integração contínua e qualidade" do plano, a cada push na `develop` e em todo pull request para a `main` (DTEC 017). **Evidência (13/10/2026):** o CI da `develop` falhava no job `frontend` (`EACCES` em `/app/coverage`, bind mount do runner); corrigido no commit `9b239d6` e a execução 5 passou nos dois jobs ([run](https://github.com/AAPW-Systems/plataforma-estudo-gamificada/actions/runs/38485755245)).
-- [ ] T008 [P] Criar `.pre-commit-config.yaml` com Ruff (lint e formatação), Prettier e ESLint, documentado como opcional.
+- [x] T008 [P] Criar `.pre-commit-config.yaml` com Ruff (lint e formatação), Prettier e ESLint, documentado como opcional. **Evidência (14/10/2026):** `pre-commit run --all-files` passou nos quatro *hooks* (Ruff lint e formatação, Prettier e ESLint); um arquivo com importação sobrando foi reprovado (F401). A verificação achou um defeito: com `--config backend/pyproject.toml`, rodando da raiz, os `per-file-ignores` (`tests/**`) não casavam (598 erros S101); o `--config` foi removido, e o Ruff passa a usar o `pyproject.toml` mais próximo de cada arquivo.
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
 

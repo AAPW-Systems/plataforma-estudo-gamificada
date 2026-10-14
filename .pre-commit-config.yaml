@@ -4,11 +4,11 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.0
     hooks:
+      # Sem --config: o Ruff usa o backend/pyproject.toml mais próximo de cada arquivo, e os
+      # per-file-ignores (tests/**) são resolvidos a partir da pasta dele.
       - id: ruff-check
-        args: [--config, backend/pyproject.toml]
         files: ^backend/
       - id: ruff-format
-        args: [--config, backend/pyproject.toml]
         files: ^backend/
   - repo: local
     hooks:
