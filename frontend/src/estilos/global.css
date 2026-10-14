@@ -323,3 +323,97 @@
     color: var(--color-error);
   }
 }
+
+@layer components {
+  .formulario-linha {
+    max-width: 28rem;
+  }
+  .lista-cartoes {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .item-materia,
+  .item-fonte {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-controle);
+    background: var(--color-surface);
+  }
+  .item-titulo {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  .item-detalhes {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+  .item-fonte-principal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  }
+  .estado-vazio {
+    margin: 0;
+    padding: calc(var(--spacing) * 4);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-controle);
+    color: var(--color-muted);
+  }
+  .envio-fonte,
+  .acervo,
+  .pagina-materia-fontes {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    min-width: 0;
+  }
+  .pagina-materia {
+    display: grid;
+    gap: calc(var(--spacing) * 6);
+    align-items: start;
+  }
+  .painel-fonte {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    min-width: 0;
+    padding: calc(var(--spacing) * 4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-cartao);
+    background: var(--color-surface);
+  }
+  .painel-fonte-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+  }
+  .painel-fonte-topo h3 {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .dados-fonte {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    margin: 0;
+  }
+  .dados-fonte dt {
+    color: var(--color-muted);
+  }
+  .dados-fonte dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  @media (min-width: 64rem) {
+    .pagina-materia {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}

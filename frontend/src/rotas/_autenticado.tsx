@@ -55,6 +55,7 @@ function AreaDoEstudante() {
         <span className="cabecalho-marca">Plataforma de estudos</span>
         <nav aria-label="Principal" className="cabecalho-navegacao">
           <Link to="/">Estudos</Link>
+          <Link to="/materias">Matérias</Link>
           <Link to="/perfil">Perfil</Link>
         </nav>
         <Botao variante="secundario" carregando={saindo} onPress={() => void sair()}>

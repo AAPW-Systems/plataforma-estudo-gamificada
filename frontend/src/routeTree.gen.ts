@@ -15,6 +15,9 @@ import { Route as AutenticadoIndexRouteImport } from './rotas/_autenticado/index
 import { Route as AutenticadoPerfilRouteImport } from './rotas/_autenticado/perfil'
 import { Route as PublicoCadastroRouteImport } from './rotas/_publico/cadastro'
 import { Route as PublicoEntrarRouteImport } from './rotas/_publico/entrar'
+import { Route as AutenticadoMateriasIndexRouteImport } from './rotas/_autenticado/materias/index'
+import { Route as AutenticadoMateriasMateriaIdRouteImport } from './rotas/_autenticado/materias/$materiaId'
+import { Route as AutenticadoMateriasMateriaIdFontesFonteIdRouteImport } from './rotas/_autenticado/materias/$materiaId.fontes.$fonteId'
 
 const AutenticadoRoute = AutenticadoRouteImport.update({
   id: '/_autenticado',
@@ -44,18 +47,42 @@ const PublicoEntrarRoute = PublicoEntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => PublicoRoute,
 } as any)
+const AutenticadoMateriasIndexRoute =
+  AutenticadoMateriasIndexRouteImport.update({
+    id: '/materias/',
+    path: '/materias/',
+    getParentRoute: () => AutenticadoRoute,
+  } as any)
+const AutenticadoMateriasMateriaIdRoute =
+  AutenticadoMateriasMateriaIdRouteImport.update({
+    id: '/materias/$materiaId',
+    path: '/materias/$materiaId',
+    getParentRoute: () => AutenticadoRoute,
+  } as any)
+const AutenticadoMateriasMateriaIdFontesFonteIdRoute =
+  AutenticadoMateriasMateriaIdFontesFonteIdRouteImport.update({
+    id: '/fontes/$fonteId',
+    path: '/fontes/$fonteId',
+    getParentRoute: () => AutenticadoMateriasMateriaIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AutenticadoIndexRoute
   '/perfil': typeof AutenticadoPerfilRoute
   '/cadastro': typeof PublicoCadastroRoute
   '/entrar': typeof PublicoEntrarRoute
+  '/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
+  '/materias/': typeof AutenticadoMateriasIndexRoute
+  '/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AutenticadoIndexRoute
   '/perfil': typeof AutenticadoPerfilRoute
   '/cadastro': typeof PublicoCadastroRoute
   '/entrar': typeof PublicoEntrarRoute
+  '/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
+  '/materias': typeof AutenticadoMateriasIndexRoute
+  '/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -65,12 +92,29 @@ export interface FileRoutesById {
   '/_publico/cadastro': typeof PublicoCadastroRoute
   '/_publico/entrar': typeof PublicoEntrarRoute
   '/_autenticado/': typeof AutenticadoIndexRoute
+  '/_autenticado/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
+  '/_autenticado/materias/': typeof AutenticadoMateriasIndexRoute
+  '/_autenticado/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/perfil' | '/cadastro' | '/entrar'
+  fullPaths:
+    | '/'
+    | '/perfil'
+    | '/cadastro'
+    | '/entrar'
+    | '/materias/$materiaId'
+    | '/materias/'
+    | '/materias/$materiaId/fontes/$fonteId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/perfil' | '/cadastro' | '/entrar'
+  to:
+    | '/'
+    | '/perfil'
+    | '/cadastro'
+    | '/entrar'
+    | '/materias/$materiaId'
+    | '/materias'
+    | '/materias/$materiaId/fontes/$fonteId'
   id:
     | '__root__'
     | '/_autenticado'
@@ -79,6 +123,9 @@ export interface FileRouteTypes {
     | '/_publico/cadastro'
     | '/_publico/entrar'
     | '/_autenticado/'
+    | '/_autenticado/materias/$materiaId'
+    | '/_autenticado/materias/'
+    | '/_autenticado/materias/$materiaId/fontes/$fonteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -130,17 +177,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicoEntrarRouteImport
       parentRoute: typeof PublicoRoute
     }
+    '/_autenticado/materias/': {
+      id: '/_autenticado/materias/'
+      path: '/materias'
+      fullPath: '/materias/'
+      preLoaderRoute: typeof AutenticadoMateriasIndexRouteImport
+      parentRoute: typeof AutenticadoRoute
+    }
+    '/_autenticado/materias/$materiaId': {
+      id: '/_autenticado/materias/$materiaId'
+      path: '/materias/$materiaId'
+      fullPath: '/materias/$materiaId'
+      preLoaderRoute: typeof AutenticadoMateriasMateriaIdRouteImport
+      parentRoute: typeof AutenticadoRoute
+    }
+    '/_autenticado/materias/$materiaId/fontes/$fonteId': {
+      id: '/_autenticado/materias/$materiaId/fontes/$fonteId'
+      path: '/fontes/$fonteId'
+      fullPath: '/materias/$materiaId/fontes/$fonteId'
+      preLoaderRoute: typeof AutenticadoMateriasMateriaIdFontesFonteIdRouteImport
+      parentRoute: typeof AutenticadoMateriasMateriaIdRoute
+    }
   }
 }
+
+interface AutenticadoMateriasMateriaIdRouteChildren {
+  AutenticadoMateriasMateriaIdFontesFonteIdRoute: typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
+}
+
+const AutenticadoMateriasMateriaIdRouteChildren: AutenticadoMateriasMateriaIdRouteChildren =
+  {
+    AutenticadoMateriasMateriaIdFontesFonteIdRoute:
+      AutenticadoMateriasMateriaIdFontesFonteIdRoute,
+  }
+
+const AutenticadoMateriasMateriaIdRouteWithChildren =
+  AutenticadoMateriasMateriaIdRoute._addFileChildren(
+    AutenticadoMateriasMateriaIdRouteChildren,
+  )
 
 interface AutenticadoRouteChildren {
   AutenticadoPerfilRoute: typeof AutenticadoPerfilRoute
   AutenticadoIndexRoute: typeof AutenticadoIndexRoute
+  AutenticadoMateriasMateriaIdRoute: typeof AutenticadoMateriasMateriaIdRouteWithChildren
+  AutenticadoMateriasIndexRoute: typeof AutenticadoMateriasIndexRoute
 }
 
 const AutenticadoRouteChildren: AutenticadoRouteChildren = {
   AutenticadoPerfilRoute: AutenticadoPerfilRoute,
   AutenticadoIndexRoute: AutenticadoIndexRoute,
+  AutenticadoMateriasMateriaIdRoute:
+    AutenticadoMateriasMateriaIdRouteWithChildren,
+  AutenticadoMateriasIndexRoute: AutenticadoMateriasIndexRoute,
 }
 
 const AutenticadoRouteWithChildren = AutenticadoRoute._addFileChildren(
