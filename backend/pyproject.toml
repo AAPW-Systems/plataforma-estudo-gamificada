@@ -90,6 +90,9 @@ filterwarnings = ["error"]
 [tool.coverage.run]
 source = ["app"]
 branch = true
+# O SQLAlchemy assíncrono troca de greenlet a cada acesso ao banco; sem isto o coverage perde as
+# linhas executadas depois da primeira troca (servicos.py aparecia com 74% em vez de 95%).
+concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
 show_missing = true
