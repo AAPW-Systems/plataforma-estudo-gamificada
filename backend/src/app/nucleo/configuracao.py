@@ -58,6 +58,24 @@ class Configuracao(BaseSettings):
     armazenamento_adaptador: Literal["local", "memoria"] = "local"
     armazenamento_diretorio: Path = Path("/dados/arquivos")
 
+    # Acervo (spec 002, RQ-005): limites por ambiente, expostos em GET /acervo/uso.
+    fonte_tamanho_max_bytes: int = Field(default=2_097_152, ge=1)
+    pdf_max_paginas: int = Field(default=500, ge=1)
+    cota_materias: int = Field(default=50, ge=1)
+    cota_fontes_por_materia: int = Field(default=30, ge=1)
+    cota_armazenamento_bytes: int = Field(default=104_857_600, ge=1)
+    trecho_tamanho_alvo: int = Field(default=1200, ge=1)
+    trecho_tamanho_maximo: int = Field(default=2000, ge=1)
+    trecho_sobreposicao: int = Field(default=150, ge=0)
+    # Subprocesso de validação (API) e de extração (worker), DTEC 024.
+    validacao_arquivo_tempo_s: int = Field(default=10, ge=1)
+    validacao_arquivo_memoria_mb: int = Field(default=256, ge=1)
+    validacao_arquivo_concorrencia: int = Field(default=2, ge=1)
+    extracao_tempo_s: int = Field(default=30, ge=1)
+    extracao_memoria_mb: int = Field(default=512, ge=1)
+    reconciliacao_margem_min: int = Field(default=60, ge=1)
+    fila_segundos_travado: int = Field(default=60, ge=1)
+
     log_nivel: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     @field_validator("origens_permitidas", "proxies_confiaveis", mode="before")
@@ -93,6 +111,12 @@ class Configuracao(BaseSettings):
     def _coerencia(self) -> Configuracao:
         if self.sessao_dias_inatividade > self.sessao_dias_maximo:
             raise ValueError("SESSAO_DIAS_INATIVIDADE não pode passar de SESSAO_DIAS_MAXIMO")
+        if self.trecho_sobreposicao >= self.trecho_tamanho_alvo:
+            raise ValueError("TRECHO_SOBREPOSICAO precisa ser menor que TRECHO_TAMANHO_ALVO")
+        if self.trecho_tamanho_alvo > self.trecho_tamanho_maximo:
+            raise ValueError("TRECHO_TAMANHO_ALVO não pode passar de TRECHO_TAMANHO_MAXIMO")
+        if self.cota_armazenamento_bytes < self.fonte_tamanho_max_bytes:
+            raise ValueError("COTA_ARMAZENAMENTO_BYTES não pode ser menor que um arquivo")
         if self.app_ambiente == "producao":
             if not (
                 self.cookie_sessao_nome.startswith("__Host-")

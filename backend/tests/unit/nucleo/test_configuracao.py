@@ -121,3 +121,72 @@ def test_conninfo_escapa_a_senha() -> None:
     config = _criar(postgres_password="a b'c")
     assert r"password='a b\'c'" in config.conninfo()
     assert "dbname=outro" in config.conninfo("outro")
+
+
+# --- Acervo (plano da 002, "Variáveis de ambiente"; RQ-005) -------------------------------------
+
+
+def test_acervo_tem_os_padroes_do_plano() -> None:
+    config = _criar()
+    assert config.fonte_tamanho_max_bytes == 2_097_152
+    assert config.pdf_max_paginas == 500
+    assert (config.cota_materias, config.cota_fontes_por_materia) == (50, 30)
+    assert config.cota_armazenamento_bytes == 104_857_600
+    assert (config.trecho_tamanho_alvo, config.trecho_tamanho_maximo) == (1200, 2000)
+    assert config.trecho_sobreposicao == 150
+    assert (config.validacao_arquivo_tempo_s, config.validacao_arquivo_memoria_mb) == (10, 256)
+    assert config.validacao_arquivo_concorrencia == 2
+    assert (config.extracao_tempo_s, config.extracao_memoria_mb) == (30, 512)
+    assert config.reconciliacao_margem_min == 60
+    assert config.fila_segundos_travado == 60
+
+
+@pytest.mark.parametrize(
+    "campo",
+    [
+        "fonte_tamanho_max_bytes",
+        "pdf_max_paginas",
+        "cota_materias",
+        "cota_fontes_por_materia",
+        "cota_armazenamento_bytes",
+        "trecho_tamanho_alvo",
+        "trecho_tamanho_maximo",
+        "validacao_arquivo_tempo_s",
+        "validacao_arquivo_memoria_mb",
+        "validacao_arquivo_concorrencia",
+        "extracao_tempo_s",
+        "extracao_memoria_mb",
+        "reconciliacao_margem_min",
+        "fila_segundos_travado",
+    ],
+)
+@pytest.mark.parametrize("valor", [0, -1])
+def test_nao_sobe_com_cota_ou_limite_menor_que_1(campo: str, valor: int) -> None:
+    with pytest.raises(ValidationError, match=campo):
+        _criar(**{campo: valor})
+
+
+def test_sobreposicao_pode_ser_zero_mas_nao_negativa() -> None:
+    assert _criar(trecho_sobreposicao=0).trecho_sobreposicao == 0
+    with pytest.raises(ValidationError, match="trecho_sobreposicao"):
+        _criar(trecho_sobreposicao=-1)
+
+
+@pytest.mark.parametrize("sobreposicao", [1200, 1201])
+def test_nao_sobe_com_sobreposicao_igual_ou_maior_que_o_alvo(sobreposicao: int) -> None:
+    with pytest.raises(ValidationError, match="TRECHO_SOBREPOSICAO"):
+        _criar(trecho_sobreposicao=sobreposicao)
+
+
+def test_nao_sobe_com_alvo_maior_que_o_maximo() -> None:
+    with pytest.raises(ValidationError, match="TRECHO_TAMANHO_ALVO"):
+        _criar(trecho_tamanho_alvo=2001, trecho_tamanho_maximo=2000)
+
+
+def test_alvo_igual_ao_maximo_e_aceito() -> None:
+    assert _criar(trecho_tamanho_alvo=2000).trecho_tamanho_alvo == 2000
+
+
+def test_armazenamento_nao_e_menor_que_um_arquivo() -> None:
+    with pytest.raises(ValidationError, match="COTA_ARMAZENAMENTO_BYTES"):
+        _criar(cota_armazenamento_bytes=1000, fonte_tamanho_max_bytes=2000)
