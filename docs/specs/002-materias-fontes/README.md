@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-02 e F-03 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Tarefas aprovadas |
+| Status | Implementando |
 | Depende de | [001](../001-conta-acesso/README.md) |
 
 ## Ordem de leitura

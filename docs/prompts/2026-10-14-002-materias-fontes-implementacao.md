@@ -2,7 +2,7 @@
 
 **Data:** 2026-10-14
 **Autor:** Artur Lins (condução); implementação pelo agente
-**Agente e modelo:** Claude Code / claude-sonnet-5-5
+**Agente e modelo:** Claude Code (o identificador do modelo não é registrado em artefatos do repositório)
 **Etapa SDD:** implementar
 **Funcionalidade:** 002-materias-fontes
 
@@ -60,11 +60,15 @@ O plano de divisão entre Artur Lins e Arthur Moura (docs/specs/divisao-implemen
 
 ## Saída aceita
 
-Em andamento. Preenchida ao longo da sessão.
+Sessão **interrompida de propósito** por pedido de Artur Lins, depois da US2 (T001 a T012 e T014 a T039 prontas). Faltam a T013 (humana), a US3 (T040 a T046) e a fase final (T047 a T051).
 
 | Artefato | Ação |
 |---|---|
 | `docs/specs/divisao-implementacao-mvp.md`, `docs/specs/README.md`, `.agents/AGENTS.md`, `docs/skills/contexto-tecnico.md` | alterados: descontinuação da divisão (14/10/2026) |
+| `backend/src/app/{nucleo,materias,fontes}/`, `backend/migracoes/versions/0003_acervo.py`, `backend/openapi.json` | criados e alterados: acervo, isolamento, armazenamento, fila, matérias, fontes, exclusão de fonte |
+| `frontend/src/{api,componentes/ui,funcionalidades/{materias,fontes},rotas/_autenticado/materias}/` | telas de matérias, envio, acervo, painel e diálogo de exclusão |
+| `backend/tests/`, `frontend/src/**/*.test.tsx` | testes unitários, de integração, funcionais, de segurança, adversariais e de componente |
+| `docs/specs/002-materias-fontes/tasks.md` | T001 a T012 e T014 a T039 marcadas com evidência; T013 com a situação |
 
 ## Alterações humanas
 
@@ -72,11 +76,71 @@ Pendente de revisão.
 
 ## Verificação
 
-**Ambiente da sessão.** Contêiner de nuvem Linux (não o Windows com Docker Desktop da equipe). Backend no host, com uv e Python 3.13 (`UV_PROJECT_ENVIRONMENT` fora do repositório), contra o PostgreSQL 16 do sistema, e `.env` local gerado a partir do `.env.example` (ignorado pelo git; valores não registrados). O CI do GitHub é a verificação em contêiner.
+**Ambiente da sessão.** Contêiner de nuvem Linux (não o Windows com Docker Desktop da equipe). Backend no host (uv, Python 3.13, `UV_PROJECT_ENVIRONMENT` fora do repositório) contra o PostgreSQL 16 do sistema; frontend com Node 22 local e Node 24 (o do CI) em teste. O CI do GitHub é a verificação em contêiner.
 
-- **CI da cabeça da `develop` antes de começar:** execução 15 (`1884fcf`), `success`.
-- **Baseline do backend no host:** 750 testes passando em 40 s.
+- **Suíte do backend no host (fim da US2):** ruff e mypy limpos e 1475 testes passando, 1 pulado (superusuário). **Frontend:** 161 testes, lint, tipos e formatação, nos Node 22 e 24.
+- **CI da `develop`:** execução 19 (`d61dee3`) verde nos dois jobs. As execuções 17 e 18 falharam e foram corrigidas (ver os achados). A execução 20 (`3abeda8`, cabeça da sessão) estava na fila ao encerrar: **conferir o resultado**.
+
+### Achados do CI e do navegador (todos corrigidos)
+
+- **Execução 17:** um teste de estouro de memória com teto de 1 MB e PDF real passou no CI (o `RLIMIT_AS` soma o tamanho virtual do filho, que já carrega o PyMuPDF; a folga do alocador varia). Troca por executor simulado; o estouro real segue em `test_isolamento.py`.
+- **Execução 18:** os testes de envio do frontend falhavam no Node 24 (o `fetch` não envia `File` do jsdom e o MSW se atrapalha ao ler corpos multipart). Passaram a usar `FormData`, `File` e `Blob` nativos (sem dependência nova) e o handler não lê o corpo.
+- **Navegador, US2:** a 320 px o diálogo de exclusão era mais alto que a tela e a sobreposição não rolava (Cancelar e Excluir inalcançáveis, WCAG 1.4.10). Corrigido no CSS (vale também para o diálogo de excluir a conta da 001).
+- **Log:** `processamento_falhou` não trazia a `tentativa` pedida no plano. Corrigido, com teste.
+
+### Evidência da T031 (quickstart, passos 1 a 12, Chromium real)
+
+API, worker e PostgreSQL locais; arquivos fictícios gerados por `python -m tests.fabricas_arquivos`; envio pelo seletor de arquivos como o estudante. 14 de 14 verificações: estado vazio com "Criar primeira matéria"; página da matéria com "Enviar a primeira fonte"; lista com 0 fontes, 0 cartões ativos e 0 aguardando; nome repetido recusado junto do campo com o valor preservado; formatos e limite de 2 MB visíveis; `Citologia` Pendente → Processando → Concluído sozinha (cerca de 4,5 s); painel com arquivo, tipo, tamanho, data, 90 páginas e 130 trechos; duplicata recusada com «Citologia»; os 6 inválidos recusados com 6 mensagens distintas e nada no acervo; digitalizado em Falhou, sem "Tentar novamente"; `um-paragrafo.txt` com 1 trecho; falha técnica real (o worker rodando como usuário sem acesso ao objeto, equivalente ao `chmod 000`, que como superusuário não bloqueia): 3 execuções (esperas de 5 s e 25 s, 28 s no total), Falhou com "Tentar novamente", e depois de devolver o acesso volta e conclui com os mesmos 2 trechos, sem duplicar; CS-003: PDF de 2 MB Concluído em cerca de 10,7 s (meta de 60 s). Logs com `public_id`, sem nome nem conteúdo; as chaves no volume são `usuarios/{uuid}/fontes/{uuid}`.
+
+Observações: nas execuções rápidas o estado Pendente pode durar menos que um *polling* e não ser visto (a transição completa foi vista em uma das rodadas); o passo 11 foi adaptado como acima, e não rodado com `docker compose`.
+
+### Evidência da T039 (US2, Chromium real)
+
+12 de 12 verificações: diálogo com título, "Ação definitiva", as duas opções sem nenhuma marcada e confirmar desabilitado; foco dentro do diálogo, preso em 8 Tab, e Escape devolve o foco ao botão; cancelar não muda fonte, arquivos nem trechos; confirmar com "Manter os cartões" apaga a fonte, o arquivo do volume e os 130 trechos; a fonte que falhou também é excluída; o painel da fonte excluída fecha; a 320 px não há rolagem horizontal e Cancelar é alcançável; `fonte_excluida` logado com modo e contagens, sem título nem nome. axe sem violações no diálogo aberto. As contagens de cartões são zero (003 e 004 ainda não existem); com cartões, o teste é refeito pelas specs seguintes (DTEC 027), e os testes da 002 usam um participante falso.
+
+## Decisões e divergências a confirmar com Artur Lins
+
+- **Hifenização (DTEC 029):** o PyMuPDF não desfaz a hifenização com `TEXT_DEHYPHENATE`; há um teste de caracterização. Decidir se a DTEC 029 recebe uma emenda.
+- A checagem de dono vem antes da leitura do arquivo (404 igual antes de gastar trabalho); `processamento.py` existe fora da estrutura do plano; o CHECK `concluido_coerente` ficou mais estrito (se e somente se, por coluna); identificador malformado no caminho responde 404 e não 422 (DTEC 019).
+- O diálogo de exclusão mantém as duas opções mesmo sem cartões, como o quickstart pede.
+- Limitação conhecida: se o banco ficar fora no último retry, a fonte pode ficar em `processando` até a tarefa de reenfileirar travadas atuar.
 
 ## Pendências
 
-- A preencher ao longo da sessão.
+- **Pedido explícito a Artur Lins (T013):** no Windows, rodar `docker compose up -d --build --wait` com o volume `arquivos`, conferir `/health/ready` em 200 e colar a saída; só então marcar a T013.
+- **Verificações humanas:** leitor de tela, teste com usuários, e conferir o CI (execução 20 e seguintes).
+- **Retomar:** US3 (T040 a T046), fase final (T047 a T051), atualizar o "Mapa do repositório" e "Estado atual" do AGENTS.md, `padroes-implementacao.md`, `contexto-tecnico.md`, o README da 002, a rastreabilidade (`traceability.md` com os nomes reais dos testes) e o status da 002 (hoje `Tarefas aprovadas`; passar a `Implementando`). Prompt de retomada na seção seguinte.
+
+## Prompt de retomada
+
+```text
+Continue a implementação da spec 002 (docs/specs/002-materias-fontes) na branch `develop`, a partir da T040
+(US3: organizar matérias e fontes), seguindo o AGENTS.md e o SDD à risca. Antes de agir, leia o AGENTS.md,
+o registro docs/prompts/2026-10-14-002-materias-fontes-implementacao.md (inclusive "Achados do CI",
+"Decisões e divergências" e "Pendências"), o tasks.md da 002 e docs/skills/contexto-tecnico.md.
+
+Estado de partida: T001 a T012 e T014 a T039 prontas e marcadas com evidência; T013 é humana (Artur Lins roda
+o Compose no Windows). Backend: 1475 testes no host; frontend: 161 testes (rode também no Node 24, o do CI).
+Primeiro confira o CI da `develop` (execução 20, commit 3abeda8 e seguintes) e corrija o que estiver vermelho.
+
+Regras: testes antes do código (mostre vermelho, depois verde); um commit atômico por tarefa ou par
+teste+implementação; suíte completa verde e `git pull --rebase origin develop` antes de cada push; só
+`pymupdf` e `python-multipart` como dependências novas; dúvida de produto vira Q-xxx e pergunta a Artur;
+marque [x] só com evidência. Não escreva identificador de modelo em artefatos do repositório. Não comece a 003.
+
+Faça: US3 (T040 a T046): renomear matéria e fonte, excluir matéria com o nome digitado (reuse
+ImpactoAlterado do núcleo, `travar_acervo` e a ordem dos participantes de DTEC 027/031), e o teste de exclusão
+de conta com matérias, fontes e objetos; depois a fase final (T047 a T051): suítes, cobertura, CI, revisão de
+logs/segurança/acessibilidade com axe no navegador real em 2 temas e a 320 px (inclusive o diálogo aberto),
+medições (CS-003, tempo de envio, pico de memória), quickstart, padroes-implementacao.md, Mapa do repositório,
+traceability.md e status da 002 em `Implementando`.
+
+Ambiente local de verificação (se o contêiner for novo): backend no host com UV_PROJECT_ENVIRONMENT fora do
+repositório contra um PostgreSQL local; para o navegador, Playwright global (/opt/node-tools) com o Chromium
+em /opt/pw-browsers; ao simular falha de permissão como root, rode o worker como outro usuário (setpriv).
+Cuidado: `pkill -f` com padrão que aparece na própria linha de comando mata o shell; use PIDs.
+
+Ao encerrar: links relativos conferidos, registro completo, índices e "Estado atual" atualizados; relate o que
+foi feito, como foi verificado e o que ficou pendente, sem declarar verificado o que não foi executado, e
+repita o pedido a Artur sobre a T013 e as verificações humanas.
+```
