@@ -11,10 +11,10 @@ from fastapi import FastAPI
 from pydantic import Field
 from structlog.testing import capture_logs
 
+from app.nucleo.codigos import CodigoErro
 from app.nucleo.dtos import EntradaDTO
 from app.nucleo.erros import (
     AcessoNegado,
-    CodigoErro,
     Conflito,
     EntradaInvalida,
     ErroAplicacao,

@@ -9,6 +9,7 @@ Regra para as próximas specs: só acrescentar fixtures (divisão da implementa�
 
 from __future__ import annotations
 
+import ipaddress
 from collections.abc import AsyncIterator, Iterator
 
 import httpx
@@ -24,6 +25,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, async_sessionma
 from app.nucleo.banco import FabricaSessoes, criar_engine, criar_fabrica
 from app.nucleo.configuracao import Configuracao, obter_configuracao
 from app.nucleo.relogio import RelogioControlavel
+from app.nucleo.seguranca.senhas import ServicoSenhas
+from tests.apoio_http import abrir_cliente, hasher_rapido
 
 BANCO_TESTE = "plataforma_teste"
 SEGREDO_TESTE = "segredo-de-teste-com-mais-de-32-bytes-0123456789"
@@ -39,6 +42,7 @@ def configuracao() -> Configuracao:
             "postgres_db": BANCO_TESTE,
             "armazenamento_adaptador": "memoria",
             "origens_permitidas": ["https://teste"],
+            "proxies_confiaveis": [ipaddress.ip_network("172.28.0.10/32")],
         }
     )
 
@@ -124,28 +128,57 @@ def segredo_teste() -> str:
 
 
 @pytest.fixture
+def servico_senhas() -> ServicoSenhas:
+    """Argon2id com custo mínimo: os testes de API não pagam 64 MiB por senha.
+
+    O perfil real da RFC 9106 é coberto em `tests/unit/nucleo/test_seguranca.py`.
+    """
+    return ServicoSenhas(4, hasher_rapido())
+
+
+@pytest.fixture
 async def aplicacao(
-    configuracao: Configuracao, fabrica_sessoes: FabricaSessoes, relogio: RelogioControlavel
+    configuracao: Configuracao,
+    fabrica_sessoes: FabricaSessoes,
+    relogio: RelogioControlavel,
+    servico_senhas: ServicoSenhas,
 ) -> AsyncIterator[FastAPI]:
     from app.principal import criar_aplicacao
 
-    app = criar_aplicacao(configuracao, fabrica_sessoes=fabrica_sessoes, relogio=relogio)
+    app = criar_aplicacao(
+        configuracao,
+        fabrica_sessoes=fabrica_sessoes,
+        relogio=relogio,
+        servico_senhas=servico_senhas,
+    )
+    async with app.router.lifespan_context(app):
+        yield app
+
+
+@pytest.fixture
+async def aplicacao_real(
+    configuracao: Configuracao,
+    fabrica_real: FabricaSessoes,
+    relogio: RelogioControlavel,
+    servico_senhas: ServicoSenhas,
+) -> AsyncIterator[FastAPI]:
+    """A aplicação sobre conexões reais, para concorrência (limpa o banco ao final)."""
+    from app.principal import criar_aplicacao
+
+    app = criar_aplicacao(
+        configuracao, fabrica_sessoes=fabrica_real, relogio=relogio, servico_senhas=servico_senhas
+    )
     async with app.router.lifespan_context(app):
         yield app
 
 
 @pytest.fixture
 async def cliente(aplicacao: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
-    async def enviar_csrf(request: httpx.Request) -> None:
-        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
-            token = cliente_http.cookies.get(aplicacao.state.configuracao.cookie_csrf_nome)
-            if token is not None and "X-CSRF-Token" not in request.headers:
-                request.headers["X-CSRF-Token"] = token
+    async with abrir_cliente(aplicacao) as cliente_http:
+        yield cliente_http
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=aplicacao),
-        base_url="https://teste",
-        headers={"Origin": "https://teste", "Sec-Fetch-Site": "same-origin"},
-        event_hooks={"request": [enviar_csrf]},
-    ) as cliente_http:
+
+@pytest.fixture
+async def cliente_real(aplicacao_real: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
+    async with abrir_cliente(aplicacao_real) as cliente_http:
         yield cliente_http

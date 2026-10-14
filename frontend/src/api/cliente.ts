@@ -16,7 +16,12 @@ function tokenCsrf(): string | undefined {
 export function criarCliente<Contrato extends object = paths>({
   baseUrl = window.location.origin,
 }: { baseUrl?: string } = {}) {
-  const cliente = createClient<Contrato>({ baseUrl, credentials: "same-origin" });
+  const cliente = createClient<Contrato>({
+    baseUrl,
+    credentials: "same-origin",
+    // Resolve o fetch a cada chamada: quem o substitui depois (o MSW nos testes) é respeitado.
+    fetch: (requisicao) => globalThis.fetch(requisicao),
+  });
   const copias = new WeakMap<Request, Request>();
   let renovacao: Promise<void> | undefined;
 

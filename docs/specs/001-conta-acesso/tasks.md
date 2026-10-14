@@ -104,14 +104,14 @@
   - nome vazio, só com espaços, com 100 e 101 caracteres, e com caracteres de controle;
   - senha com 7, 8, 128 e 129 caracteres, só com espaços e da lista comum em outra caixa;
   - fuso IANA válido e inválido, e recurso `America/Sao_Paulo` no cadastro.
-- [ ] T030 [P] [US1] Criar os testes funcionais dos cenários 1 a 8 da US1 em `tests/functional/identidade/test_us1_conta_entrada.py`.
-- [ ] T031 [P] [US1] Criar os testes de segurança da autenticação em `tests/security/identidade/test_autenticacao.py`:
+- [x] T030 [P] [US1] Criar os testes funcionais dos cenários 1 a 8 da US1 em `tests/functional/identidade/test_us1_conta_entrada.py`.
+- [x] T031 [P] [US1] Criar os testes de segurança da autenticação em `tests/security/identidade/test_autenticacao.py`:
   - **Enumeração:** corpo e status idênticos para e-mail inexistente e senha errada; tempo de resposta dentro da tolerância (CS-003).
   - **Limites:** 5 falhas por conta (com a senha correta na sexta), 20 por endereço de rede e 10 cadastros por hora (RQ-003); bloqueio igual para e-mail com e sem conta.
   - **Sessão:** novo identificador a cada entrada, contra fixação; atributos e prefixo dos cookies; sessão inacessível ao JavaScript (RQ-001).
   - **CSRF e papel:** CSRF no cadastro e na entrada; `papel` e campos extras recusados (RF-003).
   - **Dados sensíveis:** senha nunca gravada nem registrada em log (RQ-001, RQ-002).
-- [ ] T032 [P] [US1] Criar os testes adversariais em `tests/adversarial/identidade/test_autenticacao_adversarial.py`:
+- [x] T032 [P] [US1] Criar os testes adversariais em `tests/adversarial/identidade/test_autenticacao_adversarial.py`:
   - dois cadastros simultâneos com o mesmo e-mail (só um cria a conta);
   - rajada paralela de entradas (o limite não é ultrapassado);
   - corpo acima de 64 KiB;
@@ -127,8 +127,8 @@
 - [x] T035 [US1] Implementar os serviços:
   - `app/identidade/servicos.py`: `cadastrar`, `entrar` e `sair`, com limites, hash fictício e novo hash quando os parâmetros mudam.
   - `app/revisao/servicos.py`: `criar_parametros_iniciais`, com os pesos de `fsrs.Scheduler()` e a versão da biblioteca.
-- [ ] T036 [US1] Implementar `app/identidade/dtos.py`, `mapeadores.py`, `dependencias.py` (`UsuarioAtual`) e `rotas.py`, com `GET /auth/csrf`, `POST /auth/cadastro`, `POST /auth/entrada`, `POST /auth/saida` e `GET /perfil`, até que as T030 a T032 passem.
-- [ ] T037 [US1] Criar o teste de contrato em `tests/integration/test_contrato_openapi.py`: o OpenAPI gerado contém os caminhos, métodos, respostas e esquemas de `contracts/openapi.yaml`, e todo corpo de erro observado valida contra `Erro`. Gerar e versionar `backend/openapi.json` e rodar `npm run gerar:api`.
+- [x] T036 [US1] Implementar `app/identidade/dtos.py`, `mapeadores.py`, `dependencias.py` (`UsuarioAtual`) e `rotas.py`, com `GET /auth/csrf`, `POST /auth/cadastro`, `POST /auth/entrada`, `POST /auth/saida` e `GET /perfil`, até que as T030 a T032 passem.
+- [x] T037 [US1] Criar o teste de contrato em `tests/integration/test_contrato_openapi.py`: o OpenAPI gerado contém os caminhos, métodos, respostas e esquemas de `contracts/openapi.yaml`, e todo corpo de erro observado valida contra `Erro`. Gerar e versionar `backend/openapi.json` e rodar `npm run gerar:api`. **Cobertura incremental (13/10/2026):** as rotas `PATCH /perfil` (T049) e `POST /perfil/senha` e `/perfil/exclusao` (T056) e os esquemas `PerfilAlteracao`, `TrocaSenhaEntrada` e `ExclusaoContaEntrada` só chegam depois do S1. Estão em `OPERACOES_PENDENTES` e `ESQUEMAS_PENDENTES` de `tests/integration/test_contrato_openapi.py`; o teste `test_pendentes_ainda_nao_existem` falha quando a rota passa a existir e obriga a tirá-la da lista, até a comparação ficar completa. O OpenAPI gerado não declara `securitySchemes` (o contrato de projeto declara); a comparação não os cobre. A resposta `413` (corpo acima de 64 KiB, `requisicao_malformada`) ainda falta no contrato (T065). A consulta do perfil no frontend passou ao cliente tipado.
 - [ ] T038 [P] [US1] Criar os testes de componente em `frontend/src/funcionalidades/identidade/FormularioCadastro.test.tsx` e `FormularioEntrada.test.tsx`:
   - aviso de privacidade sem caixa de aceite (RF-013);
   - erros do `422` junto do campo, foco no primeiro erro e valores preservados (cenário 2);

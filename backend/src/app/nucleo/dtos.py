@@ -7,6 +7,8 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from app.nucleo.codigos import CodigoErro
+
 
 class ModeloDTO(BaseModel):
     """Base de toda resposta: serializa em camelCase."""
@@ -38,7 +40,7 @@ class ErroDTO(ModeloDTO):
 
     model_config = ConfigDict(title="Erro")
 
-    codigo: str
+    codigo: CodigoErro
     mensagem: str
     campos: list[ErroCampoDTO] | None = None
     id_requisicao: UUID

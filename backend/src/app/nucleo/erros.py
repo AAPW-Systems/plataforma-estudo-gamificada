@@ -11,7 +11,6 @@ import math
 import uuid
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, ClassVar
 
 import structlog
@@ -21,26 +20,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.nucleo.codigos import CodigoErro
 from app.nucleo.cookies import apagar_cookies
 from app.nucleo.dtos import ErroCampoDTO, ErroDTO
 
 logger = structlog.get_logger(__name__)
-
-
-class CodigoErro(StrEnum):
-    """Códigos estáveis do contrato. As specs acrescentam; nunca renomeiam nem removem."""
-
-    REQUISICAO_MALFORMADA = "requisicao_malformada"
-    DADOS_INVALIDOS = "dados_invalidos"
-    EMAIL_EM_USO = "email_em_uso"
-    CREDENCIAIS_INVALIDAS = "credenciais_invalidas"
-    SENHA_ATUAL_INCORRETA = "senha_atual_incorreta"
-    NAO_AUTENTICADO = "nao_autenticado"
-    CSRF_INVALIDO = "csrf_invalido"
-    ORIGEM_NAO_PERMITIDA = "origem_nao_permitida"
-    RECURSO_NAO_ENCONTRADO = "recurso_nao_encontrado"
-    MUITAS_TENTATIVAS = "muitas_tentativas"
-    ERRO_INTERNO = "erro_interno"
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,6 +1,205 @@
 {
   "components": {
     "schemas": {
+      "CadastroEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
+          "fuso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maxLength": 64,
+            "title": "Fuso"
+          },
+          "nome": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Nome",
+            "type": "string"
+          },
+          "senha": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Senha",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "nome",
+          "email",
+          "senha"
+        ],
+        "title": "CadastroEntradaDTO",
+        "type": "object"
+      },
+      "CodigoErro": {
+        "description": "Códigos estáveis do contrato. As specs acrescentam; nunca renomeiam nem removem.",
+        "enum": [
+          "requisicao_malformada",
+          "dados_invalidos",
+          "email_em_uso",
+          "credenciais_invalidas",
+          "senha_atual_incorreta",
+          "nao_autenticado",
+          "csrf_invalido",
+          "origem_nao_permitida",
+          "recurso_nao_encontrado",
+          "muitas_tentativas",
+          "erro_interno"
+        ],
+        "title": "CodigoErro",
+        "type": "string"
+      },
+      "EntradaEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
+          "senha": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Senha",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "email",
+          "senha"
+        ],
+        "title": "EntradaEntradaDTO",
+        "type": "object"
+      },
+      "Erro": {
+        "description": "Corpo único de erro do contrato (`Erro`).",
+        "properties": {
+          "campos": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErroCampo"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campos"
+          },
+          "codigo": {
+            "$ref": "#/components/schemas/CodigoErro"
+          },
+          "idRequisicao": {
+            "format": "uuid",
+            "title": "Idrequisicao",
+            "type": "string"
+          },
+          "mensagem": {
+            "title": "Mensagem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "mensagem",
+          "idRequisicao"
+        ],
+        "title": "Erro",
+        "type": "object"
+      },
+      "ErroCampo": {
+        "properties": {
+          "campo": {
+            "title": "Campo",
+            "type": "string"
+          },
+          "mensagem": {
+            "title": "Mensagem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campo",
+          "mensagem"
+        ],
+        "title": "ErroCampo",
+        "type": "object"
+      },
+      "Perfil": {
+        "properties": {
+          "criadoEm": {
+            "format": "date-time",
+            "title": "Criadoem",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "fuso": {
+            "title": "Fuso",
+            "type": "string"
+          },
+          "limiteNovosDia": {
+            "title": "Limitenovosdia",
+            "type": "integer"
+          },
+          "metaDiaria": {
+            "title": "Metadiaria",
+            "type": "integer"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          },
+          "papel": {
+            "enum": [
+              "estudante",
+              "admin"
+            ],
+            "title": "Papel",
+            "type": "string"
+          },
+          "retencaoDesejada": {
+            "title": "Retencaodesejada",
+            "type": "number"
+          },
+          "tamanhoLicao": {
+            "title": "Tamanholicao",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nome",
+          "email",
+          "papel",
+          "fuso",
+          "metaDiaria",
+          "tamanhoLicao",
+          "limiteNovosDia",
+          "retencaoDesejada",
+          "criadoEm"
+        ],
+        "title": "PerfilDTO",
+        "type": "object"
+      },
       "Saude": {
         "properties": {
           "estado": {
@@ -44,6 +243,238 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/auth/cadastro": {
+      "post": {
+        "operationId": "cadastrar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CadastroEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Cadastrar",
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/auth/csrf": {
+      "get": {
+        "description": "Emite o token anti-CSRF, ligado à sessão atual ou, sem sessão, à pré-sessão.",
+        "operationId": "obterTokenCsrf",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Obter Token Csrf",
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/auth/entrada": {
+      "post": {
+        "operationId": "entrar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntradaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Entrar",
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/auth/saida": {
+      "post": {
+        "operationId": "sair",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Sair",
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/perfil": {
+      "get": {
+        "operationId": "obterPerfil",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Obter Perfil",
+        "tags": [
+          "perfil"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "verificarProcesso",

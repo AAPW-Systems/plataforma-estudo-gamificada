@@ -2,6 +2,7 @@ import { cleanup, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 
+import { perfilFicticio } from "./perfil";
 import { servidor } from "./servidor";
 import { renderizarComRoteador } from "./renderizar";
 
@@ -23,9 +24,7 @@ it("T026: rota protegida sem sessão redireciona para entrar", async () => {
 });
 
 it("T026: perfil autenticado permite a área do estudante", async () => {
-  servidor.use(
-    http.get("https://teste/api/v1/perfil", () => HttpResponse.json({ nome: "Estudante Exemplo" })),
-  );
+  servidor.use(http.get("https://teste/api/v1/perfil", () => HttpResponse.json(perfilFicticio())));
   renderizarComRoteador("/");
   expect(await screen.findByRole("heading", { name: "Seus estudos" })).toBeInTheDocument();
 });

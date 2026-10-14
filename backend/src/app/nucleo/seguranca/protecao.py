@@ -11,8 +11,9 @@ from starlette.datastructures import Headers
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from app.nucleo.codigos import CodigoErro
 from app.nucleo.configuracao import Configuracao
-from app.nucleo.erros import AcessoNegado, CodigoErro, ErroAplicacao, resposta_erro
+from app.nucleo.erros import AcessoNegado, ErroAplicacao, resposta_erro
 from app.nucleo.seguranca.csrf import verificar_token, vinculo_dos_cookies
 
 METODOS_SEGUROS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})

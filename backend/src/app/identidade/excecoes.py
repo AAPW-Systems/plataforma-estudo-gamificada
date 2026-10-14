@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-from app.nucleo.erros import (
-    CodigoErro,
-    Conflito,
-    EntradaInvalida,
-    ErroCampo,
-    NaoAutenticado,
-)
+from app.nucleo.codigos import CodigoErro
+from app.nucleo.erros import Conflito, EntradaInvalida, ErroCampo, NaoAutenticado
 
 MENSAGEM_EMAIL_EM_USO = "Este e-mail já está em uso."
 

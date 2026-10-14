@@ -1,16 +1,17 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { lerErro } from "./erros";
+import { cliente } from "./cliente";
 
-// A T037 substitui a leitura pelo cliente tipado quando a T036 exportar /perfil.
+/**
+ * Perfil do estudante autenticado. Também decide se há sessão válida: sem ela, o middleware
+ * do cliente lança `ErroApi` com `status` 401 e o roteador redireciona para a entrada.
+ */
 export const consultaPerfil = queryOptions({
   queryKey: ["perfil"],
-  queryFn: async (): Promise<unknown> => {
-    const resposta = await fetch(`${window.location.origin}/api/v1/perfil`, {
-      credentials: "same-origin",
-    });
-    if (!resposta.ok) throw await lerErro(resposta);
-    return resposta.json() as Promise<unknown>;
+  queryFn: async () => {
+    const { data } = await cliente.GET("/api/v1/perfil");
+    if (!data) throw new Error("A API respondeu sem o perfil.");
+    return data;
   },
   retry: false,
   staleTime: 0,
