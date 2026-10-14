@@ -113,6 +113,20 @@ Testes: `pytest -m functional` (28), `security` (29 da US1) e `adversarial` (38)
 
 `pytest -m security`: 91 testes. No ensaio real: `GET /api/v1/perfil` sem sessão responde `401 nao_autenticado` só com `codigo`, `mensagem` e `idRequisicao`, `Cache-Control: no-store` e cookies apagados; `PATCH /api/v1/perfil` sem `X-CSRF-Token` com sessão aberta responde `403 csrf_invalido`; token adulterado também. O passo "sair numa aba e recarregar na outra" compartilha os cookies do mesmo contexto do navegador, então a invalidação no servidor está provada pelo passo 7 da T040 e pelos testes.
 
+### Evidência da T052 (US3, depois do Prompt 2)
+
+Teste independente no Chromium (API e Vite reais, banco `plataforma_e2e`), 10 verificações, 0 falhas: perfil com os padrões e a explicação da retenção; meta 0 e retenção 0,99 recusadas na interface, com erro junto do campo, foco na meta e nada gravado; meta 35, lição 12 e novos 7 salvos sem nova versão do FSRS; retenção 0,85 cria a versão 2 e a 1 segue `0.90` com os mesmos pesos; o mesmo valor mostra "Nada para salvar" e não cria versão; fuso `Asia/Tokyo` salvo sem mexer em versões; fuso `Marte/Phobos` recusado pelo servidor junto do campo, valor preservado; `/perfil` a 320 px sem rolagem horizontal. Testes: backend 665 (era 496), frontend 57 (era 47); `pytest` repetido duas vezes sem oscilação.
+
+Achados da verificação no navegador, corrigidos antes do commit:
+
+- **Clique perdido:** com validação no *blur*, o erro empurrava o botão e o clique do estudante não enviava nada (nem dava foco ao campo). Os três formulários passaram a validar no envio e a revalidar a cada alteração depois dele (commit `0676736`).
+- **Cabeçalho a 320 px:** transbordava (338 px); passou a quebrar linha.
+- **Foco no primeiro erro:** passou a seguir a ordem do formulário, não a da resposta do servidor.
+- **Teste oscilante:** o limite de 1 s dos `findBy*` estourava com a máquina carregada; passou a 4 s.
+- **Lista de rotas protegidas:** o teste de `401` sem sessão pedia o token anti-CSRF uma só vez, mas a `401` apaga os cookies; passou a pedir antes de cada requisição.
+
+Decisões da US3: `PATCH /perfil` valida tudo antes de gravar e informa todos os campos inválidos; a retenção é um número JSON estrito (sem `"0.9"`) com até duas casas, e um `null` enviado conta como valor inválido; as trocas concorrentes de retenção são serializadas pelo `FOR UPDATE` do usuário (testadas com 20 trocas simultâneas: versões 1 a 21 sem lacuna nem repetição); o contrato e o teste de isolamento deixaram de listar `PATCH /perfil` como pendente.
+
 ## Decisões e divergências
 
 1. **Ordem do limite de cadastros.** O plano põe o limite antes da validação; aqui valida-se antes (função pura, sem efeito) e só o pedido válido consome o limite de 10 por hora. Assim, erros de digitação não bloqueiam quem se cadastra, e o `409 email_em_uso` também conta (a enumeração por cadastro fica limitada). A contagem e o registro usam a mesma transação, sob *advisory lock*.
@@ -130,5 +144,5 @@ Testes: `pytest -m functional` (28), `security` (29 da US1) e `adversarial` (38)
 
 - ~~T006 e T027~~ (fechadas com o Compose do usuário, Prompt 2) e ~~revisão da lista em português (T028)~~.
 - **Ponto S1:** código na `develop`, CI verde e Compose completo verificado; o aviso a Arthur Moura para começar a base da 002 fica com o usuário.
-- US3 (T046 a T052), US4 (T053 a T059) e fase final (T060 a T065); a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
+- US4 (T053 a T059) e fase final (T060 a T065); a T062 pede a medição formal da entrada e da memória da `api` (aqui só a observação de cerca de 270 ms no navegador).
 - Contrato: `413` e `securitySchemes` (T065); a rota `PATCH /perfil` e as de senha e exclusão acrescentam casos de duas contas e de CSRF quando existirem.
