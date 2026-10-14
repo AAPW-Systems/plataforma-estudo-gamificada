@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import multiprocessing
 import sys
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from multiprocessing.connection import Connection
@@ -26,6 +26,10 @@ except ImportError:  # pragma: no cover
     resource = None  # type: ignore[assignment]
 
 _MIB = 1024 * 1024
+
+
+type ExecutorIsolado = Callable[..., Awaitable["ResultadoIsolado"]]
+"""Tipo de `executar_isolado`; os chamadores o recebem por parâmetro para testar sem subprocesso."""
 
 
 class StatusIsolado(StrEnum):

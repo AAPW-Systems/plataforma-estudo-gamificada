@@ -9,7 +9,6 @@ Estouro de tempo ou de memória, arquivo ilegível ou protegido valem `conteudo_
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -27,13 +26,11 @@ from app.fontes.divisao import (
     versao_extracao,
 )
 from app.fontes.dominio import CodigoFalha
-from app.nucleo.isolamento import ResultadoIsolado, StatusIsolado, executar_isolado
+from app.nucleo.isolamento import ExecutorIsolado, StatusIsolado, executar_isolado
 
 logger = structlog.get_logger(__name__)
 
 TIPO_MARKDOWN = "text/markdown"
-
-type Executor = Callable[..., Awaitable[ResultadoIsolado]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,7 +60,7 @@ async def processar_arquivo(
     limites: LimitesExtracao,
     parametros: Parametros,
     semaforo: asyncio.Semaphore | None = None,
-    executor: Executor = executar_isolado,
+    executor: ExecutorIsolado = executar_isolado,
 ) -> ArquivoProcessado | FalhaDeProcessamento:
     resultado = await executor(
         extracao.extrair,
