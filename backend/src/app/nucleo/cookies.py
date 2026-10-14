@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from starlette.responses import Response
 
 from app.nucleo.configuracao import Configuracao
+
+# `delete_cookie` do Starlette grava `Expires` = agora: o cabeçalho variaria a cada segundo.
+# Uma data fixa no passado expira o cookie do mesmo jeito e deixa as respostas idênticas.
+_EXPIRADO = datetime(1970, 1, 1, tzinfo=UTC)
 
 
 def definir_cookie_sessao(resposta: Response, configuracao: Configuracao, token: str) -> None:
@@ -36,4 +42,13 @@ def apagar_cookies(resposta: Response, configuracao: Configuracao) -> None:
         (configuracao.cookie_sessao_nome, True),
         (configuracao.cookie_csrf_nome, False),
     ):
-        resposta.delete_cookie(nome, path="/", secure=True, httponly=httponly, samesite="lax")
+        resposta.set_cookie(
+            nome,
+            "",
+            max_age=0,
+            expires=_EXPIRADO,
+            path="/",
+            secure=True,
+            httponly=httponly,
+            samesite="lax",
+        )
