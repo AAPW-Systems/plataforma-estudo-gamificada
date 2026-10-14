@@ -18,6 +18,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
+from procrastinate import App, PsycopgConnector
 from psycopg import sql
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, async_sessionmaker
@@ -182,3 +183,23 @@ async def cliente(aplicacao: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
 async def cliente_real(aplicacao_real: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
     async with abrir_cliente(aplicacao_real) as cliente_http:
         yield cliente_http
+
+
+@pytest.fixture
+async def fila(configuracao: Configuracao, fabrica_real: FabricaSessoes) -> AsyncIterator[App]:
+    """O `app_fila` conectado ao banco de teste, para executar o worker em processo (spec 002).
+
+    Os jobs ficam em `procrastinate_jobs`, que a `fabrica_real` esvazia ao final. Use
+    `executar_jobs(fila)` para processar tudo o que está pendente e terminar.
+    """
+    from app.nucleo.fila import app_fila
+
+    conector = PsycopgConnector(conninfo=configuracao.conninfo(BANCO_TESTE))
+    with app_fila.replace_connector(conector) as app:
+        async with app.open_async():
+            yield app
+
+
+async def executar_jobs(app: App) -> None:
+    """Executa os jobs pendentes e volta (o worker termina quando alcança a fila)."""
+    await app.run_worker_async(wait=False, install_signal_handlers=False)

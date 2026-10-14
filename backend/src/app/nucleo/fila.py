@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import structlog
 from procrastinate import App, PsycopgConnector
 from procrastinate.tasks import Task
 from psycopg_pool import AsyncConnectionPool
@@ -15,6 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.nucleo.banco import conexao_psycopg
 from app.nucleo.configuracao import obter_configuracao
+
+logger = structlog.get_logger(__name__)
 
 # Módulos com tarefas, importados pelo worker ao iniciar.
 MODULOS_TAREFAS: list[str] = ["app.identidade.tarefas"]
@@ -49,3 +52,34 @@ async def enfileirar(
     if queueing_lock is not None:
         opcoes["queueing_lock"] = queueing_lock
     return await tarefa.configure(**opcoes).defer_async(**argumentos)
+
+
+async def reenfileirar_travadas(app: App, segundos_sem_sinal: int) -> int:
+    """Devolve à fila os jobs `doing` de workers sem sinal de vida; devolve quantos eram.
+
+    Um worker que morre deixa o job em `doing` e, no domínio, o registro em `processando`
+    (DTEC 030). Como toda tarefa do projeto é idempotente, repetir é seguro. Os workers mortos
+    também são removidos da tabela de workers.
+    """
+    travados = list(
+        await app.job_manager.get_stalled_jobs(seconds_since_heartbeat=segundos_sem_sinal)
+    )
+    for job in travados:
+        await app.job_manager.retry_job(job)
+    await app.job_manager.prune_stalled_workers(segundos_sem_sinal)
+    return len(travados)
+
+
+@app_fila.periodic(cron="*/10 * * * *")
+@app_fila.task(
+    name="nucleo.reenfileirar_tarefas_travadas",
+    queueing_lock="nucleo.reenfileirar_tarefas_travadas",
+    pass_context=False,
+)
+async def reenfileirar_tarefas_travadas(timestamp: int) -> None:
+    """Tarefa periódica (a cada 10 minutos) que vale para todas as tarefas do projeto."""
+    reenfileirados = await reenfileirar_travadas(
+        app_fila, obter_configuracao().fila_segundos_travado
+    )
+    if reenfileirados:
+        logger.warning("tarefas_travadas_reenfileiradas", quantidade=reenfileirados)

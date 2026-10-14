@@ -27,3 +27,4 @@ def test_o_worker_registra_as_tarefas_da_identidade_num_processo_novo() -> None:
     tarefas = json.loads(resultado.stdout.strip().splitlines()[-1])
     assert "identidade.apagar_objetos_usuario" in tarefas
     assert "identidade.limpar_registros_expirados" in tarefas
+    assert "nucleo.reenfileirar_tarefas_travadas" in tarefas
