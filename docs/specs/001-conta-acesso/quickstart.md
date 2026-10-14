@@ -66,19 +66,19 @@ docker compose run --rm --no-deps api uv run --frozen ruff format --check .
 docker compose run --rm --no-deps api uv run --frozen ruff check .
 docker compose run --rm --no-deps api uv run --frozen mypy
 
-# Frontend: formatação, lint, tipos e testes com cobertura
-docker compose run --rm --no-deps web npm run format:check
-docker compose run --rm --no-deps web npm run lint
-docker compose run --rm --no-deps web npm run typecheck
-docker compose run --rm --no-deps --user root web npm run test:cobertura
+# Frontend, com o ambiente de pé (o contêiner `web` já existe, então use exec)
+docker compose exec web npm run format:check
+docker compose exec web npm run lint
+docker compose exec web npm run typecheck
+docker compose exec web npm run test:cobertura
 
 # Contrato: OpenAPI e tipos gerados devem estar atualizados (sem diferença no git)
 docker compose run --rm --no-deps api uv run --frozen python -m app.exportar_openapi
-docker compose run --rm --no-deps --user root web npm run gerar:api
+docker compose exec web npm run gerar:api
 git diff --exit-code backend/openapi.json frontend/src/api/
 ```
 
-A suíte do backend usa o banco `plataforma_teste`, criado e migrado automaticamente no mesmo contêiner do Postgres, sem tocar nos dados de desenvolvimento. A integração contínua executa os mesmos comandos ([DTEC 017](../../research.md#decisão-dtec-017-integração-contínua-e-verificação-local)). O `--user root` do frontend existe porque, no *runner*, o diretório montado pertence a outro usuário e a pasta `coverage/` e os tipos gerados precisam ser gravados.
+A suíte do backend usa o banco `plataforma_teste`, criado e migrado automaticamente no mesmo contêiner do Postgres, sem tocar nos dados de desenvolvimento. A integração contínua executa os mesmos comandos ([DTEC 017](../../research.md#decisão-dtec-017-integração-contínua-e-verificação-local)). O `web` tem endereço fixo na rede interna (`172.28.0.10`, para o proxy do Vite ser confiável): por isso `docker compose run web ...` falha com `Address already in use` enquanto o `web` está de pé, e os comandos do frontend acima usam `exec`. O CI usa `run --no-deps` porque não sobe o `web`, e lá o `--user root` existe porque o diretório montado pertence a outro usuário do *runner*. No Linux, se faltar permissão para gravar `coverage/` ou `src/api/` com `exec`, acrescente `--user root`.
 
 ## Verificação das histórias
 
