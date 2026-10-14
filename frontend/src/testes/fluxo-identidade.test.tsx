@@ -1,4 +1,4 @@
-import { cleanup, screen, waitFor } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from "vitest";
@@ -187,4 +187,62 @@ it("T051 / RQ-004: a tela de perfil não tem violações do axe", async () => {
   await screen.findByRole("heading", { name: "Perfil" });
   await screen.findByLabelText(/^Meta diária/);
   expect((await axe(container)).violations).toEqual([]);
+});
+
+it("T058: trocar a senha pela tela de perfil avisa o resultado", async () => {
+  simularSessao();
+  let corpo: unknown;
+  servidor.use(
+    http.post("https://teste/api/v1/perfil/senha", async ({ request }) => {
+      corpo = await request.json();
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  const usuario = userEvent.setup();
+  renderizarComRoteador("/entrar");
+  await usuario.type(await screen.findByLabelText(/^E-mail/), "estudante@exemplo.com");
+  await usuario.type(screen.getByLabelText(/^Senha/), "uma frase longa e incomum");
+  await usuario.click(screen.getByRole("button", { name: "Entrar" }));
+  await screen.findByRole("heading", { name: "Seus estudos" });
+
+  await usuario.click(screen.getByRole("link", { name: "Perfil" }));
+  const secao = await screen.findByRole("region", { name: "Segurança" });
+  await usuario.type(within(secao).getByLabelText(/^Senha atual/), "uma frase longa e incomum");
+  await usuario.type(within(secao).getByLabelText(/^Nova senha/), "outra frase longa e incomum");
+  await usuario.click(within(secao).getByRole("button", { name: "Trocar senha" }));
+
+  expect(await within(secao).findByRole("status")).toHaveTextContent(/sessões foram encerradas/i);
+  expect(corpo).toEqual({
+    senhaAtual: "uma frase longa e incomum",
+    novaSenha: "outra frase longa e incomum",
+  });
+});
+
+it("T058: excluir a conta limpa o cache e leva ao cadastro", async () => {
+  simularSessao();
+  servidor.use(
+    http.post(
+      "https://teste/api/v1/perfil/exclusao",
+      () => new HttpResponse(null, { status: 204 }),
+    ),
+  );
+  const usuario = userEvent.setup();
+  const { roteador } = renderizarComRoteador("/entrar");
+  await usuario.type(await screen.findByLabelText(/^E-mail/), "estudante@exemplo.com");
+  await usuario.type(screen.getByLabelText(/^Senha/), "uma frase longa e incomum");
+  await usuario.click(screen.getByRole("button", { name: "Entrar" }));
+  await screen.findByRole("heading", { name: "Seus estudos" });
+  await usuario.click(screen.getByRole("link", { name: "Perfil" }));
+  await screen.findByRole("heading", { name: "Perfil" });
+  const { queryClient } = roteador.options.context;
+  expect(queryClient.getQueryData(["perfil"])).toBeDefined();
+
+  await usuario.click(screen.getByRole("button", { name: "Excluir conta" }));
+  const dialogo = await screen.findByRole("dialog");
+  await usuario.type(within(dialogo).getByLabelText(/^Senha atual/), "uma frase longa e incomum");
+  await usuario.click(within(dialogo).getByRole("button", { name: "Excluir definitivamente" }));
+
+  expect(await screen.findByRole("heading", { name: "Criar conta" })).toBeInTheDocument();
+  expect(roteador.state.location.pathname).toBe("/cadastro");
+  expect(queryClient.getQueryData(["perfil"])).toBeUndefined();
 });

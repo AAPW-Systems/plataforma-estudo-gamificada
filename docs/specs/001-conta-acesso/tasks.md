@@ -196,13 +196,13 @@
   - as funções `apagar_dados_usuario` de `identidade` e `revisao` entram no registro.
 
   Implementar também `app/identidade/tarefas.py`, com `apagar_objetos_usuario` e a tarefa periódica `limpar_registros_expirados` às 3h UTC, e as rotas `POST /perfil/senha` e `POST /perfil/exclusao`, até que as T053 a T055 passem.
-- [ ] T057 [P] [US4] Criar os testes de componente em `frontend/src/funcionalidades/identidade/FormularioSenha.test.tsx` e `DialogoExclusao.test.tsx`. O diálogo deve:
+- [x] T057 [P] [US4] Criar os testes de componente em `frontend/src/funcionalidades/identidade/FormularioSenha.test.tsx` e `DialogoExclusao.test.tsx`. O diálogo deve:
   - explicar que a exclusão é definitiva e o que é apagado (cenário 3);
   - prender o foco;
   - exigir a senha;
   - mostrar o erro de senha incorreta;
   - passar no axe sem violações.
-- [ ] T058 [US4] Implementar no perfil a seção de segurança, com a troca de senha e o diálogo de exclusão. Depois da exclusão, a tela limpa o cache e redireciona para o cadastro.
+- [x] T058 [US4] Implementar no perfil a seção de segurança, com a troca de senha e o diálogo de exclusão. Depois da exclusão, a tela limpa o cache e redireciona para o cadastro.
 - [ ] T059 [US4] Executar o teste independente da US4 e registrar a evidência.
 
 ## Fase final Qualidade transversal

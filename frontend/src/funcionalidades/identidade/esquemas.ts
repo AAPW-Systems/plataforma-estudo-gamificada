@@ -88,3 +88,33 @@ export const esquemaPerfil = z.object({
 });
 
 export type DadosPerfil = z.infer<typeof esquemaPerfil>;
+
+const { TrocaSenhaEntrada: troca, ExclusaoContaEntrada: exclusao } = limites;
+
+export const esquemaSenha = z.object({
+  senhaAtual: z
+    .string()
+    .min(troca.senhaAtual.minLength, "Informe a senha atual.")
+    .max(troca.senhaAtual.maxLength, "A senha atual está incorreta."),
+  novaSenha: z
+    .string()
+    .min(1, "Informe a nova senha.")
+    .min(
+      troca.novaSenha.minLength,
+      `Use pelo menos ${String(troca.novaSenha.minLength)} caracteres.`,
+    )
+    .max(
+      troca.novaSenha.maxLength,
+      `Use no máximo ${String(troca.novaSenha.maxLength)} caracteres.`,
+    ),
+});
+
+export const esquemaExclusao = z.object({
+  senhaAtual: z
+    .string()
+    .min(exclusao.senhaAtual.minLength, "Informe a senha atual.")
+    .max(exclusao.senhaAtual.maxLength, "A senha atual está incorreta."),
+});
+
+export type DadosSenha = z.infer<typeof esquemaSenha>;
+export type DadosExclusao = z.infer<typeof esquemaExclusao>;
