@@ -27,15 +27,9 @@ from tests.contrato import (
 
 pytestmark = pytest.mark.integration
 
-# (método, caminho) -> tarefa que entrega a rota.
-OPERACOES_PENDENTES = {
-    ("post", "/api/v1/perfil/senha"): "T056",
-    ("post", "/api/v1/perfil/exclusao"): "T056",
-}
-ESQUEMAS_PENDENTES = {
-    "TrocaSenhaEntrada": "T056",
-    "ExclusaoContaEntrada": "T056",
-}
+# (método, caminho) -> tarefa que entrega a rota. Vazia desde a T056 (contrato da 001 completo).
+OPERACOES_PENDENTES: dict[tuple[str, str], str] = {}
+ESQUEMAS_PENDENTES: dict[str, str] = {}
 RAIZ_BACKEND = Path(__file__).parents[2]
 
 

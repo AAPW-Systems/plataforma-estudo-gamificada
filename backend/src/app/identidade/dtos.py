@@ -115,3 +115,33 @@ class PerfilAlteracaoDTO(EntradaDTO):
             "multipleOf": 0.01,
         },
     )
+
+
+class TrocaSenhaEntradaDTO(EntradaDTO):
+    senha_atual: str = Field(
+        repr=False,
+        json_schema_extra={
+            "minLength": 1,
+            "maxLength": preferencias.SENHA_MAXIMA,
+            "writeOnly": True,
+        },
+    )
+    nova_senha: str = Field(
+        repr=False,
+        json_schema_extra={
+            "minLength": preferencias.SENHA_MINIMA,
+            "maxLength": preferencias.SENHA_MAXIMA,
+            "writeOnly": True,
+        },
+    )
+
+
+class ExclusaoContaEntradaDTO(EntradaDTO):
+    senha_atual: str = Field(
+        repr=False,
+        json_schema_extra={
+            "minLength": 1,
+            "maxLength": preferencias.SENHA_MAXIMA,
+            "writeOnly": True,
+        },
+    )

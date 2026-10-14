@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware import Middleware
 
+import app.identidade.registros  # noqa: F401  (registra a exclusão da identidade)
+import app.revisao.registros  # noqa: F401  (registra a exclusão de revisao)
 from app.identidade.dominio import carregar_senhas_comuns
 from app.identidade.rotas import roteador as identidade
 from app.identidade.servicos import ServicoIdentidade

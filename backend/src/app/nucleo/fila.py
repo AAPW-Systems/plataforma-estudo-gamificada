@@ -17,7 +17,7 @@ from app.nucleo.banco import conexao_psycopg
 from app.nucleo.configuracao import obter_configuracao
 
 # Módulos com tarefas, importados pelo worker ao iniciar.
-MODULOS_TAREFAS: list[str] = []
+MODULOS_TAREFAS: list[str] = ["app.identidade.tarefas"]
 
 
 def _criar_pool(**opcoes: Any) -> AsyncConnectionPool:

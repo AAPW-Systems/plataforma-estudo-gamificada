@@ -8,8 +8,9 @@ um cliente criado com `csrf_automatico=False`.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Mapping
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Any
 
 import httpx
@@ -106,3 +107,16 @@ def definir_cookie(cliente: httpx.AsyncClient, nome: str, valor: str) -> None:
     """Planta um cookie no cliente, trocando o que existir com o mesmo nome (sem conflito)."""
     cliente.cookies.delete(nome)
     cliente.cookies.set(nome, valor, domain="teste", path="/")
+
+
+@asynccontextmanager
+async def clientes_prontos(app: FastAPI, ips: list[str]) -> AsyncIterator[list[httpx.AsyncClient]]:
+    """Um cliente por endereço, já com o token anti-CSRF: os POSTs saem juntos, de verdade.
+
+    Sem esse preparo, criar o cliente e pedir o token escalonam as requisições e a rajada
+    deixa de ser simultânea (a falta da trava passaria despercebida).
+    """
+    async with AsyncExitStack() as pilha:
+        clientes = [await pilha.enter_async_context(abrir_cliente(app, ip=ip)) for ip in ips]
+        await asyncio.gather(*(obter_csrf(cliente) for cliente in clientes))
+        yield clientes

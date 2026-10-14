@@ -180,18 +180,18 @@
 **Objetivo:** o estudante troca a senha, o que encerra as outras sessões, e exclui a conta, sem que nenhum dado permaneça.  
 **Teste independente:** trocar a senha com duas sessões abertas e conferir que só a atual continua válida; excluir uma conta fictícia e conferir que nada permanece e que o e-mail pode ser cadastrado de novo.
 
-- [ ] T053 [P] [US4] Criar os testes funcionais dos cenários 1 a 4 da US4 em `tests/functional/identidade/test_us4_senha_exclusao.py`. Eles cobrem:
+- [x] T053 [P] [US4] Criar os testes funcionais dos cenários 1 a 4 da US4 em `tests/functional/identidade/test_us4_senha_exclusao.py`. Eles cobrem:
   - duas sessões na troca de senha;
   - senha atual errada contando para o limite (cenário 2);
   - exclusão seguida de novo cadastro com o mesmo e-mail.
-- [ ] T054 [P] [US4] Criar os testes de exclusão completa e das tarefas:
+- [x] T054 [P] [US4] Criar os testes de exclusão completa e das tarefas:
   - **Exclusão completa (CS-004)**, em `tests/security/identidade/test_exclusao_completa.py`: pelo catálogo do PostgreSQL, toda tabela com coluna `usuario_id` fica sem linhas da conta, e nenhum objeto sob `usuarios/{public_id}/` resta no adaptador de disco depois da tarefa.
   - **Tarefas**, em `tests/integration/identidade/test_tarefas.py`: `apagar_objetos_usuario` é idempotente, e `limpar_registros_expirados` apaga tentativas com mais de 24 horas e sessões inválidas há mais de 30 dias.
-- [ ] T055 [P] [US4] Criar os testes adversariais em `tests/adversarial/identidade/test_exclusao_adversarial.py`:
+- [x] T055 [P] [US4] Criar os testes adversariais em `tests/adversarial/identidade/test_exclusao_adversarial.py`:
   - exclusão pedida duas vezes em paralelo (um único efeito; o segundo pedido recebe `401`);
   - trocas de senha concorrentes;
   - exclusão com a conta bloqueada (`429`).
-- [ ] T056 [US4] Implementar `trocar_senha` e `excluir_conta` em `app/identidade/servicos.py`:
+- [x] T056 [US4] Implementar `trocar_senha` e `excluir_conta` em `app/identidade/servicos.py`:
   - a exclusão roda numa transação, com `FOR UPDATE`, o registro de exclusão e o enfileiramento de `apagar_objetos_usuario`;
   - as funções `apagar_dados_usuario` de `identidade` e `revisao` entram no registro.
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
-from contextlib import AsyncExitStack, asynccontextmanager
 
 import httpx
 import pytest
@@ -22,6 +21,7 @@ from tests.apoio_http import (
     COOKIE_SESSAO,
     abrir_cliente,
     cadastrar,
+    clientes_prontos,
     entrar,
     obter_csrf,
     sair,
@@ -39,24 +39,11 @@ async def _contar(fabrica: FabricaSessoes, entidade: type) -> int:
 # --- Concorrência ------------------------------------------------------------------------
 
 
-@asynccontextmanager
-async def _clientes_prontos(app: FastAPI, ips: list[str]) -> AsyncIterator[list[httpx.AsyncClient]]:
-    """Um cliente por endereço, já com o token anti-CSRF: os POSTs saem juntos, de verdade.
-
-    Sem esse preparo, criar o cliente e pedir o token escalonam as requisições e a rajada
-    deixa de ser simultânea (a falta da trava passaria despercebida).
-    """
-    async with AsyncExitStack() as pilha:
-        clientes = [await pilha.enter_async_context(abrir_cliente(app, ip=ip)) for ip in ips]
-        await asyncio.gather(*(obter_csrf(cliente) for cliente in clientes))
-        yield clientes
-
-
 async def test_dois_cadastros_simultaneos_com_o_mesmo_email_criam_uma_conta(
     aplicacao_real: FastAPI, fabrica_real: FabricaSessoes
 ) -> None:
     ips = [f"198.51.100.{i + 1}" for i in range(6)]
-    async with _clientes_prontos(aplicacao_real, ips) as clientes:
+    async with clientes_prontos(aplicacao_real, ips) as clientes:
         corpos = [
             dados_conta(
                 email="corrida.cadastro@exemplo.com" if i % 2 else "CORRIDA.cadastro@exemplo.com"
@@ -79,7 +66,7 @@ async def test_dois_cadastros_simultaneos_com_o_mesmo_email_criam_uma_conta(
 async def test_cadastros_simultaneos_do_mesmo_endereco_respeitam_o_limite_por_hora(
     aplicacao_real: FastAPI, fabrica_real: FabricaSessoes
 ) -> None:
-    async with _clientes_prontos(aplicacao_real, ["203.0.113.50"] * 25) as clientes:
+    async with clientes_prontos(aplicacao_real, ["203.0.113.50"] * 25) as clientes:
         respostas = await asyncio.gather(
             *(c.post("/api/v1/auth/cadastro", json=dados_conta().cadastro()) for c in clientes)
         )
@@ -98,7 +85,7 @@ async def test_rajada_paralela_de_entradas_erradas_respeita_o_limite_da_conta(
         assert (await cadastrar(preparo, conta)).status_code == 201
 
     ips = [f"203.0.113.{i + 1}" for i in range(30)]
-    async with _clientes_prontos(aplicacao_real, ips) as clientes:
+    async with clientes_prontos(aplicacao_real, ips) as clientes:
         respostas = await asyncio.gather(
             *(
                 c.post(
@@ -124,7 +111,7 @@ async def test_rajada_com_a_senha_certa_no_meio_nao_burla_o_bloqueio(
         assert (await cadastrar(preparo, conta)).status_code == 201
 
     ips = [f"203.0.113.{i + 1}" for i in range(24)]
-    async with _clientes_prontos(aplicacao_real, ips) as clientes:
+    async with clientes_prontos(aplicacao_real, ips) as clientes:
         respostas = await asyncio.gather(
             *(
                 c.post(
@@ -155,7 +142,7 @@ async def test_rajada_com_a_senha_certa_no_meio_nao_burla_o_bloqueio(
 async def test_rajada_de_limite_por_endereco_nao_ultrapassa_20_falhas(
     aplicacao_real: FastAPI,
 ) -> None:
-    async with _clientes_prontos(aplicacao_real, ["203.0.113.99"] * 40) as clientes:
+    async with clientes_prontos(aplicacao_real, ["203.0.113.99"] * 40) as clientes:
         respostas = await asyncio.gather(
             *(
                 c.post(
@@ -179,7 +166,7 @@ async def test_entradas_simultaneas_corretas_abrem_sessoes_distintas(
         assert (await cadastrar(preparo, conta)).status_code == 201
 
     ips = [f"203.0.113.{i + 1}" for i in range(5)]
-    async with _clientes_prontos(aplicacao_real, ips) as clientes:
+    async with clientes_prontos(aplicacao_real, ips) as clientes:
         respostas = await asyncio.gather(
             *(c.post("/api/v1/auth/entrada", json=conta.entrada()) for c in clientes)
         )

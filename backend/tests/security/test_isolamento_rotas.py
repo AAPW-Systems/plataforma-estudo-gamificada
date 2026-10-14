@@ -36,6 +36,7 @@ from tests.apoio_http import (
     abrir_cliente,
     cadastrar,
     definir_cookie,
+    entrar,
     obter_csrf,
     sem_id_requisicao,
 )
@@ -60,10 +61,7 @@ ROTAS_PUBLICAS: dict[tuple[str, str], str] = {
 CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {}
 
 # Rotas do contrato que ainda não existem -> tarefa que as entrega.
-ROTAS_PENDENTES: dict[tuple[str, str], str] = {
-    ("POST", "/api/v1/perfil/senha"): "T056",
-    ("POST", "/api/v1/perfil/exclusao"): "T056",
-}
+ROTAS_PENDENTES: dict[tuple[str, str], str] = {}
 
 
 def rotas_com_identificador_sem_caso(
@@ -233,6 +231,32 @@ async def test_alteracao_do_perfil_de_uma_conta_nao_afeta_a_outra(
         )
         assert resposta.status_code == 200 and resposta.json()["email"] == bia.email
         assert (await cliente.get("/api/v1/perfil")).json() == antes_ana
+
+
+async def test_senha_e_exclusao_de_uma_conta_nao_afetam_a_outra(
+    aplicacao: FastAPI, cliente: httpx.AsyncClient
+) -> None:
+    """`POST /perfil/senha` e `/perfil/exclusao` (T056) entraram nos casos de duas contas."""
+    ana, bia = dados_conta(), dados_conta()
+    async with abrir_cliente(aplicacao, ip="198.51.100.35") as cliente_bia:
+        await cadastrar(cliente, ana)
+        await cadastrar(cliente_bia, bia)
+        antes_ana = (await cliente.get("/api/v1/perfil")).json()
+
+        # Bia troca a senha dela e depois exclui a conta dela.
+        nova = "nova frase longa da Bia 99"
+        r = await cliente_bia.post(
+            "/api/v1/perfil/senha", json={"senhaAtual": bia.senha, "novaSenha": nova}
+        )
+        assert r.status_code == 204
+        r = await cliente_bia.post("/api/v1/perfil/exclusao", json={"senhaAtual": nova})
+        assert r.status_code == 204
+        assert (await cliente_bia.get("/api/v1/perfil")).status_code == 401
+
+        # A conta da Ana segue intacta, com a sessão e a senha dela.
+        assert (await cliente.get("/api/v1/perfil")).json() == antes_ana
+        async with abrir_cliente(aplicacao, ip="198.51.100.36") as novo:
+            assert (await entrar(novo, ana)).status_code == 200
 
 
 async def test_a_sessao_de_uma_conta_nunca_devolve_dados_de_outra(

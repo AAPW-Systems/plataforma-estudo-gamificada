@@ -19,16 +19,19 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.identidade import dominio, preferencias
-from app.identidade.excecoes import CredenciaisInvalidas
+from app.identidade.excecoes import CredenciaisInvalidas, SenhaAtualIncorreta, ValorInvalido
 from app.identidade.modelos import Usuario
 from app.identidade.repositorios import (
     RepositorioSessoes,
     RepositorioTentativas,
     RepositorioUsuarios,
 )
+from app.identidade.tarefas import apagar_objetos_usuario
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from app.nucleo.configuracao import Configuracao
-from app.nucleo.erros import LimiteExcedido, NaoAutenticado
+from app.nucleo.erros import EntradaInvalida, ErroCampo, LimiteExcedido, NaoAutenticado
+from app.nucleo.exclusao import registro_exclusao
+from app.nucleo.fila import enfileirar
 from app.nucleo.relogio import Relogio
 from app.nucleo.seguranca.senhas import ServicoSenhas
 from app.nucleo.seguranca.sessoes import (
@@ -305,3 +308,121 @@ class ServicoIdentidade:
             else:
                 retencao = await retencao_vigente(sessao, usuario_id)
         return PerfilConsultado(usuario, retencao)
+
+    # --- Troca de senha e exclusão da conta (US4) ------------------------------------------
+
+    async def _senha_atual_confere(
+        self,
+        usuario: Usuario,
+        senha_atual: str,
+        tentativas: RepositorioTentativas,
+        chave: bytes,
+        ip: str,
+        agora: datetime,
+    ) -> bool:
+        """Verifica a senha atual; uma falha é registrada e conta para o limite da conta."""
+        verificavel = len(senha_atual) <= preferencias.SENHA_MAXIMA and dominio.senha_codificavel(
+            senha_atual
+        )
+        if verificavel:
+            confere = await self._senhas.verificar(usuario.senha_hash, senha_atual)
+        else:
+            await self._senhas.verificar_ficticia(_SENHA_DESCARTADA)
+            confere = False
+        if not confere:
+            await tentativas.registrar("falha_senha_atual", chave, ip, agora)
+        return confere
+
+    async def trocar_senha(
+        self,
+        *,
+        atual: UsuarioAutenticado,
+        senha_atual: str,
+        nova_senha: str,
+        contexto: ContextoRequisicao,
+    ) -> None:
+        """Troca a senha e encerra as outras sessões (RF-014, D-004).
+
+        Limite da conta, depois senha atual (a falha conta como `falha_senha_atual`), depois a
+        validação da nova senha. Tudo sob a trava da conta, como a entrada.
+        """
+        agora = self._relogio.agora()
+        erro: SenhaAtualIncorreta | None = None
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            tentativas = RepositorioTentativas(sessao)
+            usuarios = RepositorioUsuarios(sessao)
+            usuario = await usuarios.buscar_por_id(atual.usuario.id)
+            if usuario is None:
+                raise NaoAutenticado()
+            chave = dominio.chave_da_conta(self._configuracao.segredo, usuario.email)
+            await tentativas.travar(_chave_de_trava_conta(chave), _chave_de_trava_ip(contexto.ip))
+            await self._recusar_se_bloqueado(tentativas, chave, contexto.ip, agora)
+            # Relê o usuário sob a trava: uma troca concorrente já pode ter mudado o hash.
+            usuario = await usuarios.buscar_por_id(atual.usuario.id)
+            if usuario is None:
+                raise NaoAutenticado()
+
+            if not await self._senha_atual_confere(
+                usuario, senha_atual, tentativas, chave, contexto.ip, agora
+            ):
+                erro = SenhaAtualIncorreta()
+            else:
+                try:
+                    nova = dominio.validar_senha(nova_senha, self._senhas_comuns)
+                except ValorInvalido as invalido:
+                    raise EntradaInvalida(
+                        campos=[ErroCampo("novaSenha", invalido.mensagem)]
+                    ) from None
+                novo_hash = await self._senhas.gerar_hash(nova)
+                await usuarios.atualizar_senha_hash(usuario.id, novo_hash, agora)
+                await RepositorioSessoes(sessao).revogar_outras(usuario.id, atual.sessao_id, agora)
+                await tentativas.apagar_falhas_conta(chave)
+
+        if erro is not None:
+            logger.warning("senha_atual_recusada", operacao="troca_de_senha")
+            raise erro
+        logger.info("senha_trocada", usuario_public_id=str(usuario.public_id))
+
+    async def excluir_conta(
+        self, *, atual: UsuarioAutenticado, senha_atual: str, contexto: ContextoRequisicao
+    ) -> None:
+        """Apaga a conta e enfileira a remoção dos objetos, numa só transação (RF-015, DTEC 021).
+
+        A linha do usuário é travada (`FOR UPDATE`): um segundo pedido em paralelo espera, não
+        encontra mais o usuário e recebe `401`. Há um único efeito.
+        """
+        agora = self._relogio.agora()
+        erro: SenhaAtualIncorreta | None = None
+        public_id: str | None = None
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            tentativas = RepositorioTentativas(sessao)
+            usuarios = RepositorioUsuarios(sessao)
+            usuario = await usuarios.buscar_por_id(atual.usuario.id)
+            if usuario is None:
+                raise NaoAutenticado()
+            chave = dominio.chave_da_conta(self._configuracao.segredo, usuario.email)
+            await tentativas.travar(_chave_de_trava_conta(chave), _chave_de_trava_ip(contexto.ip))
+            await self._recusar_se_bloqueado(tentativas, chave, contexto.ip, agora)
+            usuario = await usuarios.travar_por_id(atual.usuario.id)
+            if usuario is None:
+                raise NaoAutenticado()
+
+            if not await self._senha_atual_confere(
+                usuario, senha_atual, tentativas, chave, contexto.ip, agora
+            ):
+                erro = SenhaAtualIncorreta()
+            else:
+                public_id = str(usuario.public_id)
+                await registro_exclusao.apagar_dados_usuario(sessao, usuario.id)
+                await tentativas.apagar_falhas_conta(chave)
+                await enfileirar(
+                    sessao,
+                    apagar_objetos_usuario,
+                    queueing_lock=f"apagar-objetos-{public_id}",
+                    public_id=public_id,
+                )
+
+        if erro is not None:
+            logger.warning("senha_atual_recusada", operacao="exclusao_da_conta")
+            raise erro
+        logger.info("conta_excluida", usuario_public_id=public_id)

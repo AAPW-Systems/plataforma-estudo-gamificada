@@ -141,6 +141,23 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "ExclusaoContaEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "senhaAtual": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Senhaatual",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "senhaAtual"
+        ],
+        "title": "ExclusaoContaEntradaDTO",
+        "type": "object"
+      },
       "Perfil": {
         "properties": {
           "criadoEm": {
@@ -319,6 +336,31 @@
           "estado"
         ],
         "title": "Saude",
+        "type": "object"
+      },
+      "TrocaSenhaEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "novaSenha": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Novasenha",
+            "type": "string",
+            "writeOnly": true
+          },
+          "senhaAtual": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Senhaatual",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "senhaAtual",
+          "novaSenha"
+        ],
+        "title": "TrocaSenhaEntradaDTO",
         "type": "object"
       }
     }
@@ -625,6 +667,154 @@
           }
         },
         "summary": "Alterar Perfil",
+        "tags": [
+          "perfil"
+        ]
+      }
+    },
+    "/api/v1/perfil/exclusao": {
+      "post": {
+        "operationId": "excluirConta",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusaoContaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Excluir Conta",
+        "tags": [
+          "perfil"
+        ]
+      }
+    },
+    "/api/v1/perfil/senha": {
+      "post": {
+        "operationId": "trocarSenha",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrocaSenhaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Trocar Senha",
         "tags": [
           "perfil"
         ]
