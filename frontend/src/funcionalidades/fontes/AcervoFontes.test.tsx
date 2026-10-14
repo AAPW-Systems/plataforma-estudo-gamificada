@@ -15,6 +15,7 @@ import {
   simularSessaoAberta,
   usoFicticio,
 } from "../../testes/acervo";
+import { arquivoNativo, usarFormDataNativo } from "../../testes/arquivos";
 import { renderizarComRoteador } from "../../testes/renderizar";
 import { servidor } from "../../testes/servidor";
 
@@ -29,6 +30,7 @@ vi.mock("../../api/acompanhamento", async (importarOriginal) => {
 });
 
 configurarServidorDeTestes();
+usarFormDataNativo();
 
 type Fonte = ReturnType<typeof fonteFicticia>;
 
@@ -217,10 +219,7 @@ describe("Acervo da matéria (T029; US1 cenário 2, RN-03)", () => {
       if (!achada) throw new Error("sem seletor de arquivos");
       return achada;
     });
-    await usuario.upload(
-      entrada,
-      new File(["%PDF-1.7 x"], "citologia.pdf", { type: "application/pdf" }),
-    );
+    await usuario.upload(entrada, arquivoNativo("citologia.pdf", "%PDF-1.7 x", "application/pdf"));
 
     expect(await screen.findByText("Fonte «Citologia» enviada.")).toBeVisible();
     expect(await within(acervo()).findByText("Pendente")).toBeVisible();

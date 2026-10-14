@@ -13,22 +13,20 @@ import {
   renderizarComConsultas,
   usoFicticio,
 } from "../../testes/acervo";
+import { arquivoNativo, ultimoFormData, usarFormDataNativo } from "../../testes/arquivos";
 import { servidor } from "../../testes/servidor";
 import { EnvioFonte } from "./EnvioFonte";
 
 configurarServidorDeTestes();
+usarFormDataNativo();
 
 const URL_ENVIO = `${BASE}/materias/${ID_MATERIA}/fontes`;
 
 function pdf(nome = "biologia-citologia.pdf") {
-  return new File(["%PDF-1.7 conteudo ficticio"], nome, { type: "application/pdf" });
+  return arquivoNativo(nome, "%PDF-1.7 conteudo ficticio", "application/pdf");
 }
 
 interface Recebido {
-  /**
-   * O `FormData` do jsdom passa pelo `Request` do Node, que troca o nome do arquivo por "blob".
-   * No navegador o nome segue (o backend o testa); aqui o que vale é o conteúdo chegar inteiro.
-   */
   arquivo: { name: string; size: number } | null;
   titulo: string | null;
   tipoDoCorpo: string;
@@ -38,11 +36,13 @@ function capturar(resposta: () => Response | Promise<Response>) {
   const recebidos: Recebido[] = [];
   servidor.use(
     http.post(URL_ENVIO, async ({ request }) => {
-      const formulario = await request.formData();
-      const arquivo = formulario.get("arquivo");
-      const titulo = formulario.get("titulo");
+      // O corpo não é lido aqui (ver `usarFormDataNativo`); os campos vêm do formulário montado.
+      const formulario = ultimoFormData();
+      const arquivo = formulario?.get("arquivo");
+      const titulo = formulario?.get("titulo");
       recebidos.push({
-        arquivo: arquivo !== null && typeof arquivo !== "string" ? arquivo : null,
+        arquivo:
+          arquivo !== null && arquivo !== undefined && typeof arquivo !== "string" ? arquivo : null,
         titulo: typeof titulo === "string" ? titulo : null,
         tipoDoCorpo: request.headers.get("content-type") ?? "",
       });
@@ -104,6 +104,7 @@ describe("EnvioFonte (T029; US1 cenários 2 e 4, RN-02)", () => {
     });
     expect(recebidos).toHaveLength(1);
     expect(recebidos[0]?.tipoDoCorpo).toMatch(/^multipart\/form-data; boundary=/);
+    expect(recebidos[0]?.arquivo?.name).toBe("biologia-citologia.pdf");
     expect(recebidos[0]?.arquivo?.size).toBe(pdf().size);
     expect(recebidos[0]?.titulo).toBe("Citologia");
     // Depois de enviar, o título volta ao vazio para a próxima fonte.
@@ -138,6 +139,7 @@ describe("EnvioFonte (T029; US1 cenários 2 e 4, RN-02)", () => {
     await waitFor(() => {
       expect(recebidos).toHaveLength(1);
     });
+    expect(recebidos[0]?.arquivo?.name).toBe("resumo.pdf");
     expect(recebidos[0]?.arquivo?.size).toBe(arquivo.size);
   });
 
