@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 from procrastinate import RetryStrategy
 from sqlalchemy import delete, func, select, text
+from structlog.testing import capture_logs
 
 from app.fontes.modelos import Fonte, Trecho
 from app.fontes.servicos import ServicoFontes
@@ -199,6 +200,31 @@ async def test_tempo_esgotado_na_extracao_vira_conteudo_invalido(
 class ArmazenamentoQueFalha(ArmazenamentoMemoria):
     async def ler_para_arquivo(self, chave: str, destino: Path) -> None:
         raise OSError("volume indisponível (detalhe interno)")
+
+
+async def test_falha_registra_a_tentativa_sem_expor_o_detalhe_interno(
+    deps: DependenciasTarefas, armazenamento: ArmazenamentoMemoria, arquivos: dict[str, Any]
+) -> None:
+    """O evento `processamento_falhou` leva o código e a tentativa (plano, "Logs"), e nunca a
+    mensagem da exceção (que pode trazer caminho do volume)."""
+    _, _, fonte = await semear_fonte(deps.fabrica, armazenamento, arquivos["resumo.txt"])
+    quebrado = ArmazenamentoQueFalha()
+    quebrado.objetos = armazenamento.objetos
+    com_falha = DependenciasTarefas(
+        fabrica=deps.fabrica, armazenamento=quebrado, configuracao=deps.configuracao
+    )
+
+    with capture_logs() as registros:
+        resultado = await executar_processar_fonte(
+            fonte.id, com_falha, ultima_tentativa=True, tentativa=3
+        )
+
+    assert resultado is ResultadoProcessamento.FALHOU
+    falhas = [r for r in registros if r["event"] == "processamento_falhou"]
+    assert len(falhas) == 1
+    assert falhas[0]["codigo"] == "falha_tecnica"
+    assert falhas[0]["tentativa"] == 3
+    assert "volume indisponível" not in str(registros)
 
 
 async def test_erro_transitorio_pede_nova_tentativa_e_a_fonte_segue_processando(

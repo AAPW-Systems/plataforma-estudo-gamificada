@@ -116,26 +116,33 @@ async def executar_processar_fonte(
     deps: DependenciasTarefas,
     *,
     ultima_tentativa: bool,
+    tentativa: int = 1,
     executor: ExecutorIsolado = executar_isolado,
 ) -> ResultadoProcessamento:
-    """Transação A, leitura, extração e transação B (DTEC 030)."""
+    """Transação A, leitura, extração e transação B (DTEC 030).
+
+    `tentativa` (a partir de 1) só alimenta o log: `processamento_falhou` informa em qual
+    execução o processamento falhou.
+    """
     try:
-        return await _processar(fonte_id, deps, executor)
+        return await _processar(fonte_id, deps, executor, tentativa)
     except ErroTransitorio:
         if not ultima_tentativa:
             raise  # a fila tenta de novo, com espera crescente; a fonte segue `processando`
-        await _gravar_falha(fonte_id, deps, CodigoFalha.FALHA_TECNICA)
+        await _gravar_falha(fonte_id, deps, CodigoFalha.FALHA_TECNICA, tentativa=tentativa)
         return ResultadoProcessamento.FALHOU
     except Exception:
         # Defeito inesperado: não deixar a fonte presa em `processando`; o job aparece como
         # falho para quem opera, e o estudante pode tentar de novo.
-        logger.exception("processamento_falhou", codigo=str(CodigoFalha.FALHA_TECNICA))
-        await _gravar_falha(fonte_id, deps, CodigoFalha.FALHA_TECNICA)
+        logger.exception(
+            "processamento_falhou", codigo=str(CodigoFalha.FALHA_TECNICA), tentativa=tentativa
+        )
+        await _gravar_falha(fonte_id, deps, CodigoFalha.FALHA_TECNICA, tentativa=tentativa)
         raise
 
 
 async def _processar(
-    fonte_id: int, deps: DependenciasTarefas, executor: ExecutorIsolado
+    fonte_id: int, deps: DependenciasTarefas, executor: ExecutorIsolado, tentativa: int
 ) -> ResultadoProcessamento:
     inicio = time.monotonic()
     agora = datetime.now(UTC)
@@ -172,7 +179,9 @@ async def _processar(
             # O objeto sumiu: se a fonte também, a exclusão venceu (CB-16); senão, falha técnica.
             if not await _fonte_existe(fonte_id, deps):
                 return ResultadoProcessamento.SEM_EFEITO
-            return await _gravar_falha(fonte_id, deps, CodigoFalha.FALHA_TECNICA, partida)
+            return await _gravar_falha(
+                fonte_id, deps, CodigoFalha.FALHA_TECNICA, partida, tentativa=tentativa
+            )
         except OSError as erro:
             raise ErroTransitorio(type(erro).__name__) from erro
         c = deps.configuracao
@@ -189,7 +198,7 @@ async def _processar(
     finally:
         await asyncio.to_thread(shutil.rmtree, diretorio, True)
 
-    return await _concluir(fonte_id, deps, partida, processado, inicio)
+    return await _concluir(fonte_id, deps, partida, processado, inicio, tentativa)
 
 
 async def _concluir(
@@ -198,6 +207,7 @@ async def _concluir(
     partida: _Partida,
     processado: ArquivoProcessado | FalhaDeProcessamento,
     inicio: float,
+    tentativa: int,
 ) -> ResultadoProcessamento:
     """Transação B: trava de novo; fonte excluída no meio termina sem gravar nada (CB-16)."""
     agora = datetime.now(UTC)
@@ -229,6 +239,7 @@ async def _concluir(
             fonte_public_id=partida.fonte_public_id,
             usuario_public_id=partida.usuario_public_id,
             codigo=str(processado.codigo),
+            tentativa=tentativa,
             duracao_ms=duracao_ms,
         )
         return ResultadoProcessamento.FALHOU
@@ -257,6 +268,8 @@ async def _gravar_falha(
     deps: DependenciasTarefas,
     codigo: CodigoFalha,
     partida: _Partida | None = None,
+    *,
+    tentativa: int = 1,
 ) -> ResultadoProcessamento:
     """Grava `falhou` com o código, se a fonte ainda existe e segue sem estado final."""
     async with unidade_de_trabalho(deps.fabrica) as sessao:
@@ -272,6 +285,7 @@ async def _gravar_falha(
         "processamento_falhou",
         fonte_public_id=partida.fonte_public_id if partida else public_id,
         codigo=str(codigo),
+        tentativa=tentativa,
     )
     return ResultadoProcessamento.FALHOU
 
@@ -288,6 +302,7 @@ async def processar_fonte(contexto: JobContext, fonte_id: int) -> None:
         fonte_id,
         obter_dependencias(),
         ultima_tentativa=contexto.job.attempts >= NOVAS_TENTATIVAS,
+        tentativa=contexto.job.attempts + 1,
     )
 
 
