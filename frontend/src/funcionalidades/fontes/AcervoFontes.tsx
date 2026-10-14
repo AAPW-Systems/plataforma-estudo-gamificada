@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { consultaFontes } from "../../api/acervo";
 import { SeloEstado } from "../../componentes/ui/SeloEstado";
 import { BotaoTentarNovamente } from "./BotaoTentarNovamente";
+import { DialogoExclusaoFonte } from "./DialogoExclusaoFonte";
 import { ESTADOS, formatarTamanho, rotuloDoTipo } from "./textos";
 
 /**
@@ -15,6 +16,9 @@ import { ESTADOS, formatarTamanho, rotuloDoTipo } from "./textos";
 export function AcervoFontes({ materiaId }: { materiaId: string }) {
   const { data: fontes, isPending, isError } = useQuery(consultaFontes(materiaId));
   const [anuncio, definirAnuncio] = useState("");
+  const navegar = useNavigate();
+  // A fonte aberta no painel (rota filha), se houver: excluí-la fecha o painel.
+  const { fonteId: fonteAberta } = useParams({ strict: false });
   const anteriores = useRef<Map<string, string> | undefined>(undefined);
 
   useEffect(() => {
@@ -68,7 +72,17 @@ export function AcervoFontes({ materiaId }: { materiaId: string }) {
                 {fonte.estado === "falhou" && fonte.mensagemFalha && (
                   <p className="erro-campo">{fonte.mensagemFalha}</p>
                 )}
-                {fonte.podeTentarNovamente && <BotaoTentarNovamente fonte={fonte} />}
+                <div className="item-fonte-acoes">
+                  {fonte.podeTentarNovamente && <BotaoTentarNovamente fonte={fonte} />}
+                  <DialogoExclusaoFonte
+                    fonte={fonte}
+                    aoExcluida={() => {
+                      if (fonteAberta === fonte.id) {
+                        void navegar({ to: "/materias/$materiaId", params: { materiaId } });
+                      }
+                    }}
+                  />
+                </div>
               </li>
             );
           })}

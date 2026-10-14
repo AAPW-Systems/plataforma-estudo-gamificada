@@ -417,3 +417,18 @@
     }
   }
 }
+
+@layer components {
+  .item-fonte-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+  .impacto-exclusao {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    margin: 0;
+    padding-left: calc(var(--spacing) * 5);
+  }
+}

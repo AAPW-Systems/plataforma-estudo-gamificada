@@ -104,6 +104,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/fontes/{fonteId}/exclusao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Excluir Fonte */
+    post: operations["excluirFonte"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/fontes/{fonteId}/impacto-exclusao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar Impacto Exclusao Fonte */
+    get: operations["consultarImpactoExclusaoFonte"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/fontes/{fonteId}/reprocessamento": {
     parameters: {
       query?: never;
@@ -317,6 +351,27 @@ export interface components {
      * @enum {string}
      */
     CodigoFalhaFonte: "falha_tecnica" | "sem_texto" | "conteudo_invalido";
+    /**
+     * ContagensExclusaoFonteDTO
+     * @description O que a exclusão da fonte afeta; o diálogo mostra e a confirmação devolve (DTEC 031).
+     */
+    ContagensExclusaoFonte: {
+      /**
+       * Cartoesaguardandorevisao
+       * @description Sempre apagados
+       */
+      cartoesAguardandoRevisao: number;
+      /**
+       * Cartoesgeradosaceitos
+       * @description Cartões gerados da fonte e já aceitos; seguem a escolha `modoCartoes`
+       */
+      cartoesGeradosAceitos: number;
+      /**
+       * Cartoesreferencia
+       * @description Criados pelo estudante citando a fonte; sempre mantidos com "Fonte apagada" (D-009)
+       */
+      cartoesReferencia: number;
+    };
     /** EntradaEntradaDTO */
     EntradaEntrada: {
       /** Email */
@@ -374,6 +429,12 @@ export interface components {
       /** Senhaatual */
       senhaAtual: string;
     };
+    /** ExclusaoFonteEntradaDTO */
+    ExclusaoFonteEntrada: {
+      impactoConfirmado: components["schemas"]["ContagensExclusaoFonte"];
+      /** @description "Manter os cartões" ou "Excluir os cartões junto" (RN-14) */
+      modoCartoes: components["schemas"]["ModoCartoes"];
+    };
     /** FonteDTO */
     Fonte: {
       codigoFalha: components["schemas"]["CodigoFalhaFonte"] | null;
@@ -420,6 +481,13 @@ export interface components {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
     };
+    /** ImpactoExclusaoFonteDTO */
+    ImpactoExclusaoFonte: {
+      contagens: components["schemas"]["ContagensExclusaoFonte"];
+      estado: components["schemas"]["EstadoFonte"];
+      /** Titulo */
+      titulo: string;
+    };
     /** ListaFontesDTO */
     ListaFontes: {
       /** Itens */
@@ -461,6 +529,12 @@ export interface components {
       /** Nome */
       nome: string;
     };
+    /**
+     * ModoCartoes
+     * @description Escolha do estudante sobre os cartões gerados e aceitos de uma fonte (RN-14).
+     * @enum {string}
+     */
+    ModoCartoes: "manter" | "excluir";
     /** PerfilDTO */
     Perfil: {
       /**
@@ -804,6 +878,135 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Fonte"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  excluirFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da fonte */
+        fonteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExclusaoFonteEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarImpactoExclusaoFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da fonte */
+        fonteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ImpactoExclusaoFonte"];
         };
       };
       /** @description Unauthorized */

@@ -6,6 +6,11 @@ export const limites = {
     nome: { maxLength: 100, minLength: 1 },
     senha: { maxLength: 128, minLength: 8 },
   },
+  ContagensExclusaoFonte: {
+    cartoesAguardandoRevisao: { minimum: 0 },
+    cartoesGeradosAceitos: { minimum: 0 },
+    cartoesReferencia: { minimum: 0 },
+  },
   EntradaEntrada: {
     email: { maxLength: 254 },
     senha: { maxLength: 128, minLength: 1 },

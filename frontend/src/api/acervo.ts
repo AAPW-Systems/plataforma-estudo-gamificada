@@ -69,3 +69,24 @@ export const consultaFonte = (fonteId: string) =>
     refetchInterval: (consulta) =>
       intervaloDeAcompanhamento(consulta.state.data ? [consulta.state.data] : undefined),
   });
+
+/**
+ * O que a exclusão da fonte afeta (US2). Sempre consultado de novo ao abrir o diálogo: o
+ * estudante decide sobre números atuais, e o servidor confere o que ele viu (DTEC 031).
+ */
+export const consultaImpactoExclusaoFonte = (fonteId: string, habilitada: boolean) =>
+  queryOptions({
+    queryKey: [...chaves.fonte(fonteId), "impacto-exclusao"] as const,
+    queryFn: async () =>
+      exigir(
+        (
+          await cliente.GET("/api/v1/fontes/{fonteId}/impacto-exclusao", {
+            params: { path: { fonteId } },
+          })
+        ).data,
+      ),
+    enabled: habilitada,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+  });

@@ -225,6 +225,89 @@ describe("Acervo da matéria (T029; US1 cenário 2, RN-03)", () => {
     expect(await within(acervo()).findByText("Pendente")).toBeVisible();
   });
 
+  it("cada fonte tem a ação Excluir, inclusive a que falhou (RF-012)", async () => {
+    simularMateria(() => [
+      fonteFicticia(),
+      falha({ id: "44444444-4444-4444-8444-444444444444", titulo: "Escaneado" }),
+    ]);
+    await abrirMateria();
+    const [primeiro, segundo] = await within(acervo()).findAllByRole("listitem");
+    if (!primeiro || !segundo) throw new Error("faltam itens no acervo");
+    expect(
+      within(primeiro).getByRole("button", { name: "Excluir fonte: Citologia" }),
+    ).toBeVisible();
+    expect(within(segundo).getByRole("button", { name: "Excluir fonte: Escaneado" })).toBeVisible();
+  });
+
+  it("excluir pelo diálogo tira a fonte do acervo e atualiza a lista", async () => {
+    let excluida = false;
+    simularMateria(() => (excluida ? [] : [fonteFicticia()]));
+    servidor.use(
+      http.get(`${BASE}/fontes/${ID_FONTE}/impacto-exclusao`, () =>
+        HttpResponse.json({
+          titulo: "Citologia",
+          estado: "concluido",
+          contagens: {
+            cartoesGeradosAceitos: 0,
+            cartoesAguardandoRevisao: 0,
+            cartoesReferencia: 0,
+          },
+        }),
+      ),
+      http.post(`${BASE}/fontes/${ID_FONTE}/exclusao`, () => {
+        excluida = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const usuario = userEvent.setup();
+    await abrirMateria();
+    await usuario.click(
+      await within(acervo()).findByRole("button", { name: "Excluir fonte: Citologia" }),
+    );
+    const dialogo = await screen.findByRole("dialog");
+    await usuario.click(await within(dialogo).findByRole("button", { name: "Excluir fonte" }));
+
+    await within(acervo()).findByText("Enviar a primeira fonte");
+    expect(within(acervo()).queryByText("Citologia")).toBeNull();
+  });
+
+  it("excluir a fonte que está aberta no painel fecha o painel", async () => {
+    let excluida = false;
+    simularMateria(() => (excluida ? [] : [fonteFicticia()]));
+    servidor.use(
+      http.get(`${BASE}/fontes/${ID_FONTE}`, () => HttpResponse.json(fonteFicticia())),
+      http.get(`${BASE}/fontes/${ID_FONTE}/impacto-exclusao`, () =>
+        HttpResponse.json({
+          titulo: "Citologia",
+          estado: "concluido",
+          contagens: {
+            cartoesGeradosAceitos: 0,
+            cartoesAguardandoRevisao: 0,
+            cartoesReferencia: 0,
+          },
+        }),
+      ),
+      http.post(`${BASE}/fontes/${ID_FONTE}/exclusao`, () => {
+        excluida = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const usuario = userEvent.setup();
+    const { roteador } = renderizarComRoteador(`/materias/${ID_MATERIA}/fontes/${ID_FONTE}`);
+    await screen.findByRole("heading", { name: "Citologia", level: 3 });
+
+    await usuario.click(
+      await within(acervo()).findByRole("button", { name: "Excluir fonte: Citologia" }),
+    );
+    const dialogo = await screen.findByRole("dialog");
+    await usuario.click(await within(dialogo).findByRole("button", { name: "Excluir fonte" }));
+
+    await waitFor(() => {
+      expect(roteador.state.location.pathname).toBe(`/materias/${ID_MATERIA}`);
+    });
+    expect(screen.queryByRole("heading", { name: "Citologia", level: 3 })).toBeNull();
+  });
+
   it("não tem violações de acessibilidade com fontes em vários estados", async () => {
     simularMateria(() => [
       fonteFicticia(),
