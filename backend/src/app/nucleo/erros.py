@@ -239,6 +239,10 @@ async def _tratar_validacao(request: Request, exc: Exception) -> Response:
     if not isinstance(exc, RequestValidationError):  # registrado só para este tipo
         raise exc
     erros = exc.errors()
+    if any(tuple(erro.get("loc", ()))[:1] == ("path",) for erro in erros):
+        # Identificador malformado no caminho: o recurso não existe, como qualquer outro que
+        # não exista ou seja de outro estudante (DTEC 019). Um 422 aqui distinguiria os casos.
+        return resposta_erro(request.scope, RecursoNaoEncontrado())
     if _corpo_ilegivel(erros):
         return resposta_erro(request.scope, RequisicaoMalformada())
     return resposta_erro(request.scope, EntradaInvalida(campos=campos_de_validacao(erros)))

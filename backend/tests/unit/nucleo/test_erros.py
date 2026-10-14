@@ -59,6 +59,10 @@ def _criar_app() -> FastAPI:
         }
         raise excecoes[tipo]
 
+    @app.get("/recursos/{recurso_id}")
+    async def recurso(recurso_id: uuid.UUID) -> dict[str, str]:
+        return {"id": str(recurso_id)}
+
     @app.get("/inesperado")
     async def inesperado() -> None:
         raise RuntimeError("detalhe interno: senha=segredo123 em /var/lib")
@@ -169,3 +173,27 @@ async def test_excecao_inesperada_vira_500_sem_detalhes_e_com_pilha_no_log(
     [registro] = [r for r in registros if r["event"] == "erro_inesperado"]
     assert registro["log_level"] == "error"
     assert registro["exc_info"] is True
+
+
+async def test_identificador_malformado_no_caminho_responde_404_como_o_inexistente(
+    cliente: httpx.AsyncClient,
+) -> None:
+    """DTEC 019: um 422 distinguiria 'formato errado' de 'não existe'; os dois são 404."""
+    malformado = await cliente.get("/recursos/nao-e-uuid")
+    inexistente = await cliente.get("/erro/404")
+    assert malformado.status_code == 404
+    corpo = malformado.json()
+    _valida_corpo_erro(corpo)
+    assert corpo["codigo"] == "recurso_nao_encontrado"
+    assert {k: v for k, v in corpo.items() if k != "idRequisicao"} == {
+        k: v for k, v in inexistente.json().items() if k != "idRequisicao"
+    }
+    assert "uuid" not in malformado.text.lower()
+    assert (await cliente.get(f"/recursos/{uuid.uuid4()}")).status_code == 200
+
+
+async def test_erro_de_validacao_do_corpo_continua_422_mesmo_com_caminho_valido(
+    cliente: httpx.AsyncClient,
+) -> None:
+    resposta = await cliente.post("/validar", json={"metaDiaria": 0, "nome": "x"})
+    assert resposta.status_code == 422

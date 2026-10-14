@@ -20,7 +20,15 @@ from app.nucleo.configuracao import obter_configuracao
 logger = structlog.get_logger(__name__)
 
 # Módulos com tarefas, importados pelo worker ao iniciar.
-MODULOS_TAREFAS: list[str] = ["app.identidade.tarefas"]
+MODULOS_TAREFAS: list[str] = ["app.identidade.tarefas", "app.fontes.tarefas"]
+
+
+class ErroTransitorio(Exception):
+    """Falha que pode passar sozinha (E/S do armazenamento, conexão com o banco).
+
+    É a única que as tarefas com nova tentativa automática relançam (`retry_exceptions`,
+    DTEC 030). Na última tentativa, quem a captura grava a falha técnica em vez de relançar.
+    """
 
 
 def _criar_pool(**opcoes: Any) -> AsyncConnectionPool:
