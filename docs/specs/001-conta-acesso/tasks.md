@@ -29,7 +29,7 @@
   **Verificação:** `npm ci && npm run build` passa.
 - [x] T004 [P] Criar `backend/Dockerfile` multi-stage (`base` com uv, `dev` com recarga, `prod` sem ferramentas de desenvolvimento e com usuário não root) e `backend/.dockerignore`.
 - [x] T005 [P] Criar `frontend/Dockerfile` multi-stage (`deps`, `dev` com o servidor do Vite, `build`, `prod` com os estáticos) e `frontend/.dockerignore`.
-- [ ] T006 Criar o `compose.yaml` com os serviços `db` (`pgvector/pgvector`, volume e *healthcheck*), `migrate` (execução única), `api` e `worker` (que dependem do `migrate` concluído) e `web`, além do `.env.example` com todas as variáveis da tabela do plano, sem valores secretos (regra 9).
+- [ ] T006 Criar o `compose.yaml` com os serviços `db` (`pgvector/pgvector`, volume e *healthcheck*), `migrate` (execução única), `api` e `worker` (que dependem do `migrate` concluído) e `web`, além do `.env.example` com todas as variáveis da tabela do plano, sem valores secretos (regra 9). **Situação (14/10/2026):** não marcada. `docker compose config` é válido e `docker compose up -d --wait db` deixou o banco saudável; o `compose.yaml` ganhou o volume `./docs:/docs:ro` nos serviços do backend (testes de contrato). O `docker compose up -d --build --wait` completo (migrate, api, worker e web saudáveis) não foi repetido no ambiente de nuvem da sessão, onde o *build* das imagens do backend é bloqueado pela política de rede (o blob da imagem do `uv` em `ghcr.io` responde `403`); a sessão anterior só o verificou sem `--build`. Falta repetir o comando numa máquina com acesso, antes de marcar.
 - [x] T007 [P] Criar `.github/workflows/ci.yml` com as etapas da tabela "Integração contínua e qualidade" do plano, a cada push na `develop` e em todo pull request para a `main` (DTEC 017). **Evidência (13/10/2026):** o CI da `develop` falhava no job `frontend` (`EACCES` em `/app/coverage`, bind mount do runner); corrigido no commit `9b239d6` e a execução 5 passou nos dois jobs ([run](https://github.com/AAPW-Systems/plataforma-estudo-gamificada/actions/runs/38485755245)).
 - [x] T008 [P] Criar `.pre-commit-config.yaml` com Ruff (lint e formatação), Prettier e ESLint, documentado como opcional. **Evidência (14/10/2026):** `pre-commit run --all-files` passou nos quatro *hooks* (Ruff lint e formatação, Prettier e ESLint); um arquivo com importação sobrando foi reprovado (F401). A verificação achou um defeito: com `--config backend/pyproject.toml`, rodando da raiz, os `per-file-ignores` (`tests/**`) não casavam (598 erros S101); o `--config` foi removido, e o Ruff passa a usar o `pyproject.toml` mais próximo de cada arquivo.
 
@@ -91,7 +91,7 @@
 
   Teste em `frontend/src/api/cliente.test.ts`, com MSW.
 - [x] T026 Criar o roteamento em `frontend/src/rotas/`: `__root.tsx` e os layouts `_publico` e `_autenticado`. O `beforeLoad` deste último consulta `GET /api/v1/perfil` pelo TanStack Query e redireciona para `/entrar` com `401`. Criar também `frontend/src/testes/`, com os *handlers* do MSW e a renderização com roteador. Teste: uma rota protegida sem sessão redireciona.
-- [ ] T027 **Verificar a base:** `docker compose up --build` sobe todos os serviços saudáveis, `/health/ready` responde `200` e a integração contínua passa na `develop`. Registrar o resultado no registro de prompts da sessão de implementação.
+- [ ] T027 **Verificar a base:** `docker compose up --build` sobe todos os serviços saudáveis, `/health/ready` responde `200` e a integração contínua passa na `develop`. Registrar o resultado no registro de prompts da sessão de implementação. **Situação (14/10/2026):** não marcada. **CI remoto: verde na `develop`** a partir do commit `9b239d6` (o job `frontend` falhava com `EACCES` em `/app/coverage`; corrigido). Faltam o `docker compose up --build` completo com todos os serviços saudáveis e o `/health/ready` respondendo `200` por ele (ver a nota da T006); o `/health/ready` respondeu `200` com a API rodando fora do Compose (uvicorn contra o PostgreSQL local), o que não substitui essa verificação.
 
 ## Fase 3 História de usuário 1 Criar conta e entrar (P1)
 
@@ -137,7 +137,7 @@
   - "e-mail já em uso" no `409`;
   - axe sem violações.
 - [x] T039 [US1] Implementar as telas `frontend/src/rotas/_publico/cadastro.tsx` e `entrar.tsx`, com os formulários e os esquemas Zod de `frontend/src/funcionalidades/identidade/`, que usam os limites gerados. O cadastro envia o fuso de `Intl.DateTimeFormat().resolvedOptions().timeZone`. O layout tem dois painéis no desktop e coluna única no mobile ([design, 9.1](../../base-specs/design.md#91-autenticação)). Implementar também a ação "Sair" no layout autenticado e a trilha vazia em `frontend/src/rotas/_autenticado/index.tsx`.
-- [ ] T040 [US1] Executar os passos 1 a 10 da US1 no quickstart e os testes `functional`, `security` e `adversarial` da US1, e registrar a evidência no registro de prompts da sessão.
+- [x] T040 [US1] Executar os passos 1 a 10 da US1 no quickstart e os testes `functional`, `security` e `adversarial` da US1, e registrar a evidência no registro de prompts da sessão. **Evidência (14/10/2026):** ver a seção "Evidência da T040" do [registro da sessão](../../prompts/2026-10-13-001-conta-acesso-implementacao-4.md): os 10 passos no Chromium (15 verificações, 0 falhas), `pytest -m functional` (28), `security` (29 da US1) e `adversarial` (38). O passo 5 ("abrir o perfil") conferiu o `GET /api/v1/perfil`, porque a tela de perfil só chega na T051.
 
 ## Fase 4 História de usuário 2 Acessar somente meus dados (P1)
 
@@ -152,7 +152,7 @@
 - [x] T042 [P] [US2] Criar `tests/security/test_csrf_origem.py`, parametrizado por todas as rotas que alteram estado (cenário 3): sem cabeçalho, com token de outra sessão, com `Origin` fora da lista e com `Sec-Fetch-Site: cross-site`, todas recusadas com `403`.
 - [x] T043 [US2] Implementar em `app/nucleo/` o auxiliar de busca por dono (`public_id` e `usuario_id`, `RecursoNaoEncontrado`), usado pelas specs 002 em diante, até que a T041 passe. `app/nucleo/dono.py` (`buscar_do_dono`, com `para_atualizar` para `FOR UPDATE`).
 - [x] T044 [US2] Implementar no `frontend/src/api/cliente.ts` o tratamento global de `401`: limpa o cache do TanStack Query e redireciona para `/entrar`. Teste em `frontend/src/api/cliente.test.ts`.
-- [ ] T045 [US2] Executar os passos da US2 no quickstart e `pytest -m security`, e registrar a evidência.
+- [x] T045 [US2] Executar os passos da US2 no quickstart e `pytest -m security`, e registrar a evidência. **Evidência (14/10/2026):** ver a seção "Evidência da T045" do registro da sessão: `pytest -m security` com 91 testes, e os passos 2 e 3 do quickstart no navegador. O passo 3 usa `PATCH /perfil` sem `X-CSRF-Token`, que responde `403` porque a proteção CSRF vem antes do roteamento, e a rota só chega na T049 (cobertura incremental, ver a T041).
 
 ## Fase 5 História de usuário 3 Ajustar perfil e preferências (P2)
 

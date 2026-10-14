@@ -15,7 +15,7 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 
 | Spec | Estado | Migração | Domínios criados |
 |---|---|---|---|
-| [001](../specs/001-conta-acesso/plan.md) conta e acesso | Tarefas aprovadas | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
+| [001](../specs/001-conta-acesso/plan.md) conta e acesso | Implementando | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
 | [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Tarefas aprovadas | `0003_acervo` | `materias`, `fontes` |
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Tarefas aprovadas | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
