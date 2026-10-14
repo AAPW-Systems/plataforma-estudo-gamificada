@@ -30,17 +30,12 @@ pytestmark = pytest.mark.integration
 
 # (método, caminho) -> tarefa que entrega a rota (contrato da 002; o da 001 está completo).
 OPERACOES_PENDENTES: dict[tuple[str, str], str] = {
-    ("get", "/api/v1/fontes/{fonteId}/impacto-exclusao"): "T036",
-    ("post", "/api/v1/fontes/{fonteId}/exclusao"): "T036",
     ("patch", "/api/v1/materias/{materiaId}"): "T043",
     ("get", "/api/v1/materias/{materiaId}/impacto-exclusao"): "T043",
     ("post", "/api/v1/materias/{materiaId}/exclusao"): "T043",
     ("patch", "/api/v1/fontes/{fonteId}"): "T043",
 }
 ESQUEMAS_PENDENTES: dict[str, str] = {
-    "ContagensExclusaoFonte": "T036",
-    "ImpactoExclusaoFonte": "T036",
-    "ExclusaoFonteEntrada": "T036",
     "ContagensExclusaoMateria": "T043",
     "ImpactoExclusaoMateria": "T043",
     "ExclusaoMateriaEntrada": "T043",

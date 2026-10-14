@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import Field
 
 from app.fontes.dominio import TITULO_MAXIMO, CodigoFalha, EstadoFonte
 from app.nucleo.dtos import EntradaDTO, ModeloDTO
+from app.nucleo.participantes_acervo import ModoCartoes
+
+# Inteiros de verdade e não negativos: "3", 3.0 e true não valem como contagem confirmada.
+Contagem = Annotated[int, Field(ge=0, strict=True)]
 
 
 class RenomeacaoFonteEntradaDTO(EntradaDTO):
@@ -46,3 +50,30 @@ class UsoAcervoDTO(ModeloDTO):
     cota_fontes_por_materia: int
     cota_armazenamento_bytes: int
     uso_armazenamento_bytes: int = Field(ge=0)
+
+
+class ContagensExclusaoFonteDTO(EntradaDTO):
+    """O que a exclusão da fonte afeta; o diálogo mostra e a confirmação devolve (DTEC 031)."""
+
+    cartoes_gerados_aceitos: Contagem = Field(
+        description="Cartões gerados da fonte e já aceitos; seguem a escolha `modoCartoes`"
+    )
+    cartoes_aguardando_revisao: Contagem = Field(description="Sempre apagados")
+    cartoes_referencia: Contagem = Field(
+        description=(
+            'Criados pelo estudante citando a fonte; sempre mantidos com "Fonte apagada" (D-009)'
+        )
+    )
+
+
+class ImpactoExclusaoFonteDTO(ModeloDTO):
+    titulo: str
+    estado: EstadoFonte
+    contagens: ContagensExclusaoFonteDTO
+
+
+class ExclusaoFonteEntradaDTO(EntradaDTO):
+    modo_cartoes: ModoCartoes = Field(
+        description='"Manter os cartões" ou "Excluir os cartões junto" (RN-14)'
+    )
+    impacto_confirmado: ContagensExclusaoFonteDTO

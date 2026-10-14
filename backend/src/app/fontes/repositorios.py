@@ -71,6 +71,10 @@ class RepositorioFontes:
             raise
         return fonte
 
+    async def apagar(self, fonte_id: int) -> None:
+        """Apaga a fonte; os trechos saem em cascata (FK `ON DELETE CASCADE`)."""
+        await self._sessao.execute(delete(Fonte).where(Fonte.id == fonte_id))
+
     async def apagar_trechos(self, fonte_id: int) -> None:
         await self._sessao.execute(delete(Trecho).where(Trecho.fonte_id == fonte_id))
 

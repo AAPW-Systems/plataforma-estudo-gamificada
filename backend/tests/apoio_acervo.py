@@ -164,3 +164,30 @@ async def chave_da_fonte(fabrica: FabricaSessoes, fonte_public_id: str) -> str:
     async with unidade_de_trabalho(fabrica) as sessao:
         consulta = select(Fonte.chave_objeto).where(Fonte.public_id == uuid.UUID(fonte_public_id))
         return (await sessao.execute(consulta)).scalar_one()
+
+
+async def id_interno_da_fonte(fabrica: FabricaSessoes, fonte_public_id: str) -> int:
+    """O `id` interno da fonte, que os participantes da exclusão recebem."""
+    async with unidade_de_trabalho(fabrica) as sessao:
+        consulta = select(Fonte.id).where(Fonte.public_id == uuid.UUID(fonte_public_id))
+        return (await sessao.execute(consulta)).scalar_one()
+
+
+async def contar_linhas_da_fonte(fabrica: FabricaSessoes, fonte_id: int) -> tuple[int, int]:
+    """Quantas linhas de `fontes` e de `trechos` existem para o `id` interno."""
+    from sqlalchemy import func
+
+    from app.fontes.modelos import Trecho
+
+    async with unidade_de_trabalho(fabrica) as sessao:
+        fontes = (
+            await sessao.execute(
+                select(func.count()).select_from(Fonte).where(Fonte.id == fonte_id)
+            )
+        ).scalar_one()
+        trechos = (
+            await sessao.execute(
+                select(func.count()).select_from(Trecho).where(Trecho.fonte_id == fonte_id)
+            )
+        ).scalar_one()
+    return int(fontes), int(trechos)

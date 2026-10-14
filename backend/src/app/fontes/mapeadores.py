@@ -6,8 +6,14 @@ from uuid import UUID
 
 from app.fontes import dominio
 from app.fontes.dominio import CodigoFalha, EstadoFonte
-from app.fontes.dtos import FonteDTO, ListaFontesDTO
+from app.fontes.dtos import (
+    ContagensExclusaoFonteDTO,
+    FonteDTO,
+    ImpactoExclusaoFonteDTO,
+    ListaFontesDTO,
+)
 from app.fontes.modelos import Fonte
+from app.nucleo.participantes_acervo import ContagensAcervo
 
 
 def fonte_para_dto(fonte: Fonte, materia_public_id: UUID) -> FonteDTO:
@@ -33,3 +39,28 @@ def fonte_para_dto(fonte: Fonte, materia_public_id: UUID) -> FonteDTO:
 
 def fontes_para_dto(fontes: list[Fonte], materia_public_id: UUID) -> ListaFontesDTO:
     return ListaFontesDTO(itens=[fonte_para_dto(f, materia_public_id) for f in fontes])
+
+
+def contagens_do_dto(dto: ContagensExclusaoFonteDTO) -> ContagensAcervo:
+    return ContagensAcervo(
+        cartoes_gerados_aceitos=dto.cartoes_gerados_aceitos,
+        cartoes_aguardando_revisao=dto.cartoes_aguardando_revisao,
+        cartoes_referencia=dto.cartoes_referencia,
+    )
+
+
+def impacto_para_dto(
+    titulo: str, estado: EstadoFonte, contagens: ContagensAcervo
+) -> ImpactoExclusaoFonteDTO:
+    return ImpactoExclusaoFonteDTO(
+        titulo=titulo,
+        estado=estado,
+        # O DTO de contagens também é corpo de entrada (só camelCase): constrói-se por alias.
+        contagens=ContagensExclusaoFonteDTO.model_validate(
+            {
+                "cartoesGeradosAceitos": contagens.cartoes_gerados_aceitos,
+                "cartoesAguardandoRevisao": contagens.cartoes_aguardando_revisao,
+                "cartoesReferencia": contagens.cartoes_referencia,
+            }
+        ),
+    )

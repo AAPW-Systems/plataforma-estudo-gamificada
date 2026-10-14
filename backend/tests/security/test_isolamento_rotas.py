@@ -65,6 +65,12 @@ CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {
     ("POST", "/api/v1/materias/{materiaId}/fontes"): "test_envio_para_materia_de_outro_e_404",
     ("GET", "/api/v1/fontes/{fonteId}"): "test_consulta_de_fonte_de_outro_estudante_e_404",
     ("POST", "/api/v1/fontes/{fonteId}/reprocessamento"): "test_reprocessar_fonte_de_outro_e_404",
+    # Spec 002, US2 (T035)
+    (
+        "GET",
+        "/api/v1/fontes/{fonteId}/impacto-exclusao",
+    ): "test_impacto_de_exclusao_de_fonte_de_outro_e_404",
+    ("POST", "/api/v1/fontes/{fonteId}/exclusao"): "test_exclusao_de_fonte_de_outro_e_404",
 }
 
 # Rotas do contrato que ainda não existem -> tarefa que as entrega.

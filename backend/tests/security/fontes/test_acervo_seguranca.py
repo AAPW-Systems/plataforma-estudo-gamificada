@@ -24,6 +24,7 @@ from sqlalchemy import func, select
 from app.fontes.modelos import Fonte
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from tests.apoio_acervo import (
+    chave_da_fonte,
     consultar_fonte,
     criar_conta,
     criar_materia,
@@ -188,6 +189,60 @@ async def test_reprocessar_fonte_de_outro_e_404(
 
     await _sao_identicas(de_outro, inexistente)
     assert await consultar_fonte(ana, fonte["id"]) == antes, "a fonte da Ana não foi tocada"
+
+
+async def test_impacto_de_exclusao_de_fonte_de_outro_e_404(
+    acervo: FastAPI,
+    ana: httpx.AsyncClient,
+    bia: httpx.AsyncClient,
+    fila: App,
+    pdf_simples: ArquivoGerado,
+) -> None:
+    materia = await criar_materia(ana)
+    fonte = (await enviar(ana, materia["id"], pdf_simples, titulo="Segredo da Ana")).json()
+    await executar_jobs(fila)
+
+    # A rota existe para o dono: sem isto, o 404 de "rota inexistente" passaria pelo teste.
+    assert (await ana.get(f"/api/v1/fontes/{fonte['id']}/impacto-exclusao")).status_code == 200
+
+    de_outro = await bia.get(f"/api/v1/fontes/{fonte['id']}/impacto-exclusao")
+    inexistente = await bia.get(f"/api/v1/fontes/{uuid.uuid4()}/impacto-exclusao")
+
+    await _sao_identicas(de_outro, inexistente)
+    assert "Segredo da Ana" not in de_outro.text, "nem o título vaza"
+
+
+async def test_exclusao_de_fonte_de_outro_e_404(
+    acervo: FastAPI,
+    ana: httpx.AsyncClient,
+    bia: httpx.AsyncClient,
+    fila: App,
+    pdf_simples: ArquivoGerado,
+) -> None:
+    materia = await criar_materia(ana)
+    fonte = (await enviar(ana, materia["id"], pdf_simples)).json()
+    await executar_jobs(fila)
+    antes = await consultar_fonte(ana, fonte["id"])
+    corpo = {
+        "modoCartoes": "excluir",
+        "impactoConfirmado": {
+            "cartoesGeradosAceitos": 0,
+            "cartoesAguardandoRevisao": 0,
+            "cartoesReferencia": 0,
+        },
+    }
+
+    # A rota existe para o dono (corpo vazio: 422, nada é apagado); sem isto, o 404 de "rota
+    # inexistente" passaria pelo teste.
+    assert (await ana.post(f"/api/v1/fontes/{fonte['id']}/exclusao", json={})).status_code == 422
+
+    de_outro = await bia.post(f"/api/v1/fontes/{fonte['id']}/exclusao", json=corpo)
+    inexistente = await bia.post(f"/api/v1/fontes/{uuid.uuid4()}/exclusao", json=corpo)
+
+    await _sao_identicas(de_outro, inexistente)
+    assert await consultar_fonte(ana, fonte["id"]) == antes, "a fonte da Ana segue intacta"
+    chave = await chave_da_fonte(acervo.state.fabrica_sessoes, fonte["id"])
+    assert await acervo.state.armazenamento.existe(chave), "e o arquivo também"
 
 
 async def test_identificador_malformado_tambem_e_404_em_toda_rota_com_identificador(

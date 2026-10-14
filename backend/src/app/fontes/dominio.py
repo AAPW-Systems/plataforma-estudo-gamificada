@@ -11,6 +11,7 @@ import os
 import re
 from enum import StrEnum
 
+from app.nucleo.participantes_acervo import ContagensAcervo
 from app.nucleo.texto import (
     ValorInvalido,
     normalizar,
@@ -168,3 +169,19 @@ def formatar_megabytes(bytes_: int) -> str:
 
 def mensagem_arquivo_grande(limite_bytes: int) -> str:
     return f"O arquivo tem mais de {formatar_megabytes(limite_bytes)} MB. Envie um arquivo menor."
+
+
+# --- Exclusão (DTEC 031) -------------------------------------------------------------------------
+
+
+def impacto_confere(confirmado: ContagensAcervo, atual: ContagensAcervo) -> bool:
+    """O que o estudante viu no diálogo é o que seria apagado agora?
+
+    Só as três contagens da fonte entram na conta (aceitos, aguardando revisão e referência);
+    as de matéria (fontes, ativos, suspensos) não fazem parte do diálogo da fonte.
+    """
+    return (
+        confirmado.cartoes_gerados_aceitos == atual.cartoes_gerados_aceitos
+        and confirmado.cartoes_aguardando_revisao == atual.cartoes_aguardando_revisao
+        and confirmado.cartoes_referencia == atual.cartoes_referencia
+    )

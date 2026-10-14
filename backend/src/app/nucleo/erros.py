@@ -85,6 +85,19 @@ class Conflito(ErroAplicacao):
     status = 409
 
 
+class ImpactoAlterado(Conflito):
+    """409: as contagens mudaram entre o diálogo e a confirmação; nada foi apagado (DTEC 031).
+
+    Compartilhada pela exclusão de fonte e de matéria da spec 002: `materias` não importa
+    `fontes`, então o erro mora no núcleo.
+    """
+
+    codigo_padrao = CodigoErro.IMPACTO_ALTERADO
+    mensagem_padrao = (
+        "O conteúdo mudou desde que você abriu esta confirmação. Confira os números atualizados."
+    )
+
+
 class ConteudoMuitoGrande(ErroAplicacao):
     """413. Usada só pelo envio de fonte no MVP (DTEC 028)."""
 

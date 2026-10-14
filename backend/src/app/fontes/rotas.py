@@ -5,13 +5,24 @@ from __future__ import annotations
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Form, Path, Request, UploadFile
+from fastapi import APIRouter, Form, Path, Request, Response, UploadFile
 from pydantic import ConfigDict, Field
 
 from app.fontes.dependencias import Servico
 from app.fontes.dominio import TITULO_MAXIMO
-from app.fontes.dtos import FonteDTO, ListaFontesDTO, UsoAcervoDTO
-from app.fontes.mapeadores import fonte_para_dto, fontes_para_dto
+from app.fontes.dtos import (
+    ExclusaoFonteEntradaDTO,
+    FonteDTO,
+    ImpactoExclusaoFonteDTO,
+    ListaFontesDTO,
+    UsoAcervoDTO,
+)
+from app.fontes.mapeadores import (
+    contagens_do_dto,
+    fonte_para_dto,
+    fontes_para_dto,
+    impacto_para_dto,
+)
 from app.identidade.dependencias import UsuarioAtual
 from app.nucleo.dtos import EntradaDTO, ErroDTO
 from app.nucleo.erros import EntradaInvalida, ErroCampo
@@ -132,3 +143,37 @@ async def consultar_fonte(fonte_id: FonteId, atual: UsuarioAtual, servico: Servi
 async def reprocessar_fonte(fonte_id: FonteId, atual: UsuarioAtual, servico: Servico) -> FonteDTO:
     consultada = await servico.reprocessar(atual.usuario.id, fonte_id)
     return fonte_para_dto(consultada.fonte, consultada.materia_public_id)
+
+
+@roteador.get(
+    "/fontes/{fonteId}/impacto-exclusao",
+    operation_id="consultarImpactoExclusaoFonte",
+    tags=["fontes"],
+    responses={401: _ERRO, 404: _ERRO},
+)
+async def consultar_impacto_exclusao_fonte(
+    fonte_id: FonteId, atual: UsuarioAtual, servico: Servico
+) -> ImpactoExclusaoFonteDTO:
+    impacto = await servico.impacto_exclusao(atual.usuario.id, fonte_id)
+    return impacto_para_dto(impacto.titulo, impacto.estado, impacto.contagens)
+
+
+@roteador.post(
+    "/fontes/{fonteId}/exclusao",
+    status_code=204,
+    operation_id="excluirFonte",
+    tags=["fontes"],
+    response_class=Response,
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO, 409: _ERRO, 422: _ERRO},
+)
+async def excluir_fonte(
+    fonte_id: FonteId, entrada: ExclusaoFonteEntradaDTO, atual: UsuarioAtual, servico: Servico
+) -> Response:
+    await servico.excluir(
+        usuario_id=atual.usuario.id,
+        usuario_public_id=atual.usuario.public_id,
+        fonte_id=fonte_id,
+        modo=entrada.modo_cartoes,
+        impacto_confirmado=contagens_do_dto(entrada.impacto_confirmado),
+    )
+    return Response(status_code=204)

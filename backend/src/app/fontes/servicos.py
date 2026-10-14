@@ -41,8 +41,9 @@ from app.materias.repositorios import RepositorioMaterias
 from app.nucleo.armazenamento import Armazenamento
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from app.nucleo.configuracao import Configuracao
+from app.nucleo.erros import ImpactoAlterado
 from app.nucleo.fila import enfileirar as enfileirar
-from app.nucleo.participantes_acervo import RegistroAcervo
+from app.nucleo.participantes_acervo import ContagensAcervo, ModoCartoes, RegistroAcervo
 from app.nucleo.relogio import Relogio, RelogioSistema
 from app.nucleo.texto import ValorInvalido
 
@@ -55,6 +56,13 @@ TAMANHO_DO_BLOCO = 1024 * 1024
 class FonteConsultada:
     fonte: Fonte
     materia_public_id: UUID
+
+
+@dataclass(frozen=True, slots=True)
+class ImpactoConsultado:
+    titulo: str
+    estado: EstadoFonte
+    contagens: ContagensAcervo
 
 
 @dataclass(frozen=True, slots=True)
@@ -302,6 +310,52 @@ class ServicoFontes:
                 logger.info("reprocessamento_ja_enfileirado")
             publico = await repositorio.materia_publica(fonte)
         return FonteConsultada(fonte, publico)
+
+    # --- Exclusão (DTEC 031) --------------------------------------------------------------------
+
+    async def impacto_exclusao(self, usuario_id: int, fonte_id: UUID) -> ImpactoConsultado:
+        """O que a exclusão afeta, para o diálogo. Só consulta: nada é gravado nem chamado."""
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            fonte = await RepositorioFontes(sessao).buscar(usuario_id, fonte_id)
+            contagens = await self._registro.impacto_fonte(sessao, usuario_id, fonte.id)
+            return ImpactoConsultado(fonte.titulo, EstadoFonte(fonte.estado), contagens)
+
+    async def excluir(
+        self,
+        *,
+        usuario_id: int,
+        usuario_public_id: UUID,
+        fonte_id: UUID,
+        modo: ModoCartoes,
+        impacto_confirmado: ContagensAcervo,
+    ) -> None:
+        """Exclui a fonte numa transação: trava, confere o impacto, apaga o objeto e as linhas.
+
+        Ordem (DTEC 031 e 025): `FOR UPDATE` na fonte; recálculo do impacto, que recusa com
+        `impacto_alterado` se difere do que o estudante viu; objeto **antes** das linhas;
+        participantes (cartões e gerações) com o modo escolhido; trechos e fonte. Qualquer
+        falha desfaz as linhas, e a exclusão pode ser repetida. A exclusão não espera o worker:
+        a transação B dele encontra a fonte apagada e termina sem gravar nada (CB-16).
+        """
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            repositorio = RepositorioFontes(sessao)
+            fonte = await repositorio.buscar(usuario_id, fonte_id, para_atualizar=True)
+            atual = await self._registro.impacto_fonte(sessao, usuario_id, fonte.id)
+            if not dominio.impacto_confere(impacto_confirmado, atual):
+                raise ImpactoAlterado()
+            await self._armazenamento.apagar(fonte.chave_objeto)
+            await self._registro.ao_excluir_fonte(sessao, usuario_id, fonte.id, modo)
+            await repositorio.apagar(fonte.id)
+            public_id = str(fonte.public_id)
+        logger.info(
+            "fonte_excluida",
+            fonte_public_id=public_id,
+            usuario_public_id=str(usuario_public_id),
+            modo=modo.value,
+            cartoes_gerados_aceitos=atual.cartoes_gerados_aceitos,
+            cartoes_aguardando_revisao=atual.cartoes_aguardando_revisao,
+            cartoes_referencia=atual.cartoes_referencia,
+        )
 
 
 def _copiar_calculando_hash(origem: BinaryIO, destino: Path, limite: int) -> tuple[bytes, int]:

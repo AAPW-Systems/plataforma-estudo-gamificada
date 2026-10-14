@@ -88,6 +88,37 @@
         "title": "CodigoFalhaFonte",
         "type": "string"
       },
+      "ContagensExclusaoFonte": {
+        "additionalProperties": false,
+        "description": "O que a exclusão da fonte afeta; o diálogo mostra e a confirmação devolve (DTEC 031).",
+        "properties": {
+          "cartoesAguardandoRevisao": {
+            "description": "Sempre apagados",
+            "minimum": 0.0,
+            "title": "Cartoesaguardandorevisao",
+            "type": "integer"
+          },
+          "cartoesGeradosAceitos": {
+            "description": "Cartões gerados da fonte e já aceitos; seguem a escolha `modoCartoes`",
+            "minimum": 0.0,
+            "title": "Cartoesgeradosaceitos",
+            "type": "integer"
+          },
+          "cartoesReferencia": {
+            "description": "Criados pelo estudante citando a fonte; sempre mantidos com \"Fonte apagada\" (D-009)",
+            "minimum": 0.0,
+            "title": "Cartoesreferencia",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cartoesGeradosAceitos",
+          "cartoesAguardandoRevisao",
+          "cartoesReferencia"
+        ],
+        "title": "ContagensExclusaoFonteDTO",
+        "type": "object"
+      },
       "EntradaEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -223,6 +254,24 @@
           "senhaAtual"
         ],
         "title": "ExclusaoContaEntradaDTO",
+        "type": "object"
+      },
+      "ExclusaoFonteEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "impactoConfirmado": {
+            "$ref": "#/components/schemas/ContagensExclusaoFonte"
+          },
+          "modoCartoes": {
+            "$ref": "#/components/schemas/ModoCartoes",
+            "description": "\"Manter os cartões\" ou \"Excluir os cartões junto\" (RN-14)"
+          }
+        },
+        "required": [
+          "modoCartoes",
+          "impactoConfirmado"
+        ],
+        "title": "ExclusaoFonteEntradaDTO",
         "type": "object"
       },
       "Fonte": {
@@ -361,6 +410,27 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImpactoExclusaoFonte": {
+        "properties": {
+          "contagens": {
+            "$ref": "#/components/schemas/ContagensExclusaoFonte"
+          },
+          "estado": {
+            "$ref": "#/components/schemas/EstadoFonte"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo",
+          "estado",
+          "contagens"
+        ],
+        "title": "ImpactoExclusaoFonteDTO",
+        "type": "object"
+      },
       "ListaFontes": {
         "properties": {
           "itens": {
@@ -457,6 +527,15 @@
         ],
         "title": "MateriaEntradaDTO",
         "type": "object"
+      },
+      "ModoCartoes": {
+        "description": "Escolha do estudante sobre os cartões gerados e aceitos de uma fonte (RN-14).",
+        "enum": [
+          "manter",
+          "excluir"
+        ],
+        "title": "ModoCartoes",
+        "type": "string"
       },
       "Perfil": {
         "properties": {
@@ -1056,6 +1135,169 @@
           }
         },
         "summary": "Consultar Fonte",
+        "tags": [
+          "fontes"
+        ]
+      }
+    },
+    "/api/v1/fontes/{fonteId}/exclusao": {
+      "post": {
+        "operationId": "excluirFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da fonte",
+            "in": "path",
+            "name": "fonteId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da fonte",
+              "format": "uuid",
+              "title": "Fonteid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusaoFonteEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Excluir Fonte",
+        "tags": [
+          "fontes"
+        ]
+      }
+    },
+    "/api/v1/fontes/{fonteId}/impacto-exclusao": {
+      "get": {
+        "operationId": "consultarImpactoExclusaoFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da fonte",
+            "in": "path",
+            "name": "fonteId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da fonte",
+              "format": "uuid",
+              "title": "Fonteid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactoExclusaoFonte"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Impacto Exclusao Fonte",
         "tags": [
           "fontes"
         ]
