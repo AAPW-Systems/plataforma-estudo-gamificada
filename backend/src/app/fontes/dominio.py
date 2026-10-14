@@ -20,6 +20,7 @@ from app.nucleo.texto import (
 )
 
 NOME_ARQUIVO_MAXIMO = 255
+EXTENSAO_PRESERVADA_MAXIMA = 16
 TITULO_MAXIMO = 120
 NOME_ARQUIVO_PADRAO = "arquivo"
 TITULO_PADRAO = "Fonte sem título"
@@ -34,10 +35,15 @@ class EstadoFonte(StrEnum):
     FALHOU = "falhou"
 
 
-class CodigoFalha(StrEnum):
+class CodigoFalhaFonte(StrEnum):
+    """Nome do contrato (`CodigoFalhaFonte`); no código, `CodigoFalha` basta."""
+
     FALHA_TECNICA = "falha_tecnica"
     SEM_TEXTO = "sem_texto"
     CONTEUDO_INVALIDO = "conteudo_invalido"
+
+
+CodigoFalha = CodigoFalhaFonte
 
 
 # --- Nome exibido e título -----------------------------------------------------------------------
@@ -51,8 +57,17 @@ def nome_exibido(enviado: str) -> str:
     """
     ultimo = _SEPARADORES_DE_CAMINHO.split(enviado)[-1]
     limpo = normalizar(remover_proibidos(ultimo))
-    limpo = normalizar(limpo[:NOME_ARQUIVO_MAXIMO])
+    if len(limpo) > NOME_ARQUIVO_MAXIMO:
+        limpo = _truncar_preservando_a_extensao(limpo)
     return limpo or NOME_ARQUIVO_PADRAO
+
+
+def _truncar_preservando_a_extensao(nome: str) -> str:
+    """Corta o nome em 255 caracteres sem perder a extensão, que decide o formato do arquivo."""
+    radical, extensao = os.path.splitext(nome)
+    if 0 < len(extensao) <= EXTENSAO_PRESERVADA_MAXIMA:
+        return normalizar(radical[: NOME_ARQUIVO_MAXIMO - len(extensao)]) + extensao
+    return normalizar(nome[:NOME_ARQUIVO_MAXIMO])
 
 
 def titulo_padrao(nome: str) -> str:
@@ -144,11 +159,12 @@ def mensagem_duplicada(titulo_existente: str) -> str:
     return f"Esta fonte já está nesta matéria: «{titulo_existente}»."
 
 
-def _megabytes(bytes_: int) -> str:
+def formatar_megabytes(bytes_: int) -> str:
+    """Megabytes (1 MB = 1.048.576 bytes) com vírgula decimal e sem zeros à direita."""
     valor = bytes_ / (1024 * 1024)
     texto = f"{valor:.1f}".rstrip("0").rstrip(".") if valor != int(valor) else str(int(valor))
     return texto.replace(".", ",")
 
 
 def mensagem_arquivo_grande(limite_bytes: int) -> str:
-    return f"O arquivo tem mais de {_megabytes(limite_bytes)} MB. Envie um arquivo menor."
+    return f"O arquivo tem mais de {formatar_megabytes(limite_bytes)} MB. Envie um arquivo menor."

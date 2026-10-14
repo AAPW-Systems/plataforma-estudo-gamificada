@@ -66,6 +66,18 @@ def test_nome_com_255_caracteres_e_mantido_e_com_256_e_truncado() -> None:
     assert dominio.nome_exibido("a" * 300) == "a" * 255
 
 
+def test_nome_longo_demais_mantem_a_extensao_ao_ser_truncado() -> None:
+    """Um nome de 300 caracteres continua terminando em `.txt` (a extensão decide o formato)."""
+    nome = dominio.nome_exibido(("x" * 300) + ".txt")
+    assert len(nome) == 255
+    assert nome == "x" * 251 + ".txt"
+
+
+def test_extensao_gigante_nao_e_preservada_e_o_nome_e_truncado_mesmo_assim() -> None:
+    nome = dominio.nome_exibido("a." + "e" * 400)
+    assert len(nome) == 255 and nome.startswith("a.eee")
+
+
 def test_nome_exibido_e_normalizado_em_nfc() -> None:
     decomposto = unicodedata.normalize("NFD", "relatório.pdf")
     assert dominio.nome_exibido(decomposto) == "relatório.pdf"
