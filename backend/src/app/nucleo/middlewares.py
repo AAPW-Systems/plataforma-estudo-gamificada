@@ -7,16 +7,23 @@ erros inesperados → roteador. Assim toda resposta, inclusive 413 e 500, sai co
 
 from __future__ import annotations
 
+import re
 import time
 import uuid
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
 
 import structlog
 from starlette.datastructures import MutableHeaders
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.nucleo.erros import MENSAGEM_CORPO_GRANDE, RequisicaoMalformada, resposta_erro
+from app.nucleo.erros import (
+    MENSAGEM_CORPO_GRANDE,
+    ErroAplicacao,
+    RecusaHttp,
+    RequisicaoMalformada,
+    resposta_erro,
+)
 
 logger = structlog.get_logger("app.requisicao")
 
@@ -108,38 +115,68 @@ class MiddlewareCabecalhosSeguranca:
         await self.app(scope, receive, enviar)
 
 
-class _CorpoGrandeDemais(StarletteHTTPException):
-    """HTTPException para que o FastAPI a repasse ao ler o corpo, em vez de virar 400."""
+class _CorpoGrandeDemais(RequisicaoMalformada):
+    """413 com o código genérico das rotas sem limite próprio."""
 
-    def __init__(self) -> None:
-        super().__init__(status_code=413)
+    status = 413
+    mensagem_padrao = MENSAGEM_CORPO_GRANDE
+
+
+@dataclass(frozen=True, slots=True)
+class LimiteRota:
+    """Limite de corpo próprio de uma rota (ex.: o envio de fonte, DTEC 028).
+
+    `erro` constrói a exceção da recusa (status 413), para a mensagem sair do domínio dono da
+    rota e não do núcleo.
+    """
+
+    metodo: str
+    caminho: re.Pattern[str]
+    limite_bytes: int
+    erro: Callable[[], ErroAplicacao]
 
 
 class MiddlewareLimiteCorpo:
     """Recusa com `413` o corpo acima do limite, pelo `Content-Length` ou durante a leitura.
 
-    O código é o já existente `requisicao_malformada`; a 001 não define um código próprio.
+    O limite é o padrão (64 KiB) ou o da primeira `LimiteRota` que casa com o método e o
+    caminho. Sem rota própria, o código é o já existente `requisicao_malformada`.
     """
 
-    def __init__(self, app: ASGIApp, limite_bytes: int = LIMITE_CORPO_PADRAO) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        limite_bytes: int = LIMITE_CORPO_PADRAO,
+        limites_por_rota: Sequence[LimiteRota] = (),
+    ) -> None:
         self.app = app
         self.limite = limite_bytes
+        self.limites_por_rota = tuple(limites_por_rota)
 
-    async def _recusar(self, scope: Scope, receive: Receive, send: Send) -> None:
-        resposta = resposta_erro(scope, RequisicaoMalformada(MENSAGEM_CORPO_GRANDE), status=413)
-        await resposta(scope, receive, send)
+    def _regra(self, scope: Scope) -> tuple[int, Callable[[], ErroAplicacao]]:
+        for rota in self.limites_por_rota:
+            if scope["method"] == rota.metodo and rota.caminho.fullmatch(scope["path"]):
+                return rota.limite_bytes, rota.erro
+        return self.limite, _CorpoGrandeDemais
+
+    @staticmethod
+    async def _recusar(
+        erro: Callable[[], ErroAplicacao], scope: Scope, receive: Receive, send: Send
+    ) -> None:
+        await resposta_erro(scope, erro(), status=413)(scope, receive, send)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+        limite, erro = self._regra(scope)
         declarado = _cabecalho(scope, b"content-length")
         if declarado is not None:
             if not declarado.isdigit():
                 await resposta_erro(scope, RequisicaoMalformada())(scope, receive, send)
                 return
-            if int(declarado) > self.limite:
-                await self._recusar(scope, receive, send)
+            if int(declarado) > limite:
+                await self._recusar(erro, scope, receive, send)
                 return
 
         recebidos = 0
@@ -150,8 +187,9 @@ class MiddlewareLimiteCorpo:
             mensagem = await receive()
             if mensagem["type"] == "http.request":
                 recebidos += len(mensagem.get("body", b""))
-                if recebidos > self.limite:
-                    raise _CorpoGrandeDemais
+                if recebidos > limite:
+                    # Código e mensagem do dono da rota; o handler central os responde.
+                    raise RecusaHttp(erro())
             return mensagem
 
         async def enviar(mensagem: Message) -> None:
@@ -162,7 +200,7 @@ class MiddlewareLimiteCorpo:
 
         try:
             await self.app(scope, receber, enviar)
-        except _CorpoGrandeDemais:
+        except RecusaHttp as recusa:
             if resposta_iniciada:
                 raise
-            await self._recusar(scope, receive, send)
+            await resposta_erro(scope, recusa.erro)(scope, receive, send)

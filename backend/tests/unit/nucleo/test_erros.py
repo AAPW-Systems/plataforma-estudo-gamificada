@@ -16,6 +16,7 @@ from app.nucleo.dtos import EntradaDTO
 from app.nucleo.erros import (
     AcessoNegado,
     Conflito,
+    ConteudoMuitoGrande,
     EntradaInvalida,
     ErroAplicacao,
     ErroCampo,
@@ -52,6 +53,7 @@ def _criar_app() -> FastAPI:
             "403": AcessoNegado(),
             "404": RecursoNaoEncontrado(),
             "409": Conflito("Este e-mail já está em uso.", codigo=CodigoErro.EMAIL_EM_USO),
+            "413": ConteudoMuitoGrande(),
             "422": EntradaInvalida(campos=[ErroCampo("senha", "Senha comum.")]),
             "429": LimiteExcedido(899.2),
         }
@@ -85,6 +87,7 @@ def _valida_corpo_erro(corpo: dict[str, object]) -> None:
         ("403", "csrf_invalido"),
         ("404", "recurso_nao_encontrado"),
         ("409", "email_em_uso"),
+        ("413", "arquivo_muito_grande"),
         ("422", "dados_invalidos"),
         ("429", "muitas_tentativas"),
     ],

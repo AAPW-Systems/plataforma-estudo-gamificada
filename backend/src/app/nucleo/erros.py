@@ -85,6 +85,14 @@ class Conflito(ErroAplicacao):
     status = 409
 
 
+class ConteudoMuitoGrande(ErroAplicacao):
+    """413. Usada só pelo envio de fonte no MVP (DTEC 028)."""
+
+    status = 413
+    codigo_padrao = CodigoErro.ARQUIVO_MUITO_GRANDE
+    mensagem_padrao = "O arquivo é grande demais. Envie um arquivo menor."
+
+
 class EntradaInvalida(ErroAplicacao):
     status = 422
     codigo_padrao = CodigoErro.DADOS_INVALIDOS
@@ -99,6 +107,19 @@ class LimiteExcedido(ErroAplicacao):
     def __init__(self, segundos_para_tentar: float, mensagem: str | None = None) -> None:
         self.segundos_para_tentar = max(1, math.ceil(segundos_para_tentar))
         super().__init__(mensagem, cabecalhos={"Retry-After": str(self.segundos_para_tentar)})
+
+
+class RecusaHttp(StarletteHTTPException):
+    """`HTTPException` que carrega o `ErroAplicacao` a responder.
+
+    O FastAPI converte em 400 toda exceção que não seja `HTTPException` levantada enquanto lê o
+    corpo; um middleware que recusa durante a leitura (limite de corpo) levanta esta, e o
+    handler central responde com o código e a mensagem do `erro`.
+    """
+
+    def __init__(self, erro: ErroAplicacao) -> None:
+        super().__init__(status_code=erro.status)
+        self.erro = erro
 
 
 # --- Mensagens de validação em português, por tipo de erro do Pydantic -------------------
@@ -226,6 +247,8 @@ async def _tratar_validacao(request: Request, exc: Exception) -> Response:
 async def _tratar_http(request: Request, exc: Exception) -> Response:
     if not isinstance(exc, StarletteHTTPException):  # registrado só para este tipo
         raise exc
+    if isinstance(exc, RecusaHttp):
+        return resposta_erro(request.scope, exc.erro)
     erro: ErroAplicacao
     if exc.status_code == 404:
         erro = RecursoNaoEncontrado(cabecalhos=exc.headers)
