@@ -89,3 +89,4 @@ Retomada anterior após a pausa de 13/10/2026: [prompt para o próximo agente](2
 | 2026-10-13 | [Revisão do prompt de retomada da spec 001](2026-10-13-001-conta-acesso-retomada-revisao.md) | Implementar |  |
 | 2026-10-13 | [Retomada da spec 001 a partir da T027](2026-10-13-001-conta-acesso-implementacao-4.md) | Implementar | A confirmar |
 | 2026-10-14 | [Implementação da spec 002 (matérias e fontes)](2026-10-14-002-materias-fontes-implementacao.md) | Implementar | Artur Lins |
+| 2026-10-15 | [Retomada da spec 002 a partir da T040 (US3 e fase final)](2026-10-15-002-materias-fontes-implementacao-2.md) | Implementar | Artur Lins |

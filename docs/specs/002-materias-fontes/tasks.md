@@ -212,28 +212,34 @@
 **Objetivo:** o estudante renomeia matérias e fontes e exclui uma matéria em cascata, com confirmação pelo nome.  
 **Teste independente:** renomear uma matéria, tentar repetir um nome existente e excluir uma matéria com fontes e cartões (participante falso), conferindo o impacto e a confirmação pelo nome.
 
-- [ ] T040 [P] [US3] Criar os testes funcionais em `tests/functional/materias/test_us3_organizar.py`:
+- [x] T040 [P] [US3] Criar os testes funcionais em `tests/functional/materias/test_us3_organizar.py`:
   - cenários 1 a 5 da US3;
   - exclusão da matéria apagando as fontes, os trechos e os objetos e chamando os participantes na ordem de prioridade;
   - renomeação da fonte alterando só `fontes.titulo` (D-005);
   - CS-004 para a matéria.
-- [ ] T041 [P] [US3] Criar os testes adversariais em `tests/adversarial/materias/test_organizar_adversarial.py`:
+  **Evidência (15/10/2026):** commit `48782f1`; `tests/functional/materias/test_us3_organizar.py` (32 testes) cobre os cenários 1 a 5, a exclusão com os participantes na ordem de prioridade (cartões antes de `fontes`, que ainda existiam quando eles foram chamados), a renomeação da fonte alterando só o título e o CS-004 para a matéria. Vermelho antes (76 falhas nas suítes novas) e verde depois; suíte do backend no host: 1607 passed, 1 skipped, duas execuções seguidas.
+- [x] T041 [P] [US3] Criar os testes adversariais em `tests/adversarial/materias/test_organizar_adversarial.py`:
   - exclusão da matéria durante um envio: `404` e objeto compensado;
   - exclusão com fonte em processamento: nenhum trecho permanece;
   - impacto alterado: `409`;
   - duas renomeações concorrentes para o mesmo nome: uma recusada;
   - confirmação com outra caixa ou com espaços nas extremidades: só a caixa diferente é recusada (`422 confirmacao_invalida`).
-- [ ] T042 [P] [US3] Criar os testes de segurança:
+  **Evidência (15/10/2026):** commit `48782f1`; `tests/adversarial/materias/test_organizar_adversarial.py` (35 testes): exclusão durante um envio (`404` e objeto compensado), exclusão com fonte em processamento (nenhum trecho), impacto alterado (seis mudanças e fonte nova, `409`), duas exclusões paralelas (`204` e `404`), exclusão da matéria com a de uma fonte, falha do armazenamento e de um participante (nada apagado, nova tentativa funciona), duas renomeações concorrentes (uma `409`), confirmação por caixa, extremidades e NFC (só a caixa diferente é recusada) e corpos malformados. Mutações verificadas: sem a trava das fontes, sem o recálculo do impacto, sem a conferência do nome e sem o `FOR UPDATE` da matéria derrubam o teste correspondente.
+- [x] T042 [P] [US3] Criar os testes de segurança:
   - acrescentar à tabela de isolamento os casos de `PATCH /materias/{id}`, `GET /materias/{id}/impacto-exclusao`, `POST /materias/{id}/exclusao` e `PATCH /fontes/{id}`;
   - reexecutar `tests/security/identidade/test_exclusao_completa.py` (001) com matérias, fontes, trechos e objetos criados: nada permanece depois da exclusão da conta (DTEC 021).
-- [ ] T043 [US3] Implementar `renomear`, `impacto_exclusao` e `excluir` em `app/materias/servicos.py`:
+  **Evidência (15/10/2026):** commit `48782f1`; os quatro casos entram em `CASOS_DE_ISOLAMENTO` e em `tests/security/fontes/test_acervo_seguranca.py` (cada teste prova antes que a rota existe para o dono; `404` idêntico ao de inexistente, sem vazar o nome nem o título); `401` e `403` sem CSRF passam a cobrir também as rotas da US2 e da US3. `tests/security/identidade/test_exclusao_completa.py` ganha o teste de ponta a ponta da conta com 2 matérias, 3 fontes processadas, trechos e objetos: nenhuma tabela com `usuario_id` guarda linhas, nenhum objeto resta sob o prefixo e a outra conta segue intacta.
+- [x] T043 [US3] Implementar `renomear`, `impacto_exclusao` e `excluir` em `app/materias/servicos.py`:
   - **Exclusão:** `FOR UPDATE` na matéria e nas fontes por `id`, participantes por prioridade e confirmação pelo nome. O impacto informa `cartoesAtivos` = `cartoes_ativos` + `cartoes_suspensos`, e a lista de matérias (T023) mostra só `cartoes_ativos` (emenda de 13/10/2026 da DTEC 027).
   - **Participante de `fontes`:** `ao_excluir_materia` apaga os objetos e as linhas.
   - **Renomeação de fonte:** `renomear` em `app/fontes/servicos.py`.
   - **DTOs e rotas** correspondentes, até que as T040 a T042 passem.
-- [ ] T044 [P] [US3] Criar os testes de componente: renomeação da matéria (erro de nome em uso), `DialogoExclusaoMateria.test.tsx` (contagens, botão habilitado só com o nome exato, `409` recarregando, foco e axe) e renomeação da fonte (1 a 120 caracteres).
-- [ ] T045 [US3] Implementar na interface a renomeação e a exclusão da matéria e a renomeação da fonte. Depois da exclusão da matéria, a tela volta para a lista de matérias.
-- [ ] T046 [US3] Executar o teste independente da US3 e registrar a evidência.
+  **Evidência (15/10/2026):** commit `48782f1`; `renomear`, `impacto_exclusao` e `excluir` em `app/materias/servicos.py`, `renomear` em `app/fontes/servicos.py`, DTOs, mapeadores e rotas; `openapi.json` e os tipos do frontend regenerados, sem diferença no git, e o contrato da 002 comparado por inteiro (`OPERACOES_PENDENTES` e `ESQUEMAS_PENDENTES` vazios). Ver em "Decisões e divergências" do [registro da sessão](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md) o gancho opcional `travar_para_exclusao_de_materia`.
+- [x] T044 [P] [US3] Criar os testes de componente: renomeação da matéria (erro de nome em uso), `DialogoExclusaoMateria.test.tsx` (contagens, botão habilitado só com o nome exato, `409` recarregando, foco e axe) e renomeação da fonte (1 a 120 caracteres).
+  **Evidência (15/10/2026):** commits `4ee9339` e `95ada97`; `RenomearMateria.test.tsx` (12), `DialogoExclusaoMateria.test.tsx` (18), `RenomearFonte.test.tsx` (8) e `CabecalhoMateria.test.tsx` (2), todos com axe sem violações. Vermelho antes (quatro arquivos sem os componentes) e verde depois.
+- [x] T045 [US3] Implementar na interface a renomeação e a exclusão da matéria e a renomeação da fonte. Depois da exclusão da matéria, a tela volta para a lista de matérias.
+  **Evidência (15/10/2026):** commits `4ee9339` e `95ada97`; `RenomearInline`, `RenomearMateria`, `RenomearFonte` (no painel da fonte), `DialogoExclusaoMateria` e `CabecalhoMateria` na página da matéria, que volta à lista ao excluir. Suíte do frontend: 206 passed no Node 24 (o do CI), com lint, tipos, formatação e *build* limpos. A verificação no navegador achou a lista de matérias mostrando por um instante o nome velho ou a matéria excluída ao voltar; corrigido no cache, com dois testes.
+- [x] T046 [US3] Executar o teste independente da US3 e registrar a evidência. **Evidência (15/10/2026):** teste independente da US3 no Chromium real contra API, worker e PostgreSQL locais (21 de 21 verificações, ver "Evidência da T046" no [registro da sessão](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)): renomear com recusa de nome em uso junto do campo, título da fonte, diálogo de exclusão com impacto, botão habilitado só com o nome exato (a caixa conta), foco preso e devolvido, Escape, volta à lista, e axe sem violações no formulário com erro, no diálogo aberto e na lista. No banco e no volume não sobraram fonte, trecho nem objeto da matéria excluída, e os logs não trazem nome nem título.
 
 ## Fase final Qualidade transversal
 
