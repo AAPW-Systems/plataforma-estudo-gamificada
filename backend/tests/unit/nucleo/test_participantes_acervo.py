@@ -120,3 +120,32 @@ def test_remover_desfaz_o_registro_para_os_testes() -> None:
     registro.remover("x")
     registro.remover("x")  # idempotente
     assert registro.nomes() == []
+
+
+class _ComTrava(ParticipanteFalso):
+    """Participante que, além das quatro operações, trava o que a exclusão da matéria afeta."""
+
+    def __init__(self, nome: str, travas: list[tuple[str, int, int]]) -> None:
+        super().__init__(nome=nome)
+        self._travas = travas
+
+    async def travar_para_exclusao_de_materia(
+        self, sessao: AsyncSession, usuario_id: int, materia_id: int
+    ) -> None:
+        self._travas.append((self.nome, usuario_id, materia_id))
+
+
+async def test_travar_materia_chama_so_quem_tem_o_gancho_em_ordem_de_prioridade() -> None:
+    travas: list[tuple[str, int, int]] = []
+    registro = RegistroAcervo()
+    registro.registrar(900, "fontes", _ComTrava("fontes", travas))
+    registro.registrar(150, "sem_gancho", ParticipanteFalso(nome="sem_gancho"))
+    registro.registrar(100, "cartoes", _ComTrava("cartoes", travas))
+
+    await registro.travar_materia(SESSAO, 7, 5)
+
+    assert travas == [("cartoes", 7, 5), ("fontes", 7, 5)]
+
+
+async def test_travar_materia_sem_participantes_nao_faz_nada() -> None:
+    await RegistroAcervo().travar_materia(SESSAO, 7, 5)

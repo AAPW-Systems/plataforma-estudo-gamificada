@@ -1,4 +1,4 @@
-"""Rotas HTTP das fontes (spec 002): acervo, envio, consulta e nova tentativa."""
+"""Rotas HTTP das fontes (spec 002): acervo, envio, consulta, renomeação e exclusão."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from app.fontes.dtos import (
     FonteDTO,
     ImpactoExclusaoFonteDTO,
     ListaFontesDTO,
+    RenomeacaoFonteEntradaDTO,
     UsoAcervoDTO,
 )
 from app.fontes.mapeadores import (
@@ -130,6 +131,19 @@ async def enviar_fonte(
 )
 async def consultar_fonte(fonte_id: FonteId, atual: UsuarioAtual, servico: Servico) -> FonteDTO:
     consultada = await servico.consultar(atual.usuario.id, fonte_id)
+    return fonte_para_dto(consultada.fonte, consultada.materia_public_id)
+
+
+@roteador.patch(
+    "/fontes/{fonteId}",
+    operation_id="renomearFonte",
+    tags=["fontes"],
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO, 422: _ERRO},
+)
+async def renomear_fonte(
+    fonte_id: FonteId, entrada: RenomeacaoFonteEntradaDTO, atual: UsuarioAtual, servico: Servico
+) -> FonteDTO:
+    consultada = await servico.renomear(atual.usuario.id, fonte_id, entrada.titulo)
     return fonte_para_dto(consultada.fonte, consultada.materia_public_id)
 
 

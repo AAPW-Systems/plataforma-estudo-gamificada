@@ -191,3 +191,40 @@ async def contar_linhas_da_fonte(fabrica: FabricaSessoes, fonte_id: int) -> tupl
             )
         ).scalar_one()
     return int(fontes), int(trechos)
+
+
+async def id_interno_da_materia(fabrica: FabricaSessoes, materia_public_id: str) -> int:
+    """O `id` interno da matéria, que os participantes da exclusão recebem."""
+    async with unidade_de_trabalho(fabrica) as sessao:
+        consulta = select(Materia.id).where(Materia.public_id == uuid.UUID(materia_public_id))
+        return (await sessao.execute(consulta)).scalar_one()
+
+
+async def contar_linhas_da_materia(
+    fabrica: FabricaSessoes, materia_id: int
+) -> tuple[int, int, int]:
+    """Quantas linhas de `materias`, `fontes` e `trechos` existem para o `id` interno."""
+    from sqlalchemy import func
+
+    from app.fontes.modelos import Trecho
+
+    async with unidade_de_trabalho(fabrica) as sessao:
+        materias = (
+            await sessao.execute(
+                select(func.count()).select_from(Materia).where(Materia.id == materia_id)
+            )
+        ).scalar_one()
+        fontes = (
+            await sessao.execute(
+                select(func.count()).select_from(Fonte).where(Fonte.materia_id == materia_id)
+            )
+        ).scalar_one()
+        trechos = (
+            await sessao.execute(
+                select(func.count())
+                .select_from(Trecho)
+                .join(Fonte, Fonte.id == Trecho.fonte_id)
+                .where(Fonte.materia_id == materia_id)
+            )
+        ).scalar_one()
+    return int(materias), int(fontes), int(trechos)

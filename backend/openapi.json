@@ -119,6 +119,35 @@
         "title": "ContagensExclusaoFonteDTO",
         "type": "object"
       },
+      "ContagensExclusaoMateria": {
+        "additionalProperties": false,
+        "description": "O que a exclusão da matéria apaga; o diálogo mostra e a confirmação devolve (DTEC 031).",
+        "properties": {
+          "cartoesAguardandoRevisao": {
+            "minimum": 0.0,
+            "title": "Cartoesaguardandorevisao",
+            "type": "integer"
+          },
+          "cartoesAtivos": {
+            "description": "Cartões ativos e suspensos da matéria, que serão apagados",
+            "minimum": 0.0,
+            "title": "Cartoesativos",
+            "type": "integer"
+          },
+          "fontes": {
+            "minimum": 0.0,
+            "title": "Fontes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fontes",
+          "cartoesAtivos",
+          "cartoesAguardandoRevisao"
+        ],
+        "title": "ContagensExclusaoMateriaDTO",
+        "type": "object"
+      },
       "EntradaEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -272,6 +301,28 @@
           "impactoConfirmado"
         ],
         "title": "ExclusaoFonteEntradaDTO",
+        "type": "object"
+      },
+      "ExclusaoMateriaEntrada": {
+        "additionalProperties": false,
+        "description": "O nome é comparado pelo domínio (NFC, extremidades, caixa), não pelo esquema.",
+        "properties": {
+          "impactoConfirmado": {
+            "$ref": "#/components/schemas/ContagensExclusaoMateria"
+          },
+          "nomeConfirmacao": {
+            "description": "Comparado com o nome depois de NFC e sem espaços nas extremidades, diferenciando maiúsculas e minúsculas",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nomeconfirmacao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nomeConfirmacao",
+          "impactoConfirmado"
+        ],
+        "title": "ExclusaoMateriaEntradaDTO",
         "type": "object"
       },
       "Fonte": {
@@ -429,6 +480,24 @@
           "contagens"
         ],
         "title": "ImpactoExclusaoFonteDTO",
+        "type": "object"
+      },
+      "ImpactoExclusaoMateria": {
+        "properties": {
+          "contagens": {
+            "$ref": "#/components/schemas/ContagensExclusaoMateria"
+          },
+          "nome": {
+            "description": "Nome que o estudante deve digitar para confirmar",
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome",
+          "contagens"
+        ],
+        "title": "ImpactoExclusaoMateriaDTO",
         "type": "object"
       },
       "ListaFontes": {
@@ -680,6 +749,22 @@
           }
         },
         "title": "PerfilAlteracaoDTO",
+        "type": "object"
+      },
+      "RenomeacaoFonteEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo"
+        ],
+        "title": "RenomeacaoFonteEntradaDTO",
         "type": "object"
       },
       "Saude": {
@@ -1138,6 +1223,99 @@
         "tags": [
           "fontes"
         ]
+      },
+      "patch": {
+        "operationId": "renomearFonte",
+        "parameters": [
+          {
+            "description": "`public_id` da fonte",
+            "in": "path",
+            "name": "fonteId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da fonte",
+              "format": "uuid",
+              "title": "Fonteid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenomeacaoFonteEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fonte"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Renomear Fonte",
+        "tags": [
+          "fontes"
+        ]
       }
     },
     "/api/v1/fontes/{fonteId}/exclusao": {
@@ -1571,6 +1749,207 @@
         "tags": [
           "materias"
         ]
+      },
+      "patch": {
+        "operationId": "renomearMateria",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MateriaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Materia"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Renomear Materia",
+        "tags": [
+          "materias"
+        ]
+      }
+    },
+    "/api/v1/materias/{materiaId}/exclusao": {
+      "post": {
+        "operationId": "excluirMateria",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusaoMateriaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Excluir Materia",
+        "tags": [
+          "materias"
+        ]
       }
     },
     "/api/v1/materias/{materiaId}/fontes": {
@@ -1748,6 +2127,71 @@
         "summary": "Enviar Fonte",
         "tags": [
           "fontes"
+        ]
+      }
+    },
+    "/api/v1/materias/{materiaId}/impacto-exclusao": {
+      "get": {
+        "operationId": "consultarImpactoExclusaoMateria",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactoExclusaoMateria"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Impacto Exclusao Materia",
+        "tags": [
+          "materias"
         ]
       }
     },

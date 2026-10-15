@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+from app.nucleo.participantes_acervo import ContagensAcervo
 from app.nucleo.texto import (
     ValorInvalido,
     normalizar,
@@ -36,3 +39,24 @@ def confirmacao_confere(digitado: str, nome: str) -> bool:
     """
     digitado_normalizado = normalizar(digitado)
     return bool(digitado_normalizado) and digitado_normalizado == normalizar(nome)
+
+
+@dataclass(frozen=True, slots=True)
+class ImpactoMateria:
+    """O que a exclusão da matéria apaga, como o diálogo mostra e a confirmação devolve (DTEC 031).
+
+    `cartoes_ativos` soma os ativos e os suspensos (emenda de 13/10/2026 da DTEC 027): o estudante
+    perde os dois. A lista de matérias, ao contrário, mostra só os ativos.
+    """
+
+    fontes: int
+    cartoes_ativos: int
+    cartoes_aguardando_revisao: int
+
+
+def impacto_da_materia(contagens: ContagensAcervo) -> ImpactoMateria:
+    return ImpactoMateria(
+        fontes=contagens.fontes,
+        cartoes_ativos=contagens.cartoes_ativos + contagens.cartoes_suspensos,
+        cartoes_aguardando_revisao=contagens.cartoes_aguardando_revisao,
+    )

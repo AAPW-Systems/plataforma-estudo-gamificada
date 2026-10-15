@@ -48,16 +48,32 @@ class ParticipanteFontes:
     ) -> None:
         """A exclusão da fonte apaga o objeto e a linha no próprio serviço (DTEC 031)."""
 
+    async def travar_para_exclusao_de_materia(
+        self, sessao: AsyncSession, usuario_id: int, materia_id: int
+    ) -> None:
+        """`FOR UPDATE` nas fontes da matéria, em ordem de `id` (sem *deadlock*, DTEC 031)."""
+        consulta = (
+            select(Fonte.id)
+            .where(Fonte.usuario_id == usuario_id, Fonte.materia_id == materia_id)
+            .order_by(Fonte.id)
+            .with_for_update()
+        )
+        await sessao.execute(consulta)
+
     async def ao_excluir_materia(
         self, sessao: AsyncSession, usuario_id: int, materia_id: int
     ) -> None:
         """Apaga os objetos e as linhas das fontes da matéria (objetos antes das linhas)."""
-        consulta = select(Fonte.chave_objeto).where(
-            Fonte.usuario_id == usuario_id, Fonte.materia_id == materia_id
+        if self.armazenamento is None:
+            # Sem armazenamento, apagar só as linhas deixaria objetos órfãos: falha em vez disso.
+            raise RuntimeError("o armazenamento não foi entregue ao participante de fontes")
+        consulta = (
+            select(Fonte.chave_objeto)
+            .where(Fonte.usuario_id == usuario_id, Fonte.materia_id == materia_id)
+            .order_by(Fonte.id)
         )
-        if self.armazenamento is not None:
-            for chave in (await sessao.execute(consulta)).scalars():
-                await self.armazenamento.apagar(chave)
+        for chave in (await sessao.execute(consulta)).scalars().all():
+            await self.armazenamento.apagar(chave)
         await sessao.execute(
             delete(Fonte).where(Fonte.usuario_id == usuario_id, Fonte.materia_id == materia_id)
         )

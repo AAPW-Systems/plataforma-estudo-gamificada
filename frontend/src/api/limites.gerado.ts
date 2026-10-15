@@ -11,12 +11,18 @@ export const limites = {
     cartoesGeradosAceitos: { minimum: 0 },
     cartoesReferencia: { minimum: 0 },
   },
+  ContagensExclusaoMateria: {
+    cartoesAguardandoRevisao: { minimum: 0 },
+    cartoesAtivos: { minimum: 0 },
+    fontes: { minimum: 0 },
+  },
   EntradaEntrada: {
     email: { maxLength: 254 },
     senha: { maxLength: 128, minLength: 1 },
   },
   EnvioFonteEntrada: { titulo: { maxLength: 120, minLength: 1 } },
   ExclusaoContaEntrada: { senhaAtual: { maxLength: 128, minLength: 1 } },
+  ExclusaoMateriaEntrada: { nomeConfirmacao: { maxLength: 60, minLength: 1 } },
   Fonte: { tamanhoBytes: { minimum: 1 } },
   Materia: {
     cartoesAguardandoRevisao: { minimum: 0 },
@@ -32,6 +38,7 @@ export const limites = {
     retencaoDesejada: { maximum: 0.97, minimum: 0.7, multipleOf: 0.01 },
     tamanhoLicao: { maximum: 50, minimum: 5 },
   },
+  RenomeacaoFonteEntrada: { titulo: { maxLength: 120, minLength: 1 } },
   TrocaSenhaEntrada: {
     novaSenha: { maxLength: 128, minLength: 8 },
     senhaAtual: { maxLength: 128, minLength: 1 },

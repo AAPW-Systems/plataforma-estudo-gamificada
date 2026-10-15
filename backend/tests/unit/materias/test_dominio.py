@@ -9,6 +9,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from app.materias import dominio
+from app.nucleo.participantes_acervo import ContagensAcervo
 from app.nucleo.texto import ValorInvalido
 
 pytestmark = pytest.mark.unit
@@ -109,3 +110,27 @@ def test_confirmacao_diferencia_caixa_e_exige_o_nome_inteiro(digitado: str) -> N
 
 def test_confirmacao_nao_aceita_espacos_internos_diferentes() -> None:
     assert not dominio.confirmacao_confere("Cálculo  II", "Cálculo II")
+
+
+# --- Impacto da exclusão da matéria (DTEC 027 emenda, DTEC 031) ---------------------------------
+
+
+def test_impacto_soma_ativos_e_suspensos_e_mantem_fontes_e_aguardando() -> None:
+    impacto = dominio.impacto_da_materia(
+        ContagensAcervo(
+            fontes=2,
+            cartoes_ativos=5,
+            cartoes_suspensos=2,
+            cartoes_aguardando_revisao=3,
+            cartoes_gerados_aceitos=4,  # afetados na exclusão da fonte, não entram na da matéria
+            cartoes_referencia=1,
+        )
+    )
+    assert impacto == dominio.ImpactoMateria(
+        fontes=2, cartoes_ativos=7, cartoes_aguardando_revisao=3
+    )
+
+
+def test_impacto_de_materia_vazia_vale_zero_e_compara_por_valor() -> None:
+    assert dominio.impacto_da_materia(ContagensAcervo()) == dominio.ImpactoMateria(0, 0, 0)
+    assert dominio.ImpactoMateria(1, 2, 3) != dominio.ImpactoMateria(1, 2, 4)

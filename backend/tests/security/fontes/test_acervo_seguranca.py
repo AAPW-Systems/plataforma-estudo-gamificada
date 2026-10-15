@@ -245,6 +245,107 @@ async def test_exclusao_de_fonte_de_outro_e_404(
     assert await acervo.state.armazenamento.existe(chave), "e o arquivo também"
 
 
+async def test_renomear_materia_de_outro_e_404(
+    acervo: FastAPI, ana: httpx.AsyncClient, bia: httpx.AsyncClient
+) -> None:
+    materia = await criar_materia(ana, "Segredo da Ana")
+
+    de_outro = await bia.patch(f"/api/v1/materias/{materia['id']}", json={"nome": "Invadida"})
+    inexistente = await bia.patch(f"/api/v1/materias/{uuid.uuid4()}", json={"nome": "Invadida"})
+
+    await _sao_identicas(de_outro, inexistente)
+    assert "Segredo da Ana" not in de_outro.text
+    assert (await ana.get(f"/api/v1/materias/{materia['id']}")).json()["nome"] == "Segredo da Ana"
+    # A rota existe para o dono: sem isto, o 404 de "rota inexistente" passaria pelo teste.
+    assert (
+        await ana.patch(f"/api/v1/materias/{materia['id']}", json={"nome": "Renomeada"})
+    ).status_code == 200
+
+
+async def test_renomear_para_o_nome_de_uma_materia_de_outro_nao_conflita_nem_revela(
+    acervo: FastAPI, ana: httpx.AsyncClient, bia: httpx.AsyncClient
+) -> None:
+    """O nome em uso é por estudante: a resposta não confirma que a Ana tem esse nome."""
+    await criar_materia(ana, "Química")
+    minha = await criar_materia(bia, "Biologia")
+    resposta = await bia.patch(f"/api/v1/materias/{minha['id']}", json={"nome": "Química"})
+    assert resposta.status_code == 200
+
+
+async def test_impacto_de_exclusao_de_materia_de_outro_e_404(
+    acervo: FastAPI,
+    ana: httpx.AsyncClient,
+    bia: httpx.AsyncClient,
+    fila: App,
+    pdf_simples: ArquivoGerado,
+) -> None:
+    materia = await criar_materia(ana, "Segredo da Ana")
+    await enviar(ana, materia["id"], pdf_simples)
+    await executar_jobs(fila)
+    assert (await ana.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")).status_code == 200
+
+    de_outro = await bia.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")
+    inexistente = await bia.get(f"/api/v1/materias/{uuid.uuid4()}/impacto-exclusao")
+
+    await _sao_identicas(de_outro, inexistente)
+    assert "Segredo da Ana" not in de_outro.text, "nem o nome vaza"
+
+
+async def test_exclusao_de_materia_de_outro_e_404(
+    acervo: FastAPI,
+    ana: httpx.AsyncClient,
+    bia: httpx.AsyncClient,
+    fila: App,
+    pdf_simples: ArquivoGerado,
+) -> None:
+    materia = await criar_materia(ana, "Segredo da Ana")
+    fonte = (await enviar(ana, materia["id"], pdf_simples)).json()
+    await executar_jobs(fila)
+    chave = await chave_da_fonte(acervo.state.fabrica_sessoes, fonte["id"])
+    corpo = {
+        "nomeConfirmacao": "Segredo da Ana",
+        "impactoConfirmado": {"fontes": 1, "cartoesAtivos": 0, "cartoesAguardandoRevisao": 0},
+    }
+
+    # A rota existe para o dono (corpo vazio: 422, nada é apagado).
+    assert (
+        await ana.post(f"/api/v1/materias/{materia['id']}/exclusao", json={})
+    ).status_code == 422
+
+    de_outro = await bia.post(f"/api/v1/materias/{materia['id']}/exclusao", json=corpo)
+    inexistente = await bia.post(f"/api/v1/materias/{uuid.uuid4()}/exclusao", json=corpo)
+
+    await _sao_identicas(de_outro, inexistente)
+    assert "Segredo da Ana" not in de_outro.text
+    assert (await ana.get(f"/api/v1/materias/{materia['id']}")).status_code == 200
+    assert (await consultar_fonte(ana, fonte["id"]))["estado"] == "concluido"
+    assert await acervo.state.armazenamento.existe(chave), "o arquivo da Ana segue lá"
+
+
+async def test_renomear_fonte_de_outro_e_404(
+    acervo: FastAPI,
+    ana: httpx.AsyncClient,
+    bia: httpx.AsyncClient,
+    fila: App,
+    pdf_simples: ArquivoGerado,
+) -> None:
+    materia = await criar_materia(ana)
+    fonte = (await enviar(ana, materia["id"], pdf_simples, titulo="Segredo da Ana")).json()
+    await executar_jobs(fila)
+    antes = await consultar_fonte(ana, fonte["id"])
+
+    de_outro = await bia.patch(f"/api/v1/fontes/{fonte['id']}", json={"titulo": "Invadida"})
+    inexistente = await bia.patch(f"/api/v1/fontes/{uuid.uuid4()}", json={"titulo": "Invadida"})
+
+    await _sao_identicas(de_outro, inexistente)
+    assert "Segredo da Ana" not in de_outro.text
+    assert await consultar_fonte(ana, fonte["id"]) == antes, "a fonte da Ana não foi tocada"
+    # A rota existe para o dono.
+    assert (
+        await ana.patch(f"/api/v1/fontes/{fonte['id']}", json={"titulo": "Novo"})
+    ).status_code == 200
+
+
 async def test_identificador_malformado_tambem_e_404_em_toda_rota_com_identificador(
     ana: httpx.AsyncClient,
 ) -> None:
@@ -371,6 +472,13 @@ ROTAS_NOVAS = [
     ("POST", "/api/v1/materias/{id}/fontes"),
     ("GET", "/api/v1/fontes/{id}"),
     ("POST", "/api/v1/fontes/{id}/reprocessamento"),
+    ("GET", "/api/v1/fontes/{id}/impacto-exclusao"),
+    ("POST", "/api/v1/fontes/{id}/exclusao"),
+    # US3 (T042)
+    ("PATCH", "/api/v1/materias/{id}"),
+    ("GET", "/api/v1/materias/{id}/impacto-exclusao"),
+    ("POST", "/api/v1/materias/{id}/exclusao"),
+    ("PATCH", "/api/v1/fontes/{id}"),
 ]
 
 
@@ -380,14 +488,14 @@ async def test_sem_sessao_toda_rota_nova_responde_401_sem_dados(
 ) -> None:
     await obter_csrf(cliente_real)
     resposta = await cliente_real.request(
-        metodo, caminho.replace("{id}", str(uuid.uuid4())), json={} if metodo == "POST" else None
+        metodo, caminho.replace("{id}", str(uuid.uuid4())), json={} if metodo != "GET" else None
     )
     assert resposta.status_code == 401
     assert set(resposta.json()) == {"codigo", "mensagem", "idRequisicao"}
     assert resposta.json()["codigo"] == "nao_autenticado"
 
 
-@pytest.mark.parametrize(("metodo", "caminho"), [r for r in ROTAS_NOVAS if r[0] == "POST"])
+@pytest.mark.parametrize(("metodo", "caminho"), [r for r in ROTAS_NOVAS if r[0] != "GET"])
 async def test_sem_csrf_toda_rota_nova_que_altera_estado_responde_403(
     ana: httpx.AsyncClient, metodo: str, caminho: str
 ) -> None:

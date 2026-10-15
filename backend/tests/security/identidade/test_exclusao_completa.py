@@ -10,6 +10,8 @@ from pathlib import Path
 
 import httpx
 import pytest
+from fastapi import FastAPI
+from procrastinate import App
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -208,3 +210,106 @@ async def test_a_tarefa_registrada_apaga_pelo_armazenamento_configurado(
     monkeypatch.setattr(tarefas, "criar_armazenamento_padrao", lambda: ArmazenamentoDisco(tmp_path))
     assert await tarefas.apagar_objetos_usuario(public_id=public_id) == 2
     assert not (tmp_path / "usuarios" / public_id).exists()
+
+
+# --- Matérias, fontes, trechos e objetos (spec 002, T042; CS-004, DTEC 021) --------------------
+
+
+async def test_excluir_a_conta_apaga_materias_fontes_trechos_e_objetos_e_preserva_a_outra_conta(
+    acervo: FastAPI,
+    cliente_real: httpx.AsyncClient,
+    fila: App,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Ponta a ponta: a conta com acervo completo some; a de outro estudante fica intacta."""
+    from sqlalchemy import func, select
+
+    from app.fontes.modelos import Fonte, Trecho
+    from app.materias.modelos import Materia
+    from tests import fabricas_arquivos as fab
+    from tests.apoio_acervo import chave_da_fonte, criar_conta, criar_materia, enviar
+    from tests.apoio_http import abrir_cliente
+    from tests.conftest import executar_jobs
+
+    arquivos = {a.nome: a for a in fab.validos()}
+    fabrica: FabricaSessoes = acervo.state.fabrica_sessoes
+    armazenamento = acervo.state.armazenamento
+    # A tarefa que apaga os objetos usa o armazenamento configurado; aqui, o da aplicação.
+    monkeypatch.setattr(tarefas, "criar_armazenamento_padrao", lambda: armazenamento)
+
+    conta = await criar_conta(cliente_real)
+    async with abrir_cliente(acervo, ip="198.51.100.55") as outro:
+        await criar_conta(outro)
+        materia_outro = await criar_materia(outro, "Da outra conta")
+        fonte_outro = (await enviar(outro, materia_outro["id"], arquivos["resumo.txt"])).json()
+
+        biologia = await criar_materia(cliente_real, "Biologia")
+        quimica = await criar_materia(cliente_real, "Química")
+        fontes = [
+            (await enviar(cliente_real, biologia["id"], arquivos["biologia-citologia.pdf"])).json(),
+            (await enviar(cliente_real, biologia["id"], arquivos["resumo.txt"])).json(),
+            (await enviar(cliente_real, quimica["id"], arquivos["pdf-uma-pagina.pdf"])).json(),
+        ]
+        await executar_jobs(fila)
+        chaves = [await chave_da_fonte(fabrica, f["id"]) for f in fontes]
+        chave_outro = await chave_da_fonte(fabrica, fonte_outro["id"])
+        async with unidade_de_trabalho(fabrica) as sessao:
+            meu_id = (
+                await sessao.execute(
+                    text("select id from usuarios where email = :e"), {"e": conta.email.lower()}
+                )
+            ).scalar_one()
+            meu_public_id = str(
+                (
+                    await sessao.execute(
+                        text("select public_id from usuarios where id = :id"), {"id": meu_id}
+                    )
+                ).scalar_one()
+            )
+            # Pré-condição: a conta tem matérias, fontes e trechos (senão nada seria provado).
+            assert {"materias", "fontes"} <= set(await tabelas_com_usuario_id(sessao))
+            assert set(await tabelas_com_residuo(sessao, meu_id)) >= {"materias", "fontes"}
+            trechos_meus = (
+                await sessao.execute(
+                    select(func.count())
+                    .select_from(Trecho)
+                    .join(Fonte, Fonte.id == Trecho.fonte_id)
+                    .where(Fonte.usuario_id == meu_id)
+                )
+            ).scalar_one()
+            assert trechos_meus > 0
+        for chave in chaves:
+            assert await armazenamento.existe(chave)
+
+        resposta = await cliente_real.post(
+            "/api/v1/perfil/exclusao", json={"senhaAtual": conta.senha}
+        )
+        assert resposta.status_code == 204
+        await executar_jobs(fila)  # a tarefa que apaga os objetos sob usuarios/{public_id}/
+
+        async with unidade_de_trabalho(fabrica) as sessao:
+            assert await tabelas_com_residuo(sessao, meu_id) == []
+            sobras = (
+                await sessao.execute(
+                    select(func.count())
+                    .select_from(Trecho)
+                    .join(Fonte, Fonte.id == Trecho.fonte_id)
+                    .where(Fonte.usuario_id == meu_id)
+                )
+            ).scalar_one()
+            assert sobras == 0
+            assert (
+                await sessao.execute(
+                    select(func.count()).select_from(Materia).where(Materia.usuario_id == meu_id)
+                )
+            ).scalar_one() == 0
+        for chave in chaves:
+            assert not await armazenamento.existe(chave), "objeto da conta excluída permaneceu"
+        assert await armazenamento.listar_prefixo(prefixo_usuario(meu_public_id)) == []
+
+        # A outra conta segue inteira: linhas, trechos e objeto.
+        assert await armazenamento.existe(chave_outro)
+        assert (await outro.get(f"/api/v1/fontes/{fonte_outro['id']}")).status_code == 200
+        assert (await outro.get(f"/api/v1/materias/{materia_outro['id']}")).json()[
+            "totalFontes"
+        ] == 1

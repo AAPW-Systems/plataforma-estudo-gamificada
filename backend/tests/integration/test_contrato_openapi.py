@@ -29,18 +29,8 @@ from tests.contrato import (
 pytestmark = pytest.mark.integration
 
 # (método, caminho) -> tarefa que entrega a rota (contrato da 002; o da 001 está completo).
-OPERACOES_PENDENTES: dict[tuple[str, str], str] = {
-    ("patch", "/api/v1/materias/{materiaId}"): "T043",
-    ("get", "/api/v1/materias/{materiaId}/impacto-exclusao"): "T043",
-    ("post", "/api/v1/materias/{materiaId}/exclusao"): "T043",
-    ("patch", "/api/v1/fontes/{fonteId}"): "T043",
-}
-ESQUEMAS_PENDENTES: dict[str, str] = {
-    "ContagensExclusaoMateria": "T043",
-    "ImpactoExclusaoMateria": "T043",
-    "ExclusaoMateriaEntrada": "T043",
-    "RenomeacaoFonteEntrada": "T043",
-}
+OPERACOES_PENDENTES: dict[tuple[str, str], str] = {}
+ESQUEMAS_PENDENTES: dict[str, str] = {}
 RAIZ_BACKEND = Path(__file__).parents[2]
 
 

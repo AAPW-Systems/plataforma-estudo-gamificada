@@ -281,6 +281,25 @@ class ServicoFontes:
             uso_armazenamento_bytes=uso,
         )
 
+    # --- Renomear (US3, D-005) ------------------------------------------------------------------
+
+    async def renomear(self, usuario_id: int, fonte_id: UUID, titulo: str) -> FonteConsultada:
+        """Troca só o título: arquivo, trechos e estado ficam, e as cópias nos cartões não mudam.
+
+        A linha é travada (`FOR UPDATE`) para a troca esperar a transação do worker, que também
+        escreve na fonte, em vez de disputar com ela.
+        """
+        titulo_valido = validar_titulo(titulo)
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            repositorio = RepositorioFontes(sessao)
+            fonte = await repositorio.buscar(usuario_id, fonte_id, para_atualizar=True)
+            fonte.titulo = titulo_valido
+            fonte.atualizado_em = self._relogio.agora()
+            await sessao.flush()
+            publico = await repositorio.materia_publica(fonte)
+        logger.info("fonte_renomeada", fonte_public_id=str(fonte.public_id))
+        return FonteConsultada(fonte, publico)
+
     # --- Nova tentativa -------------------------------------------------------------------------
 
     async def reprocessar(self, usuario_id: int, fonte_id: UUID) -> FonteConsultada:

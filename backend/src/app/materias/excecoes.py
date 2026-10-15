@@ -36,3 +36,13 @@ class CotaMateriasExcedida(Conflito):
         super().__init__(
             f"Você atingiu o limite de {limite} matérias. Exclua uma matéria para criar outra."
         )
+
+
+class ConfirmacaoInvalida(EntradaInvalida):
+    """422: o nome digitado não confere com o da matéria (RF-011, DTEC 031)."""
+
+    codigo_padrao = CodigoErro.CONFIRMACAO_INVALIDA
+    mensagem_padrao = MENSAGEM_CONFIRMACAO
+
+    def __init__(self) -> None:
+        super().__init__(campos=[ErroCampo("nomeConfirmacao", MENSAGEM_DIGITE_O_NOME)])

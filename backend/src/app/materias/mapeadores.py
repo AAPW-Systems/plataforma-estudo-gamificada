@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
-from app.materias.dtos import ListaMateriasDTO, MateriaDTO
-from app.materias.servicos import MateriaConsultada
+from app.materias.dominio import ImpactoMateria
+from app.materias.dtos import (
+    ContagensExclusaoMateriaDTO,
+    ImpactoExclusaoMateriaDTO,
+    ListaMateriasDTO,
+    MateriaDTO,
+)
+from app.materias.servicos import ImpactoConsultado, MateriaConsultada
 
 
 def materia_para_dto(consultada: MateriaConsultada) -> MateriaDTO:
@@ -21,3 +27,26 @@ def materia_para_dto(consultada: MateriaConsultada) -> MateriaDTO:
 
 def materias_para_dto(materias: list[MateriaConsultada]) -> ListaMateriasDTO:
     return ListaMateriasDTO(itens=[materia_para_dto(m) for m in materias])
+
+
+def impacto_do_dto(dto: ContagensExclusaoMateriaDTO) -> ImpactoMateria:
+    return ImpactoMateria(
+        fontes=dto.fontes,
+        cartoes_ativos=dto.cartoes_ativos,
+        cartoes_aguardando_revisao=dto.cartoes_aguardando_revisao,
+    )
+
+
+def impacto_para_dto(consultado: ImpactoConsultado) -> ImpactoExclusaoMateriaDTO:
+    impacto = consultado.impacto
+    return ImpactoExclusaoMateriaDTO(
+        nome=consultado.nome,
+        # O DTO de contagens também é corpo de entrada (só camelCase): constrói-se por alias.
+        contagens=ContagensExclusaoMateriaDTO.model_validate(
+            {
+                "fontes": impacto.fontes,
+                "cartoesAtivos": impacto.cartoes_ativos,
+                "cartoesAguardandoRevisao": impacto.cartoes_aguardando_revisao,
+            }
+        ),
+    )

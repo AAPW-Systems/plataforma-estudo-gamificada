@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.nucleo.participantes_acervo import ContagensAcervo, ModoCartoes
@@ -22,17 +23,27 @@ class ParticipanteFalso:
         por_materia: dict[int, ContagensAcervo] | None = None,
         impacto: ContagensAcervo | None = None,
         chamadas: list[tuple[str, str, object]] | None = None,
+        atraso_s: float = 0.0,
+        observar_fontes: bool = False,
     ) -> None:
         self.nome = nome
+        self.observar_fontes = observar_fontes
+        # Alarga a janela da contagem, para as corridas dos testes adversariais.
+        self.atraso_s = atraso_s
         self.por_materia = por_materia or {}
         self.impacto = impacto or ContagensAcervo()
         self.chamadas = chamadas if chamadas is not None else []
         self.exclusoes_de_fonte: list[tuple[int, int, ModoCartoes]] = []
         self.exclusoes_de_materia: list[tuple[int, int]] = []
+        # Quantas fontes da matéria ainda existiam quando este participante foi chamado: prova a
+        # ordem (cartões antes de `fontes`, DTEC 027).
+        self.fontes_vistas_ao_excluir_materia: list[int] = []
 
     async def contar_por_materia(
         self, sessao: AsyncSession, usuario_id: int
     ) -> dict[int, ContagensAcervo]:
+        if self.atraso_s:
+            await asyncio.sleep(self.atraso_s)
         return dict(self.por_materia)
 
     async def impacto_fonte(
@@ -51,6 +62,11 @@ class ParticipanteFalso:
     ) -> None:
         self.chamadas.append((self.nome, "materia", sessao))
         self.exclusoes_de_materia.append((usuario_id, materia_id))
+        if self.observar_fontes:  # só com banco de verdade; os testes unitários usam sessão falsa
+            total = await sessao.execute(
+                text("SELECT count(*) FROM fontes WHERE materia_id = :m"), {"m": materia_id}
+            )
+            self.fontes_vistas_ao_excluir_materia.append(int(total.scalar_one()))
 
 
 @dataclass

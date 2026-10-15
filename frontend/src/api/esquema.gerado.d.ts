@@ -101,7 +101,8 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** Renomear Fonte */
+    patch: operations["renomearFonte"];
     trace?: never;
   };
   "/api/v1/fontes/{fonteId}/exclusao": {
@@ -187,6 +188,24 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
+    /** Renomear Materia */
+    patch: operations["renomearMateria"];
+    trace?: never;
+  };
+  "/api/v1/materias/{materiaId}/exclusao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Excluir Materia */
+    post: operations["excluirMateria"];
+    delete?: never;
+    options?: never;
+    head?: never;
     patch?: never;
     trace?: never;
   };
@@ -202,6 +221,23 @@ export interface paths {
     put?: never;
     /** Enviar Fonte */
     post: operations["enviarFonte"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/materias/{materiaId}/impacto-exclusao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar Impacto Exclusao Materia */
+    get: operations["consultarImpactoExclusaoMateria"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -372,6 +408,21 @@ export interface components {
        */
       cartoesReferencia: number;
     };
+    /**
+     * ContagensExclusaoMateriaDTO
+     * @description O que a exclusão da matéria apaga; o diálogo mostra e a confirmação devolve (DTEC 031).
+     */
+    ContagensExclusaoMateria: {
+      /** Cartoesaguardandorevisao */
+      cartoesAguardandoRevisao: number;
+      /**
+       * Cartoesativos
+       * @description Cartões ativos e suspensos da matéria, que serão apagados
+       */
+      cartoesAtivos: number;
+      /** Fontes */
+      fontes: number;
+    };
     /** EntradaEntradaDTO */
     EntradaEntrada: {
       /** Email */
@@ -435,6 +486,18 @@ export interface components {
       /** @description "Manter os cartões" ou "Excluir os cartões junto" (RN-14) */
       modoCartoes: components["schemas"]["ModoCartoes"];
     };
+    /**
+     * ExclusaoMateriaEntradaDTO
+     * @description O nome é comparado pelo domínio (NFC, extremidades, caixa), não pelo esquema.
+     */
+    ExclusaoMateriaEntrada: {
+      impactoConfirmado: components["schemas"]["ContagensExclusaoMateria"];
+      /**
+       * Nomeconfirmacao
+       * @description Comparado com o nome depois de NFC e sem espaços nas extremidades, diferenciando maiúsculas e minúsculas
+       */
+      nomeConfirmacao: string;
+    };
     /** FonteDTO */
     Fonte: {
       codigoFalha: components["schemas"]["CodigoFalhaFonte"] | null;
@@ -487,6 +550,15 @@ export interface components {
       estado: components["schemas"]["EstadoFonte"];
       /** Titulo */
       titulo: string;
+    };
+    /** ImpactoExclusaoMateriaDTO */
+    ImpactoExclusaoMateria: {
+      contagens: components["schemas"]["ContagensExclusaoMateria"];
+      /**
+       * Nome
+       * @description Nome que o estudante deve digitar para confirmar
+       */
+      nome: string;
     };
     /** ListaFontesDTO */
     ListaFontes: {
@@ -586,6 +658,11 @@ export interface components {
       retencaoDesejada?: number | null;
       /** Tamanholicao */
       tamanhoLicao?: number | null;
+    };
+    /** RenomeacaoFonteEntradaDTO */
+    RenomeacaoFonteEntrada: {
+      /** Titulo */
+      titulo: string;
     };
     /** Saude */
     Saude: {
@@ -905,6 +982,78 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  renomearFonte: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da fonte */
+        fonteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RenomeacaoFonteEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Fonte"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
         };
       };
     };
@@ -1263,6 +1412,166 @@ export interface operations {
       };
     };
   };
+  renomearMateria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MateriaEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Materia"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  excluirMateria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExclusaoMateriaEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
   listarFontes: {
     parameters: {
       query?: never;
@@ -1399,6 +1708,56 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarImpactoExclusaoMateria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ImpactoExclusaoMateria"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

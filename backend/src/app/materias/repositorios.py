@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +48,25 @@ class RepositorioMaterias:
                 raise MateriaNomeEmUso() from erro
             raise
         return materia
+
+    async def renomear(self, materia: Materia, nome: str, agora: datetime) -> None:
+        """Troca o nome; o índice único decide a corrida entre dois nomes iguais (RF-001)."""
+        try:
+            # Savepoint: a violação desfaz só a alteração e a transação segue utilizável.
+            async with self._sessao.begin_nested():
+                materia.nome = nome
+                materia.atualizado_em = agora
+                await self._sessao.flush()
+        except IntegrityError as erro:
+            if getattr(getattr(erro.orig, "diag", None), "constraint_name", None) == INDICE_NOME:
+                raise MateriaNomeEmUso() from erro
+            raise
+
+    async def apagar(self, usuario_id: int, materia_id: int) -> None:
+        """Apaga a matéria; quem a chama já apagou as fontes e os cartões (FKs `restrict`)."""
+        await self._sessao.execute(
+            delete(Materia).where(Materia.id == materia_id, Materia.usuario_id == usuario_id)
+        )
 
     async def listar(self, usuario_id: int) -> list[Materia]:
         """Ordenadas por nome, sem diferenciar maiúsculas e minúsculas (sem paginação)."""

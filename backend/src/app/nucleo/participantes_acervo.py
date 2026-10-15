@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, fields
 from enum import StrEnum
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,6 +59,21 @@ class ParticipanteAcervo(Protocol):
     ) -> None: ...
 
     async def ao_excluir_materia(
+        self, sessao: AsyncSession, usuario_id: int, materia_id: int
+    ) -> None: ...
+
+
+@runtime_checkable
+class ParticipanteComTravaDeMateria(Protocol):
+    """Gancho opcional (emenda aditiva à DTEC 027): travar o que a exclusão da matéria vai afetar.
+
+    A exclusão trava a matéria e as suas fontes (`FOR UPDATE`, em ordem de `id`) **antes** de
+    contar o impacto (DTEC 031). `materias` não importa `fontes`, então quem é dono das linhas a
+    travar (`fontes`, e depois cartões e gerações) as trava aqui. Participante sem o método é
+    ignorado: o protocolo de quatro operações segue valendo para quem não precisa.
+    """
+
+    async def travar_para_exclusao_de_materia(
         self, sessao: AsyncSession, usuario_id: int, materia_id: int
     ) -> None: ...
 
@@ -110,6 +125,12 @@ class RegistroAcervo:
     ) -> None:
         for _, participante in self._em_ordem():
             await participante.ao_excluir_fonte(sessao, usuario_id, fonte_id, modo)
+
+    async def travar_materia(self, sessao: AsyncSession, usuario_id: int, materia_id: int) -> None:
+        """Pede a cada participante que trave o que a exclusão da matéria vai afetar."""
+        for _, participante in self._em_ordem():
+            if isinstance(participante, ParticipanteComTravaDeMateria):
+                await participante.travar_para_exclusao_de_materia(sessao, usuario_id, materia_id)
 
     async def ao_excluir_materia(
         self, sessao: AsyncSession, usuario_id: int, materia_id: int
