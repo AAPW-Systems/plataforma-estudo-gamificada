@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { axe } from "vitest-axe";
 
-import { consultaMateria } from "../../api/acervo";
+import { chaves, consultaMateria } from "../../api/acervo";
 import {
   BASE,
   ID_MATERIA,
@@ -95,6 +96,32 @@ describe("RenomearMateria (T044; US3 cenários 1 e 2, RF-001)", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Renomear matéria" })).toHaveFocus();
     });
+  });
+
+  it("atualiza o nome na lista em cache na hora, para a lista não mostrar o nome velho ao voltar", async () => {
+    capturar(({ nome }) => HttpResponse.json(materiaFicticia({ nome })));
+    const outra = materiaFicticia({ id: "33333333-3333-4333-8333-333333333333", nome: "Química" });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient.setQueryData(chaves.materias, [materiaFicticia(), outra]);
+    const usuario = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RenomearMateria materia={MATERIA} />
+      </QueryClientProvider>,
+    );
+    const campo = await abrirFormulario(usuario);
+    await usuario.clear(campo);
+    await usuario.type(campo, "Genética");
+    await usuario.click(screen.getByRole("button", { name: "Salvar nome" }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/^Nome da matéria/)).toBeNull();
+    });
+    const lista = queryClient.getQueryData<{ id: string; nome: string }[]>(chaves.materias);
+    expect(lista?.map((m) => m.nome)).toEqual(["Genética", "Química"]);
+    expect(queryClient.getQueryData<{ nome: string }>(chaves.materia(ID_MATERIA))?.nome).toBe(
+      "Genética",
+    );
   });
 
   it("nome em uso (409) fica junto do campo, com o valor preservado, o foco nele e o formulário aberto", async () => {

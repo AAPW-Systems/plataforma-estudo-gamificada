@@ -13,10 +13,17 @@ export function RenomearMateria({ materia }: { materia: Pick<Materia, "id" | "no
   const queryClient = useQueryClient();
 
   async function salvar(nome: string) {
-    await cliente.PATCH("/api/v1/materias/{materiaId}", {
+    const { data } = await cliente.PATCH("/api/v1/materias/{materiaId}", {
       params: { path: { materiaId: materia.id } },
       body: { nome },
     });
+    if (data) {
+      // A lista não está montada nesta página: sem isto, ela mostraria o nome velho ao voltar.
+      queryClient.setQueryData(chaves.materia(materia.id), data);
+      queryClient.setQueryData<Materia[]>(chaves.materias, (lista) =>
+        lista?.map((item) => (item.id === materia.id ? data : item)),
+      );
+    }
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: chaves.materia(materia.id) }),
       queryClient.invalidateQueries({ queryKey: chaves.materias }),

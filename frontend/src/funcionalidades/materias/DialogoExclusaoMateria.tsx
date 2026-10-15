@@ -90,6 +90,11 @@ export function DialogoExclusaoMateria({
     definirAberto(false);
     limpar();
     queryClient.removeQueries({ queryKey: chaves.materia(materia.id) });
+    // A lista não está montada nesta página: só invalidada, ela mostraria a matéria por um
+    // instante ao voltar. Tirá-la do cache evita o piscar; a invalidação confere com o servidor.
+    queryClient.setQueryData<Materia[]>(chaves.materias, (lista) =>
+      lista?.filter((item) => item.id !== materia.id),
+    );
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: chaves.materias }),
       queryClient.invalidateQueries({ queryKey: chaves.uso }),

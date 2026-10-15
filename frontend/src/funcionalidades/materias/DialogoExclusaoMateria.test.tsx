@@ -1,14 +1,17 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { axe } from "vitest-axe";
 
+import { chaves } from "../../api/acervo";
 import {
   BASE,
   ID_MATERIA,
   configurarServidorDeTestes,
   corpoErro,
+  materiaFicticia,
   renderizarComConsultas,
 } from "../../testes/acervo";
 import { servidor } from "../../testes/servidor";
@@ -162,6 +165,36 @@ describe("DialogoExclusaoMateria (T044; US3 cenários 3 e 4, RF-011)", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).toBeNull();
     });
+  });
+
+  it("tira a matéria da lista em cache na hora, para a lista não mostrá-la ao voltar", async () => {
+    simularImpacto();
+    capturarExclusao();
+    const outra = materiaFicticia({ id: "33333333-3333-4333-8333-333333333333", nome: "Química" });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient.setQueryData(chaves.materias, [materiaFicticia(), outra]);
+    queryClient.setQueryData(chaves.materia(ID_MATERIA), materiaFicticia());
+    const usuario = userEvent.setup();
+    let naListaAoVoltar: unknown;
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DialogoExclusaoMateria
+          materia={MATERIA}
+          aoExcluida={() => {
+            naListaAoVoltar = queryClient.getQueryData(chaves.materias);
+          }}
+        />
+      </QueryClientProvider>,
+    );
+    const dialogo = await abrir(usuario);
+    await usuario.type(campoDoNome(dialogo), "Biologia");
+    await usuario.click(within(dialogo).getByRole("button", { name: "Excluir matéria" }));
+
+    await waitFor(() => {
+      expect(naListaAoVoltar).toBeDefined();
+    });
+    expect(naListaAoVoltar).toEqual([outra]);
+    expect(queryClient.getQueryData(chaves.materia(ID_MATERIA))).toBeUndefined();
   });
 
   it("Enter no campo do nome confirma, mas só se o nome confere", async () => {
