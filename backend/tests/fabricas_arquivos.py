@@ -156,7 +156,7 @@ def pdf_corrompido(nome: str = "corrompido.pdf") -> ArquivoGerado:
 
 
 def pdf_com_hifenizacao(nome: str = "hifenizacao.pdf") -> ArquivoGerado:
-    """Uma palavra quebrada com hífen no fim da linha (a extração a devolve como está)."""
+    """Palavra quebrada com hífen no fim da linha, como o PyMuPDF a devolve."""
     linhas = [
         "A organização celular possui uni-",
         "dade em todos os seres vivos.",

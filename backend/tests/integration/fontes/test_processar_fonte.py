@@ -91,7 +91,7 @@ async def test_estados_sucesso_grava_trechos_e_conclui_na_mesma_transacao(
     assert atual.codigo_falha is None
     assert atual.total_paginas == 90
     assert atual.total_trechos == await _contar_trechos(deps.fabrica, fonte.id) > 0
-    assert (atual.versao_extracao or "").startswith("v1-a1200-m2000-s150")
+    assert (atual.versao_extracao or "").startswith("v2-a1200-m2000-s150")
     assert atual.processada_em is not None
     async with unidade_de_trabalho(deps.fabrica) as sessao:
         ordens = (

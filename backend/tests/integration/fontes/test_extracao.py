@@ -107,13 +107,10 @@ async def test_texto_completo_dos_deslocamentos_confere_com_os_trechos(
         assert processado.texto_completo[trecho.inicio : trecho.fim] == trecho.texto
 
 
-async def test_hifenizacao_do_pdf_e_preservada_como_extraida(tmp_path: Path) -> None:
-    """Caracterização: o `TEXT_DEHYPHENATE` da DTEC 029 não junta a palavra quebrada.
-
-    Na versão 1.28.2 do PyMuPDF, a extração devolve "uni-\\ndade" mesmo com a opção ligada
-    (verificado com hífen comum, hífen suave e hífen Unicode). A DTEC previa que a hifenização
-    fosse desfeita; fazê-lo por regra própria muda o texto citado nos cartões e fica como
-    decisão pendente (registro da sessão). Se isto mudar, este teste deve ser revisto.
+async def test_hifenizacao_do_pdf_e_desfeita_depois_da_extracao(tmp_path: Path) -> None:
+    """DTEC 029 (emenda de 15/10/2026): o PyMuPDF devolve "uni-\\ndade" mesmo com
+    `TEXT_DEHYPHENATE` (versão 1.28.2); a regra própria `desfazer_hifenizacao` junta a palavra
+    antes da normalização e da divisão, e os trechos citam a palavra inteira.
     """
     arquivo = fab.pdf_com_hifenizacao()
     processado = _processado(
@@ -124,7 +121,11 @@ async def test_hifenizacao_do_pdf_e_preservada_como_extraida(tmp_path: Path) -> 
             parametros=PARAMETROS,
         )
     )
-    assert "uni-\ndade" in processado.texto_completo
+    assert "possui unidade em todos" in processado.texto_completo
+    assert "uni-" not in processado.texto_completo
+    assert all("uni-" not in trecho.texto for trecho in processado.trechos)
+    for trecho in processado.trechos:
+        assert processado.texto_completo[trecho.inicio : trecho.fim] == trecho.texto
 
 
 async def test_pdf_sem_camada_de_texto_devolve_sem_texto(

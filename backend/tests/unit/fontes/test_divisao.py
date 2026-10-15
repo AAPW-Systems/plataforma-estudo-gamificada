@@ -43,9 +43,9 @@ def test_parametros_incoerentes_sao_recusados(alvo: int, maximo: int, sobreposic
 
 
 def test_versao_da_extracao_reflete_os_parametros() -> None:
-    assert versao_extracao(PADRAO) == "v1-a1200-m2000-s150"
-    assert versao_extracao(MINUSCULOS) == "v1-a60-m90-s12"
-    assert versao_extracao(Parametros(alvo=500, maximo=800, sobreposicao=0)) == "v1-a500-m800-s0"
+    assert versao_extracao(PADRAO) == "v2-a1200-m2000-s150"
+    assert versao_extracao(MINUSCULOS) == "v2-a60-m90-s12"
+    assert versao_extracao(Parametros(alvo=500, maximo=800, sobreposicao=0)) == "v2-a500-m800-s0"
 
 
 # --- Normalização -----------------------------------------------------------------------------

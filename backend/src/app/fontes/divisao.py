@@ -18,7 +18,7 @@ import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-VERSAO_BASE = "v1"
+VERSAO_BASE = "v2"  # v2: hifenização desfeita depois da extração do PDF (DTEC 029)
 SOBRA_MINIMA = 200  # uma sobra final menor que isto é unida ao trecho anterior, se couber
 _FIM_DE_FRASE = ".!?…"
 _SEPARADOR_DE_PARAGRAFOS = re.compile(r"\n{2,}")

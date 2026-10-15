@@ -8,12 +8,25 @@ mensagem da exceção (que pode trazer caminho ou conteúdo) nunca sai daqui.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
 import pymupdf
 
 TIPO_PDF = "application/pdf"
+
+# Palavra quebrada com hífen no fim da linha (DTEC 029, emenda de 15/10/2026): uma letra, o hífen
+# (comum, suave, Unicode ou sem quebra), a quebra de linha e uma letra **minúscula**. A letra
+# antes exclui números e símbolos; a minúscula depois poupa nomes próprios ("Rio-\nGrande") e
+# siglas ("COVID-\n19"); uma linha em branco (fim de parágrafo) não casa. Sem dicionário, um
+# composto quebrado na linha ("guarda-\nchuva") também é juntado: é o custo da regra simples.
+_PALAVRA_QUEBRADA = re.compile(r"(?<=[^\W\d_])[-\u00ad\u2010\u2011][ \t]*\n[ \t]*(?=[a-zà-öø-ÿ])")
+
+
+def desfazer_hifenizacao(texto: str) -> str:
+    """Junta as palavras quebradas com hífen no fim da linha. Uma passada linear, idempotente."""
+    return _PALAVRA_QUEBRADA.sub("", texto)
 
 
 def verificar_pdf(caminho: str, max_paginas: int) -> dict[str, Any]:
@@ -58,9 +71,10 @@ def _extrair_pdf(caminho: str, max_paginas: int) -> dict[str, Any]:
             if documento.page_count > max_paginas:
                 return {"resultado": "paginas_excedidas"}
             # A página é o número físico (índice + 1), igual ao contador de qualquer leitor.
+            # O `TEXT_DEHYPHENATE` do PyMuPDF não junta a palavra (verificado na 1.28.2): a regra
+            # própria roda logo depois da extração, página a página.
             paginas = [
-                pagina.get_text("text", sort=True, flags=pymupdf.TEXT_DEHYPHENATE)
-                for pagina in documento
+                desfazer_hifenizacao(pagina.get_text("text", sort=True)) for pagina in documento
             ]
             return {"resultado": "ok", "paginas": paginas}
     except Exception:  # qualquer defeito do arquivo vira "corrompido"
