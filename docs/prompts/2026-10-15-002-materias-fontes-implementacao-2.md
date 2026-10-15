@@ -75,7 +75,7 @@ Pendente de revisão.
 
 **Ambiente da sessão.** Contêiner de nuvem Linux (não o Windows com Docker Desktop da equipe). Backend no host (`uv`, Python 3.13, `UV_PROJECT_ENVIRONMENT` fora do repositório) contra o PostgreSQL 16 do sistema; frontend nos Node 22 e 24; Chromium do Playwright global. O *build* das imagens do Compose é bloqueado pela rede do ambiente, então o `docker compose up --build` completo **não foi executado**; o CI do GitHub é a verificação em contêiner.
 
-- **CI da `develop`:** execuções 21 (`518c414`) e 22 (`710b18f`) verdes na partida; execução 23 (`95ada97`, código da US3) verde nos dois jobs.
+- **CI da `develop`:** execuções 21 (`518c414`) e 22 (`710b18f`) verdes na partida; execução 23 (`95ada97`, código da US3) e execução 24 (`0217345`, com a documentação da fase final) verdes nos dois jobs. O commit que registra estes resultados é só de documentação e o seu CI não foi aguardado.
 - **Backend no host:** `ruff format --check`, `ruff check` e `mypy` limpos; **1607 passed e 1 skipped** (permissão de escrita, pulado como superusuário) em três execuções completas seguidas (a terceira com cobertura: **94%**). Linha de base de partida: 1475. Os 132 testes novos incluem 32 funcionais e 35 adversariais da US3, os unitários do domínio e do registro de participantes, os de isolamento e de proteções herdadas das rotas novas (parametrizados) e o de exclusão da conta com acervo completo.
 - **Frontend:** **206 passed** nos Node 22 e 24 (de 161), `eslint`, `tsc`, `prettier --check` e `vite build` limpos; cobertura de 93,3% das instruções e 96,5% das linhas.
 - **Vermelho antes do verde:** as suítes novas do backend começaram com 76 falhas (rotas inexistentes) e as de componente com 4 arquivos sem os componentes; as duas correções de cache da lista de matérias nasceram de 2 testes vermelhos.
@@ -110,5 +110,5 @@ PDF fictício de 2 MB (380 páginas, 760 trechos): envio até **Concluído** em 
 - **Pedido explícito a Artur Lins (T013):** no Windows, rodar `docker compose up -d --build --wait` com o volume `arquivos`, conferir `/health/ready` em `200` e colar a saída; só então marcar a T013. Aproveite para rodar no Compose o passo a passo da US3 do [quickstart](../specs/002-materias-fontes/quickstart.md#us2-e-us3-verificação-complementar) e os comandos de teste novos.
 - **Verificações humanas:** leitor de tela (T048) na lista de matérias, na página da matéria, no envio e nos dois diálogos; e o teste com usuários, que a 002 não exige mas o CS-001 da 001 (T063) ainda pede.
 - **Decisões:** emenda da DTEC 027 (gancho de trava) e da DTEC 029 (hifenização).
-- **Conferir o CI** da cabeça da `develop` depois do último commit desta sessão.
+- **Conferir o CI** da cabeça da `develop` (o último commit é só de documentação).
 - **A 003 não foi iniciada**, como pedido. Quando começar, reexecutar os testes funcionais da US2 e da US3 da 002 com cartões reais (DTEC 027).
