@@ -71,7 +71,7 @@ Este arquivo registra apenas as dúvidas técnicas **novas** da spec 002. Não s
 **Consequências:**
 
 - **Extração (no subprocesso, DTEC 024):**
-  - **PDF:** `page.get_text("text", sort=True, flags=TEXT_DEHYPHENATE)` página a página. A página é o **número físico** (índice + 1), que coincide com o contador de qualquer leitor de PDF, e não o rótulo lógico (ex.: "iv").
+  - **PDF:** `page.get_text("text", sort=True)` página a página, seguido da regra que desfaz a hifenização (emenda de 15/10/2026, abaixo). A página é o **número físico** (índice + 1), que coincide com o contador de qualquer leitor de PDF, e não o rótulo lógico (ex.: "iv").
   - **TXT e MD:** o texto já decodificado na validação, sem página. O MD é guardado como texto-fonte, sem renderização, e a interface sempre o exibe como texto puro, o que elimina o risco de injeção de HTML.
 - **Normalização:**
   - NFC; `\r\n` e `\r` viram `\n`.
@@ -93,8 +93,21 @@ Este arquivo registra apenas as dúvidas técnicas **novas** da spec 002. Não s
   - Todo caractere visível do texto pertence a pelo menos um trecho.
   - Nenhum trecho de PDF atravessa páginas, e todo trecho de PDF tem página.
   - Nenhum trecho de TXT ou MD tem página.
-- **Versão:** `fontes.versao_extracao` guarda a versão do extrator e os parâmetros (ex.: `v1-a1200-m2000-s150`). Trechos de uma fonte `concluido` nunca são substituídos no MVP (DTEC 030). Uma futura reextração com outra versão será uma decisão própria, que precisa preservar as evidências dos cartões.
+- **Versão:** `fontes.versao_extracao` guarda a versão do extrator e os parâmetros (ex.: `v2-a1200-m2000-s150`; a `v2` desfaz a hifenização do PDF). Trechos de uma fonte `concluido` nunca são substituídos no MVP (DTEC 030). Uma futura reextração com outra versão será uma decisão própria, que precisa preservar as evidências dos cartões.
 - **Desempenho:** os trechos são inseridos em lote (blocos de 500) na mesma transação. Um texto de 2 MB gera cerca de 1.700 trechos, bem dentro da meta do CS-003.
+
+**Emenda de 15/10/2026: hifenização desfeita por regra própria** ([registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)). A opção `TEXT_DEHYPHENATE` prevista nesta decisão não junta a palavra quebrada na versão 1.28.2 do PyMuPDF (verificado com hífen comum, suave e Unicode): a extração devolve "uni-\ndade". Um trecho com a palavra partida seria citado assim nos cartões e atrapalharia a busca.
+
+- **Alternativas:** (1) regra simples em Python logo depois da extração; (2) trocar a biblioteca de extração ou reconstruir a linha pelos blocos do PyMuPDF, o que traz dependência ou código bem maior; (3) manter o texto como extraído.
+- **Decisão:** alternativa 1, por Artur Lins em 15/10/2026. A função `desfazer_hifenizacao` (`fontes/extracao.py`, no subprocesso, só `re`) roda em cada página antes da normalização e da divisão. Junta uma letra, um hífen (comum, suave U+00AD, U+2010 ou U+2011), espaços opcionais, uma quebra de linha e uma letra **minúscula**.
+- **Consequências:**
+  - Nomes próprios compostos ("Rio-\nGrande"), siglas e números ("COVID-\n19"), hífens depois de não letras e fim de parágrafo (linha em branco) ficam como estão.
+  - **Limite conhecido:** sem dicionário, um composto quebrado na linha ("guarda-\nchuva") também é juntado ("guardachuva"). Aceito pela regra simples; um dicionário fica fora do MVP.
+  - A quebra entre páginas não é tratada: a página é uma unidade (CS-001).
+  - TXT e MD não passam pela regra: o texto é do estudante e já vem como ele escreveu.
+  - Os deslocamentos continuam relativos ao texto já normalizado, então `texto_completo[inicio:fim] == trecho.texto` segue valendo.
+  - `versao_extracao` passa de `v1` para `v2`; as fontes já processadas (só ambientes de desenvolvimento) mantêm os trechos da `v1`, e nunca são reprocessadas (DTEC 030).
+- **Testes:** `tests/unit/fontes/test_extracao.py` (casos, limite conhecido e propriedades com Hypothesis: idempotência, nunca aumenta o texto, sem hífen não muda, não sobra palavra quebrada) e `tests/integration/fontes/test_extracao.py::test_hifenizacao_do_pdf_e_desfeita_depois_da_extracao`.
 
 **Condição para revisão:** a avaliação da geração ([004](../004-geracao-cartoes/spec.md)) ou da busca ([014](../014-chat-fontes/spec.md)) indicar outros tamanhos, ou formatos novos ([009](../009-formatos-fontes/spec.md)) exigirem outras unidades (ex.: blocos de legenda com marcação de tempo).
 

@@ -34,7 +34,7 @@ Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo com
 | RQ-001 | `unit/fontes/test_dominio.py::test_nome_exibido_nunca_tem_caminho_controle_nem_passa_de_255`; `security/fontes/test_acervo_seguranca.py::test_chave_sem_nome_enviado`, `::test_chave_do_objeto_pertence_ao_prefixo_do_dono_e_a_api_nunca_a_expoe`; `adversarial/fontes/test_envio_adversarial.py::test_nomes_maliciosos_sao_so_exibidos_e_nunca_viram_caminho` | T004 T015 T021 T022 |
 | RQ-002 | `security/fontes/test_acervo_seguranca.py::test_logs_sem_conteudo`, `::test_logs_da_falha_e_da_recusa_nao_trazem_caminho_nem_excecao_com_dados`; revisão dos logs reais de `api` e `worker` (T048) | T021 T048 |
 | RQ-003 | `security/test_isolamento_rotas.py` (11 rotas da 002 com identificador, cada uma com o seu teste de duas contas em `security/fontes/test_acervo_seguranca.py`); `integration/fontes/test_restricoes.py::test_fonte_numa_materia_de_outro_dono_e_recusada_pela_fk_composta`; `security/identidade/test_exclusao_completa.py::test_excluir_a_conta_apaga_materias_fontes_trechos_e_objetos_e_preserva_a_outra_conta` | T008 T021 T035 T042 |
-| RQ-004 | axe nos testes de componente (`acervo.test.tsx` e os de cada tela e diálogo); axe no Chromium real em 2 temas e a 320 px, com os dois diálogos abertos (T048); leitor de tela: verificação humana pendente | T012 T029 T037 T044 T048 |
+| RQ-004 | axe nos testes de componente (`acervo.test.tsx` e os de cada tela e diálogo); axe no Chromium real em 2 temas e a 320 px, com os dois diálogos abertos (T048); leitor de tela: rodada única no final do projeto (decisão de 15/10/2026) | T012 T029 T037 T044 T048 |
 | RQ-005 | `unit/nucleo/test_configuracao.py::test_nao_sobe_com_cota_ou_limite_menor_que_1`; `functional/fontes/test_us1_materia_fonte.py::test_uso_acervo_traz_os_limites_vigentes_e_o_uso`, `::test_o_limite_de_tamanho_configurado_vale_para_o_envio`; `integration/test_contrato_openapi.py`; frontend `EnvioFonte.test.tsx` (limites vindos da API) | T002 T019 T027 T028 T029 |
 
 ## Critérios de sucesso
@@ -70,7 +70,7 @@ Esta matriz mostra que requisito, cenário, teste e tarefa descrevem o mesmo com
 | DTEC 026 (acompanhamento) | `frontend/src/api/acompanhamento.test.ts`; `AcervoFontes.test.tsx` | T012 T029 |
 | DTEC 027 (participantes) | `unit/nucleo/test_participantes_acervo.py` (inclui o gancho opcional `travar_materia`); testes da US2 e da US3 com os participantes falsos; `arquitetura/test_camadas.py::test_camadas_respeitam_dtec018` | T005 T009 T033 T040 |
 | DTEC 028 (validação) | `unit/fontes/test_validacao.py`; `unit/nucleo/test_middlewares.py::test_rota_de_envio_aceita_ate_o_seu_limite` | T006 T016 |
-| DTEC 029 (extração e divisão) | `unit/fontes/test_divisao.py`; `integration/fontes/test_extracao.py` (a hifenização do PDF é só caracterizada: `::test_hifenizacao_do_pdf_e_preservada_como_extraida`) | T017 T018 |
+| DTEC 029 (extração e divisão) | `unit/fontes/test_divisao.py`; `integration/fontes/test_extracao.py` (hifenização desfeita: `::test_hifenizacao_do_pdf_e_desfeita_depois_da_extracao` e `unit/fontes/test_extracao.py`, emenda de 15/10/2026) | T017 T018 |
 | DTEC 030 (estados e tentativas) | `integration/fontes/test_processar_fonte.py`; `integration/nucleo/test_tarefas_travadas.py`; `integration/nucleo/test_worker.py` | T007 T020 T026 |
 | DTEC 031 (impacto sob concorrência) | `adversarial/fontes/test_exclusao_fonte_adversarial.py::test_impacto_alterado_devolve_409_e_nao_apaga_nada`; `adversarial/materias/test_organizar_adversarial.py::test_impacto_alterado_devolve_409_e_nao_apaga_nada`, `::test_a_fonte_travada_por_outra_transacao_faz_a_exclusao_esperar_e_recalcular` | T034 T041 |
 | DTEC 032 (cotas e duplicatas) | `adversarial/fontes/test_envio_adversarial.py::test_cota_simultanea_de_fontes_aceita_so_uma`, `::test_envios_simultaneos_mesmo_arquivo` | T022 T023 T025 |
@@ -112,8 +112,8 @@ Conferência feita em 13/10/2026 entre spec, plano, pesquisa, modelo de dados, c
 | Todo RF, RQ e CS tem teste com nome real | Sim: 130 referências `arquivo::função` das tabelas acima foram conferidas contra os arquivos de `backend/tests/` (nenhuma ausente); os testes do frontend são citados pelo arquivo |
 | Requisito sem teste ou sem tarefa | Nenhum |
 | Tarefa sem requisito | Nenhuma: as tarefas de suporte continuam na tabela própria |
-| Requisito que depende de uma pessoa | RQ-004 (leitor de tela) e a T013 (Compose no Docker Desktop); ambos seguem abertos no [registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md) |
-| Teste que só caracteriza um comportamento | A hifenização do PDF (DTEC 029): o PyMuPDF não a desfaz, e a decisão sobre emendar a DTEC está com Artur Lins |
+| Requisito que depende de uma pessoa | RQ-004 (leitor de tela): por decisão de 15/10/2026, a rodada com leitor de tela é única e fica para o final do projeto. A T013 (Compose no Docker Desktop) foi verificada por Artur Lins em 15/10/2026 ([registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)) |
+| Teste que só caracteriza um comportamento | Só o limite conhecido da regra de hifenização (`unit/fontes/test_extracao.py::test_limite_conhecido_composto_com_hifen_no_fim_da_linha_tambem_e_juntado`); o problema do PyMuPDF foi resolvido pela emenda da DTEC 029 |
 
 ## Lacunas aceitas antes da implementação
 

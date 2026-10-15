@@ -47,6 +47,21 @@ foi feito, como foi verificado e o que ficou pendente, sem declarar verificado o
 repita o pedido a Artur sobre a T013 e as verificações humanas.
 ```
 
+### Prompt 2
+
+```text
+Registre a emenda da DTEC 027. a hifenização podemos usar um regex simples em python para resolver, logo depois da extração. Co-Authored-By não deve ser usado nem nesse nem em nenhum outro projeto (decisão global). os testes de leitor de tela serão feitos todos ao final do projeto.
+
+$ docker compose up -d --build --wait
+[saída do Docker Desktop colada pelo usuário: imagens plataforma-api:dev e plataforma-web:dev construídas em 273,7 s; contêineres migrate (Exited), api, worker, web e db (Healthy)]
+```
+
+### Prompt 3 (mensagem enviada no meio do trabalho)
+
+```text
+vi aqui que todos os commits estão saindo em nome de claude, esse também é um comportamento indesejado, pois prejudica o git blame
+```
+
 ## Estado de partida
 
 - CI da `develop`: a execução 20 (`3abeda8`) foi cancelada pela execução seguinte; as execuções 21 (`518c414`) e 22 (`710b18f`, cabeça) estão **verdes**. Nada a corrigir.
@@ -54,7 +69,7 @@ repita o pedido a Artur sobre a T013 e as verificações humanas.
 
 ## Saída aceita
 
-A implementação da 002 está **concluída no código**: US3 (T040 a T046) e fase final (T047 a T051) com evidência. Ficam abertas só duas verificações humanas: a **T013** (Compose completo no Docker Desktop) e o **leitor de tela da T048**. Por isso a spec segue em `Implementando`.
+A implementação da 002 está **concluída**: US3 (T040 a T046) e fase final (T047 a T051) com evidência, mais a T013 verificada por Artur Lins no Docker Desktop. O leitor de tela da T048 foi adiado, por decisão de Artur Lins, para uma rodada única no final do projeto. Todas as tarefas têm evidência, e a spec passa a **Convergida**.
 
 | Artefato | Ação |
 |---|---|
@@ -81,6 +96,11 @@ Pendente de revisão.
 - **Vermelho antes do verde:** as suítes novas do backend começaram com 76 falhas (rotas inexistentes) e as de componente com 4 arquivos sem os componentes; as duas correções de cache da lista de matérias nasceram de 2 testes vermelhos.
 - **Mutações verificadas (cada uma derrubou o teste esperado):** sem a trava das fontes antes de contar; sem o recálculo do impacto; sem a conferência do nome digitado; sem o `FOR UPDATE` da matéria (a segunda exclusão paralela passou a dar `409` em vez de `404`).
 
+### Evidência da T013 e da hifenização (continuação, 15/10/2026)
+
+- **T013:** Artur Lins rodou `docker compose up -d --build --wait` no Docker Desktop e colou a saída: imagens construídas, `migrate` terminado e `db`, `api`, `worker` e `web` `Healthy`. O *healthcheck* da `api` exige `200` em `/health/ready`, que grava e apaga um objeto no volume `arquivos`.
+- **Hifenização:** `tests/unit/fontes/test_extracao.py` e `tests/integration/fontes/test_extracao.py::test_hifenizacao_do_pdf_e_desfeita_depois_da_extracao`. Com a função trocada por uma que devolve o texto como veio, 11 testes falham. Backend no host depois da mudança: `ruff` e `mypy` limpos, **1629 passed, 1 skipped**.
+
 ### Evidência da T046 (US3, Chromium real)
 
 API, worker, Vite e PostgreSQL locais; arquivos fictícios gerados por `python -m tests.fabricas_arquivos`; conta e dados criados pela interface. **21 de 21 verificações:** foco no campo ao abrir o renomear e nome atual preenchido; nome em uso recusado junto do campo, com o valor preservado e `aria-invalid`; novo nome normalizado no título e na lista, e foco devolvido ao botão; título da fonte vazio recusado e novo título no painel, que mantém arquivo e trechos; diálogo de exclusão da matéria com «2 fontes», botão desabilitado de início e com a caixa diferente, foco preso em 8 Tab, Escape fecha e devolve o foco, cancelar não exclui e o nome digitado é descartado; confirmação com o nome exato leva à lista, sem a matéria excluída; axe sem violações no formulário com erro, no diálogo aberto e na lista. No banco, nenhuma linha de fonte ou trecho da matéria excluída e, no volume, nenhum arquivo; os logs trazem `materia_excluida` só com `public_id` e contagens.
@@ -97,18 +117,17 @@ PDF fictício de 2 MB (380 páginas, 760 trechos): envio até **Concluído** em 
 
 ## Decisões e divergências a confirmar com Artur Lins
 
-- **Gancho opcional da DTEC 027 (a confirmar):** a DTEC 031 manda travar a matéria e as suas fontes (`FOR UPDATE`, por `id`) antes de recalcular o impacto, mas `materias` não importa `fontes`. Para isso entrou o gancho `travar_para_exclusao_de_materia` (`ParticipanteComTravaDeMateria`), que `RegistroAcervo.travar_materia` chama nos participantes que o têm. É aditivo (participantes sem o método seguem valendo) e não muda contrato nem esquema. **Sugiro registrá-lo como emenda da DTEC 027**; a 003 e a 004 devem implementá-lo nos participantes de cartões e de gerações (a 004, por causa do `FOR SHARE` da DTEC 031).
+- **Gancho opcional da DTEC 027 (decidido em 15/10/2026):** registrado como emenda da DTEC 027 em `docs/research.md`, com a 003, a 004 e a 014 como responsáveis por implementá-lo nos participantes delas.
 - **Participante de `fontes` sem armazenamento:** antes, ignorava os objetos em silêncio (órfãos); agora levanta `RuntimeError`. O armazenamento é entregue no `lifespan` da API.
 - **Ordem das recusas na exclusão da matéria:** primeiro o nome digitado (`422`), depois o impacto (`409`). Um cliente com os dois errados recebe o `422`.
-- **Hifenização (DTEC 029), ainda aberta da sessão anterior:** o PyMuPDF não a desfaz com `TEXT_DEHYPHENATE`; segue só um teste de caracterização. Falta decidir se a DTEC 029 recebe uma emenda.
-- **Sem `Co-Authored-By` nos commits desta sessão:** o pedido de não escrever identificador de modelo em artefatos do repositório vale também para o rodapé dos commits; ficou só o `Claude-Session`. Os commits anteriores têm o rodapé com o identificador.
+- **Hifenização (DTEC 029), decidida em 15/10/2026:** regra simples em Python (`desfazer_hifenizacao`) logo depois da extração do PDF, em vez do `TEXT_DEHYPHENATE` que não funciona; emenda registrada em `specs/002-materias-fontes/research.md`, versão da extração `v2`, commit `f413871`. Limite conhecido e testado: um composto quebrado na linha ("guarda-\nchuva") também é juntado.
+- **Autoria e rodapé dos commits (decisão global de Artur Lins, 15/10/2026):** nenhum `Co-Authored-By`, em nenhum projeto, e os commits saem em nome de quem conduz, não do agente, para o `git blame` mostrar a pessoa. Os 6 commits desta sessão até o `49a5369` e os anteriores saíram com a autoria `Claude <noreply@anthropic.com>` (identidade padrão do ambiente de nuvem); como a regra 14 proíbe reescrever o histórico da `develop`, eles ficam. A partir do `f413871` a identidade do repositório é `Artur Lins <artur.olins@gmail.com>` (configuração local do clone). Sugestão, não aplicada: um `.mailmap` na raiz mapearia `Claude <noreply@anthropic.com>` para Artur Lins na exibição do `git blame` e do `git log`, sem reescrever nada.
 - **Observação sobre logs:** as linhas do Procrastinate (`Starting job fontes.processar_fonte[2](fonte_id=1)`) trazem o `id` interno numérico da fonte; não é conteúdo nem sai pela API, mas é um identificador interno em log.
 - **Cobertura:** `fontes/extracao.py`, `nucleo/isolamento.py` e `worker.py` aparecem baixos (16%, 67% e 0%) porque rodam em subprocessos que a cobertura não acompanha; têm testes de integração que os exercem.
 
 ## Pendências
 
-- **Pedido explícito a Artur Lins (T013):** no Windows, rodar `docker compose up -d --build --wait` com o volume `arquivos`, conferir `/health/ready` em `200` e colar a saída; só então marcar a T013. Aproveite para rodar no Compose o passo a passo da US3 do [quickstart](../specs/002-materias-fontes/quickstart.md#us2-e-us3-verificação-complementar) e os comandos de teste novos.
-- **Verificações humanas:** leitor de tela (T048) na lista de matérias, na página da matéria, no envio e nos dois diálogos; e o teste com usuários, que a 002 não exige mas o CS-001 da 001 (T063) ainda pede.
-- **Decisões:** emenda da DTEC 027 (gancho de trava) e da DTEC 029 (hifenização).
-- **Conferir o CI** da cabeça da `develop` (o último commit é só de documentação).
-- **A 003 não foi iniciada**, como pedido. Quando começar, reexecutar os testes funcionais da US2 e da US3 da 002 com cartões reais (DTEC 027).
+- **Rodada final com leitor de tela (decisão de 15/10/2026):** lista de matérias, página da matéria, envio e os dois diálogos de exclusão da 002, junto com os da 001 (T061).
+- **Teste guiado com três pessoas da 001 (T063)**, que segue aberto.
+- **Autoria dos commits antigos:** decidir se entra um `.mailmap` (ver "Decisões").
+- **Quando a 003 começar:** reexecutar os testes funcionais da US2 e da US3 da 002 com cartões reais e implementar o gancho `travar_para_exclusao_de_materia` no participante dos cartões (DTEC 027, emenda). A 003 não foi iniciada.

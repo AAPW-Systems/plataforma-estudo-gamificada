@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-02 e F-03 (parte do MVP) |
 | Estágio | **MVP** |
-| Status | Implementando |
+| Status | Convergida |
 | Depende de | [001](../001-conta-acesso/README.md) |
 
 ## Ordem de leitura
@@ -35,3 +35,4 @@
 | 13/10/2026 | Propagada a emenda da DTEC 027 (`cartoes_suspensos`), proposta no plano da 003: a lista de matérias conta só os ativos, e o impacto da exclusão soma ativos e suspensos; contrato inalterado ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md)) |
 | 14/10/2026 | Implementação iniciada (Fases 1 e 2, US1 e US2: T001 a T012 e T014 a T039; a T013 é humana) ([registro](../../prompts/2026-10-14-002-materias-fontes-implementacao.md)) |
 | 15/10/2026 | US3 e fase final (T040 a T051) implementadas e verificadas; T013 (Compose no Docker Desktop) e o leitor de tela da T048 seguem abertos; nomes reais dos testes na rastreabilidade ([registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)) |
+| 15/10/2026 | T013 verificada por Artur Lins no Docker Desktop; leitor de tela adiado para a rodada final do projeto (T048); emendas da DTEC 027 (gancho de trava da matéria) e da DTEC 029 (hifenização desfeita, versão `v2`); status **Convergida** ([registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)) |

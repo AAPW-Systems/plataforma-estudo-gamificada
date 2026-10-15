@@ -16,7 +16,7 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | Spec | Estado | Migração | Domínios criados |
 |---|---|---|---|
 | [001](../specs/001-conta-acesso/plan.md) conta e acesso | Implementando | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
-| [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Implementando (código concluído em 15/10/2026; faltam a T013 e o leitor de tela da T048) | `0003_acervo` | `materias`, `fontes` |
+| [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Convergida (15/10/2026; leitor de tela na rodada final do projeto) | `0003_acervo` | `materias`, `fontes` |
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Tarefas aprovadas | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
 | [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
@@ -110,7 +110,7 @@ A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A docu
   - **Idempotência pelo estado:** quando a própria situação já indica o efeito (ex.: suspender ou aceitar de novo responde `200` sem escrita).
   - **Idempotência com chave do cliente:** índice único `(usuario_id, chave)`; mesma chave com conteúdo diferente responde `409` (RN-10).
 - **Exclusão de fonte e matéria (DTEC 027):** cada domínio registra um participante com `contar_por_materia`, `impacto_fonte`, `ao_excluir_fonte(modo)` e `ao_excluir_materia`, todos na transação de quem chama. Os participantes de cartões vêm antes do de `fontes`.
-  - **Gancho opcional (implementação da 002, a confirmar):** `travar_para_exclusao_de_materia` (`ParticipanteComTravaDeMateria`) deixa o participante travar as suas linhas (`FOR UPDATE`, por `id`) antes de a exclusão da matéria recalcular o impacto (DTEC 031). `fontes` o implementa; cartões e gerações, quando existirem, travam as suas. Quem não o tem é ignorado.
+  - **Gancho opcional (emenda de 15/10/2026 da DTEC 027):** `travar_para_exclusao_de_materia` (`ParticipanteComTravaDeMateria`) deixa o participante travar as suas linhas (`FOR UPDATE`, por `id`) antes de a exclusão da matéria recalcular o impacto (DTEC 031). `fontes` o implementa; cartões e gerações, quando existirem, travam as suas. Quem não o tem é ignorado.
   - **Exclusão da matéria:** `FOR UPDATE` na matéria, nome digitado (`422 confirmacao_invalida`), trava das fontes, recálculo (`409 impacto_alterado`), participantes por prioridade e a matéria; `cartoesAtivos` do impacto soma ativos e suspensos.
   - **`ContagensAcervo`:** `fontes`, `cartoes_ativos`, `cartoes_suspensos`, `cartoes_aguardando_revisao`, `cartoes_gerados_aceitos` e `cartoes_referencia`.
 - **Exclusão da conta (DTEC 021):**
@@ -214,9 +214,9 @@ A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A docu
 | 024 | Arquivos não confiáveis em subprocesso com tempo e memória limitados | [research](../research.md#decisão-dtec-024-execução-isolada-do-processamento-de-arquivos-não-confiáveis) |
 | 025 | Objeto antes da linha, compensação e reconciliação periódica | [research](../research.md#decisão-dtec-025-consistência-entre-o-armazenamento-de-objetos-e-o-banco) |
 | 026 | *Polling* condicional de 2 s | [research](../research.md#decisão-dtec-026-acompanhamento-de-processamentos-assíncronos-na-interface) |
-| 027 | Participantes da exclusão de fontes e matérias (emenda: `cartoes_suspensos`) | [research](../research.md#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) |
+| 027 | Participantes da exclusão de fontes e matérias (emendas: `cartoes_suspensos` e gancho opcional de trava da matéria) | [research](../research.md#decisão-dtec-027-participantes-da-exclusão-de-fontes-e-matérias) |
 | 028 | Validação do arquivo no envio, em ordem e com códigos; texto só em UTF-8 | [002](../specs/002-materias-fontes/research.md#decisão-dtec-028-validação-do-arquivo-no-envio) |
-| 029 | Trechos por estrutura: alvo 1.200, máximo 2.000, sobreposição 150; página por trecho | [002](../specs/002-materias-fontes/research.md#decisão-dtec-029-extração-normalização-e-divisão-em-trechos) |
+| 029 | Trechos por estrutura: alvo 1.200, máximo 2.000, sobreposição 150; página por trecho; hifenização do PDF desfeita por regra própria (emenda de 15/10/2026, versão `v2`) | [002](../specs/002-materias-fontes/research.md#decisão-dtec-029-extração-normalização-e-divisão-em-trechos) |
 | 030 | Estados, códigos de falha, novas tentativas e jobs travados | [002](../specs/002-materias-fontes/research.md#decisão-dtec-030-estados-falhas-e-novas-tentativas-do-processamento) |
 | 031 | Impacto confirmado na exclusão; `FOR SHARE` ao publicar a partir de uma fonte | [002](../specs/002-materias-fontes/research.md#decisão-dtec-031-impacto-da-exclusão-sob-concorrência) |
 | 032 | Cotas com *advisory lock* por estudante e índices únicos | [002](../specs/002-materias-fontes/research.md#decisão-dtec-032-cotas-e-duplicatas-sob-concorrência) |

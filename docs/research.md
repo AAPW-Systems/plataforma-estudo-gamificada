@@ -468,6 +468,22 @@ Imagens com limite de **3 MB** (JPEG, PNG ou WebP); fontes com os limites da RN-
 - **Consequências:** o plano e as tarefas da 002 (T005 e T043) passam a citar o campo novo, com registro no histórico da 002. O participante dos cartões (spec 003) preenche `cartoes_ativos` e `cartoes_suspensos` com cartões de qualquer origem; a 004 não os conta de novo.
 - **Condição para revisão:** a mesma da decisão.
 
+**Emenda de 15/10/2026: gancho opcional para travar o que a exclusão da matéria afeta** ([registro](prompts/2026-10-15-002-materias-fontes-implementacao-2.md)). Na implementação da US3 da [spec 002](specs/002-materias-fontes/plan.md), apareceu uma lacuna entre duas decisões aprovadas. A [DTEC 031](specs/002-materias-fontes/research.md#decisão-dtec-031-impacto-da-exclusão-sob-concorrência) manda travar a matéria **e as suas fontes** (`FOR UPDATE`, em ordem de `id`) antes de recalcular o impacto, mas `materias` não importa `fontes` (esta DTEC) e as tabelas de cartões e gerações pertencem a outras specs. Sem travar antes de contar, uma publicação de cartões em andamento (que segura a fonte com `FOR SHARE`, DTEC 031 e 043) poderia mudar o impacto depois da contagem.
+
+- **Alternativas:**
+  1. Um gancho **opcional** no registro: o participante que tiver o método `travar_para_exclusao_de_materia(sessao, usuario_id, materia_id)` (protocolo `ParticipanteComTravaDeMateria`) é chamado por `RegistroAcervo.travar_materia`, em ordem de prioridade, antes da contagem. Quem não o tem é ignorado.
+  2. Um quinto método **obrigatório** em `ParticipanteAcervo`. Obriga todo participante, inclusive os que nada travam, e muda o protocolo que a 003 e a 004 já planejaram.
+  3. O serviço de `materias` travar as fontes por SQL direto. Acopla `materias` à tabela de `fontes` e viola a DTEC 018.
+- **Decisão:** alternativa 1, aprovada por Artur Lins em 15/10/2026. A mudança é aditiva: o contrato, o esquema e o protocolo de quatro operações não mudam.
+- **Consequências:**
+  - `fontes` implementa o gancho e trava as suas linhas por `id`. A matéria é travada pelo serviço de `materias` antes de chamar o registro.
+  - A **003** e a **004** implementam o gancho nos participantes de cartões e de gerações, travando o que a exclusão da matéria vai apagar, em ordem de `id`. Como a prioridade menor roda antes (cartões e gerações antes de `fontes`), a trava deles precede a das fontes; a ordem entre as travas deve ser sempre a mesma, para evitar *deadlock*.
+  - A **014** faz o mesmo para índices e citações, se precisar.
+  - Os participantes falsos de `tests/participantes_falsos.py` não têm o gancho de propósito: provam que quem não o tem é ignorado.
+  - O participante de `fontes` passa a recusar (`RuntimeError`) a exclusão da matéria sem armazenamento entregue, em vez de apagar só as linhas e deixar objetos órfãos.
+- **Testes:** `tests/unit/nucleo/test_participantes_acervo.py` (ordem e participantes sem o gancho) e `tests/adversarial/materias/test_organizar_adversarial.py::test_a_fonte_travada_por_outra_transacao_faz_a_exclusao_esperar_e_recalcular`, que falha sem a trava.
+- **Condição para revisão:** a mesma da decisão.
+
 ## Decisão DTEC 033 Busca sem diferenciar maiúsculas e acentos
 
 **Data:** 13/10/2026 ([registro](prompts/2026-10-13-003-cartoes-manuais-plano.md))  
