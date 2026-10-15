@@ -90,3 +90,24 @@ export const consultaImpactoExclusaoFonte = (fonteId: string, habilitada: boolea
     staleTime: 0,
     gcTime: 0,
   });
+
+/**
+ * O que a exclusão da matéria afeta (US3). Sempre consultado de novo ao abrir o diálogo: o
+ * estudante decide sobre números atuais, e o servidor confere o que ele viu (DTEC 031).
+ */
+export const consultaImpactoExclusaoMateria = (materiaId: string, habilitada: boolean) =>
+  queryOptions({
+    queryKey: [...chaves.materia(materiaId), "impacto-exclusao"] as const,
+    queryFn: async () =>
+      exigir(
+        (
+          await cliente.GET("/api/v1/materias/{materiaId}/impacto-exclusao", {
+            params: { path: { materiaId } },
+          })
+        ).data,
+      ),
+    enabled: habilitada,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+  });

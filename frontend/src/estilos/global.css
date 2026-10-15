@@ -434,4 +434,25 @@
     margin: 0;
     padding-left: calc(var(--spacing) * 5);
   }
+  .cabecalho-materia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+  }
+  .cabecalho-materia h1 {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .cabecalho-materia-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: calc(var(--spacing) * 2);
+  }
+  .renomear-inline {
+    min-width: 0;
+  }
 }

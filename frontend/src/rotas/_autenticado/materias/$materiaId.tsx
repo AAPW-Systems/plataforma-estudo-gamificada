@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { consultaMateria, consultaUsoAcervo } from "../../../api/acervo";
@@ -7,6 +7,7 @@ import { ErroApi } from "../../../api/erros";
 import { Aviso } from "../../../componentes/ui/Aviso";
 import { AcervoFontes } from "../../../funcionalidades/fontes/AcervoFontes";
 import { EnvioFonte } from "../../../funcionalidades/fontes/EnvioFonte";
+import { CabecalhoMateria } from "../../../funcionalidades/materias/CabecalhoMateria";
 
 export const Route = createFileRoute("/_autenticado/materias/$materiaId")({
   component: PaginaMateria,
@@ -21,6 +22,7 @@ function PaginaMateria() {
   const { data: materia, error } = useQuery(consultaMateria(materiaId));
   const { data: uso } = useQuery(consultaUsoAcervo);
   const [confirmacao, definirConfirmacao] = useState<string>();
+  const navegar = useNavigate();
 
   if (error) {
     const naoEncontrada = error instanceof ErroApi && error.status === 404;
@@ -42,7 +44,16 @@ function PaginaMateria() {
       <p>
         <Link to="/materias">← Matérias</Link>
       </p>
-      <h1>{materia?.nome ?? "Carregando a matéria…"}</h1>
+      {materia ? (
+        <CabecalhoMateria
+          materia={materia}
+          aoExcluida={() => {
+            void navegar({ to: "/materias" });
+          }}
+        />
+      ) : (
+        <h1>Carregando a matéria…</h1>
+      )}
       <div className="pagina-materia">
         <div className="pagina-materia-fontes">
           {uso && (

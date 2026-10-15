@@ -5,6 +5,7 @@ import { ErroApi } from "../../api/erros";
 import { Botao } from "../../componentes/ui/Botao";
 import { SeloEstado } from "../../componentes/ui/SeloEstado";
 import { BotaoTentarNovamente } from "./BotaoTentarNovamente";
+import { RenomearFonte } from "./RenomearFonte";
 import { ESTADOS, formatarDataHora, formatarTamanho, rotuloDoTipo } from "./textos";
 
 const SEM_VALOR = "—";
@@ -41,6 +42,7 @@ export function PainelFonte({ fonteId, aoFechar }: { fonteId: string; aoFechar: 
           Fechar
         </Botao>
       </div>
+      <RenomearFonte fonte={fonte} />
       <dl className="dados-fonte">
         <dt>Estado</dt>
         <dd>
