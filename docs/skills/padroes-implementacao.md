@@ -139,3 +139,21 @@ Copie `.env.example` para `.env` e preencha `POSTGRES_PASSWORD` e `SEGREDO_APLIC
 - Endereços: interface em `http://localhost:5173` (o Vite repassa `/api` para a API), API e Swagger UI em `http://localhost:8000` (`/health/ready`, `/api/docs` só em desenvolvimento). O banco não publica porta; use `docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"`.
 - A suíte do backend cria e migra o banco `plataforma_teste` no mesmo Postgres; os testes de contrato leem `docs/specs/NNN/contracts/openapi.yaml` pelo volume `./docs:/docs:ro`.
 - O `worker` precisa carregar as tarefas dos domínios (`carregar_tarefas()` em `app/worker.py`, lista em `nucleo/fila.py`): sem isso ele sobe saudável e não executa nenhuma tarefa de domínio.
+
+### Acervo: matérias, fontes e exclusões (verificado na spec 002)
+
+| O quê | Comando |
+|---|---|
+| Arquivos de teste fictícios (CS-001, CS-002 e adversariais) | `docker compose run --rm --no-deps api uv run --frozen python -m tests.fabricas_arquivos dados/exemplos` (a pasta `/dados/` é ignorada pelo git; nada gerado é versionado) |
+| Só os testes da 002 | `docker compose run --rm --no-deps api uv run --frozen pytest tests -k "materias or fontes or acervo"` (o banco de pé), e `docker compose exec web npm test -- materias fontes` |
+| Contrato da 002 | o teste `tests/integration/test_contrato_openapi.py` compara `docs/specs/002-materias-fontes/contracts/openapi.yaml` com o `backend/openapi.json`; depois de mudar uma rota, rode `python -m app.exportar_openapi` e `npm run gerar:api` e confira que o git não mostra diferença nos arquivos gerados |
+
+- **Onde mora o quê (DTEC 018, 025 e 027).** `materias` não importa `fontes` (o teste de arquitetura vigia). Contagens e exclusão em cascata passam pelo registro de `nucleo/participantes_acervo.py`: cada domínio registra um participante com prioridade (cartões e gerações de 100 a 799, `fontes` em 900). O serviço da exclusão trava a linha, confere o impacto confirmado (`409 impacto_alterado`) e chama os participantes na própria transação; o objeto sai **antes** da linha.
+- **Travar antes de contar.** Quem precisa travar linhas de outro domínio antes de recalcular o impacto implementa o gancho opcional `travar_para_exclusao_de_materia` (`ParticipanteComTravaDeMateria`): `fontes` trava as suas por `id`, e cartões e gerações, quando existirem, travam as deles. Sem o gancho, o participante é ignorado.
+- **Nome ou título em campo único por estudante.** Índice único sobre `lower(nome)` e `IntegrityError` dentro de um *savepoint* (`begin_nested`) traduzido em `409`; nunca confie só na checagem prévia.
+- **Confirmação pelo nome.** O servidor compara depois de NFC e sem espaços nas extremidades, diferenciando a caixa, e responde `422 confirmacao_invalida` com `campos[nomeConfirmacao]`. O botão da interface só habilita com o nome conferido, mas o servidor é a autoridade.
+- **Testes de concorrência da exclusão.** Use `acervo` (conexões reais e worker em processo) e participantes falsos de `tests/participantes_falsos.py`: `atraso_s` alarga a janela da contagem para a segunda requisição chegar durante a primeira. Prove cada defesa por mutação (sem a trava, sem o recálculo, sem a conferência do nome) antes de confiar no teste.
+- **Cobertura e subprocessos.** O PyMuPDF roda em subprocessos (`spawn`), que a cobertura não acompanha: `fontes/extracao.py`, parte de `nucleo/isolamento.py` e `worker.py` aparecem baixos ou em 0%, mas têm testes de integração que os exercem.
+- **Interface: cache depois de renomear ou excluir.** A lista de matérias não está montada na página da matéria; só invalidá-la faz a lista mostrar por um instante o nome velho ou a matéria excluída ao voltar. Quem renomeia grava o item devolvido pelo servidor na consulta e na lista (`setQueryData`); quem exclui tira o item da lista e remove a consulta, e só então invalida.
+- **Interface: renomear no lugar.** `funcionalidades/acervo/RenomearInline.tsx` serve a matéria e a fonte: botão que vira campo, validação no envio, erro do servidor junto do campo com o valor preservado, foco no campo ao abrir e no botão ao fechar, Escape cancela. A exclusão com nome digitado usa o `DialogoConfirmacao` com um `CampoTexto` como filho.
+

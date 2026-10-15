@@ -33,3 +33,5 @@
 | 13/10/2026 | Tarefas (T001 a T051) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-13-002-materias-fontes-plano.md)) |
 | 13/10/2026 | Propagada a emenda da DTEC 027 (`cartoes_suspensos`), proposta no plano da 003: a lista de matérias conta só os ativos, e o impacto da exclusão soma ativos e suspensos; contrato inalterado ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md)) |
+| 14/10/2026 | Implementação iniciada (Fases 1 e 2, US1 e US2: T001 a T012 e T014 a T039; a T013 é humana) ([registro](../../prompts/2026-10-14-002-materias-fontes-implementacao.md)) |
+| 15/10/2026 | US3 e fase final (T040 a T051) implementadas e verificadas; T013 (Compose no Docker Desktop) e o leitor de tela da T048 seguem abertos; nomes reais dos testes na rastreabilidade ([registro](../../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)) |

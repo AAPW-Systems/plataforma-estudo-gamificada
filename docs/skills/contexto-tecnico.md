@@ -2,7 +2,7 @@
 
 Resumo das decisões e convenções já aprovadas, para que um agente comece uma spec nova sem ler todos os planos e `research.md` anteriores. **Este guia não decide nada.** Ele aponta para a fonte, e em caso de divergência a fonte prevalece: a DTEC, o plano aprovado ou o esquema.
 
-**Atualizado em:** 13/10/2026, até o plano da spec 007 ([registro](../prompts/2026-10-13-007-evolucao-plano.md)).
+**Atualizado em:** 15/10/2026, com a implementação da spec 002 ([registro](../prompts/2026-10-15-002-materias-fontes-implementacao-2.md)); os planos seguem até o da spec 007 ([registro](../prompts/2026-10-13-007-evolucao-plano.md)).
 
 ## Como usar
 
@@ -16,7 +16,7 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | Spec | Estado | Migração | Domínios criados |
 |---|---|---|---|
 | [001](../specs/001-conta-acesso/plan.md) conta e acesso | Implementando | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
-| [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Tarefas aprovadas | `0003_acervo` | `materias`, `fontes` |
+| [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Implementando (código concluído em 15/10/2026; faltam a T013 e o leitor de tela da T048) | `0003_acervo` | `materias`, `fontes` |
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Tarefas aprovadas | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
 | [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
@@ -110,6 +110,8 @@ A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A docu
   - **Idempotência pelo estado:** quando a própria situação já indica o efeito (ex.: suspender ou aceitar de novo responde `200` sem escrita).
   - **Idempotência com chave do cliente:** índice único `(usuario_id, chave)`; mesma chave com conteúdo diferente responde `409` (RN-10).
 - **Exclusão de fonte e matéria (DTEC 027):** cada domínio registra um participante com `contar_por_materia`, `impacto_fonte`, `ao_excluir_fonte(modo)` e `ao_excluir_materia`, todos na transação de quem chama. Os participantes de cartões vêm antes do de `fontes`.
+  - **Gancho opcional (implementação da 002, a confirmar):** `travar_para_exclusao_de_materia` (`ParticipanteComTravaDeMateria`) deixa o participante travar as suas linhas (`FOR UPDATE`, por `id`) antes de a exclusão da matéria recalcular o impacto (DTEC 031). `fontes` o implementa; cartões e gerações, quando existirem, travam as suas. Quem não o tem é ignorado.
+  - **Exclusão da matéria:** `FOR UPDATE` na matéria, nome digitado (`422 confirmacao_invalida`), trava das fontes, recálculo (`409 impacto_alterado`), participantes por prioridade e a matéria; `cartoesAtivos` do impacto soma ativos e suspensos.
   - **`ContagensAcervo`:** `fontes`, `cartoes_ativos`, `cartoes_suspensos`, `cartoes_aguardando_revisao`, `cartoes_gerados_aceitos` e `cartoes_referencia`.
 - **Exclusão da conta (DTEC 021):**
   - transação única nas linhas, e depois a tarefa `apagar_objetos_usuario` (prefixo `usuarios/{public_id}/`);

@@ -37,12 +37,17 @@ docker compose run --rm api uv run python -m tests.fabricas_arquivos dados/exemp
 
 ## Testes
 
-Os comandos da 001 valem sem mudança. Para rodar só os testes da 002:
+Os comandos da 001 valem sem mudança (ver [padrões de implementação](../../skills/padroes-implementacao.md#comandos-e-endereços-verificados-na-spec-001)). Para rodar só os testes da 002, com o banco de pé (`docker compose up -d --wait db`):
 
 ```bash
-docker compose run --rm api uv run pytest tests -k "materias or fontes or acervo"
-docker compose run --rm web npm test -- materias fontes
+docker compose run --rm --no-deps api uv run --frozen pytest tests -k "materias or fontes or acervo"
+docker compose exec web npm test -- materias fontes   # com o ambiente de pé
+docker compose run --rm --no-deps web npm test -- materias fontes   # com o web parado
 ```
+
+Cada marcador também roda sozinho (`-m functional`, `-m security`, `-m adversarial`). Os arquivos dos testes da 002 são gerados por `tests/fabricas_arquivos.py`; nada é versionado.
+
+**Verificado fora do Compose.** Nas sessões de implementação, em contêiner de nuvem sem acesso às imagens, a suíte rodou no host (Python 3.13 com `uv`, `UV_PROJECT_ENVIRONMENT` fora do repositório, contra um PostgreSQL local) e o frontend no Node 22 e no Node 24 (o do CI). O CI do GitHub é a verificação nos contêineres.
 
 ## Verificação da história P1
 
@@ -100,9 +105,35 @@ docker compose run --rm web npm test -- materias fontes
 
 ### US2 e US3 (verificação complementar)
 
-- **Exclusão de fonte:** sem a spec 003, as contagens de cartões são zero. Exclua `Citologia` e confira o diálogo: título, caráter definitivo, as duas opções e o foco no diálogo. A fonte some do acervo, e o arquivo some do volume. A verificação com cartões reais é refeita quando a 003 e a 004 forem implementadas (DTEC 027).
-- **Exclusão de matéria:** o botão só é habilitado depois de digitar `Biologia` exatamente. Depois da exclusão, a matéria, as fontes e os arquivos não existem mais.
-- **Renomear:** renomeie a matéria e uma fonte; o novo nome aparece em todas as telas.
+Com a matéria `Biologia` e as fontes `Citologia` e `Resumo` já concluídas:
+
+1. **Exclusão de fonte (US2):** sem a spec 003, as contagens de cartões são zero. Em `Resumo`, escolha **Excluir** e confira o diálogo: título, "Ação definitiva", as duas opções sem nenhuma marcada, o foco preso no diálogo e Escape devolvendo o foco ao botão. Confirme com **Manter os cartões**. **Esperado:** a fonte some do acervo, e o arquivo some do volume. A verificação com cartões reais é refeita quando a 003 e a 004 forem implementadas (DTEC 027).
+2. **Renomear a matéria (US3, cenários 1 e 2):** na página da matéria, escolha **Renomear matéria**. **Esperado:** o campo abre com o nome atual e o foco. Digite `química` (se a matéria `Química` existir) e salve: a recusa aparece junto do campo, com o valor preservado. Digite `  Biologia Celular ` e salve: o título da página e a lista de matérias mostram `Biologia Celular`, sem espaços nas pontas, e o foco volta ao botão.
+3. **Renomear a fonte (US3, cenário 5):** abra `Citologia` e escolha **Renomear fonte**. Salve com o título vazio: "Informe o título da fonte." junto do campo. Salve `Aula 3: organelas`. **Esperado:** o novo título aparece no painel e no acervo; arquivo, tipo, páginas e trechos não mudam.
+4. **Excluir a matéria (US3, cenários 3 e 4):** escolha **Excluir matéria**. **Esperado:** o diálogo mostra o nome, o número de fontes e de cartões (zero até a 003), diz que revisões, XP e sequência permanecem, e o botão **Excluir matéria** só é habilitado depois de digitar o nome exatamente (`biologia celular` não basta: a caixa conta). Cancele ou use Escape: nada muda, e o nome digitado é descartado. Reabra, digite `Biologia Celular` e confirme. **Esperado:** a tela volta à lista de matérias, sem a matéria excluída (nem por um instante), e o volume não guarda mais os arquivos dela:
+
+   ```bash
+   docker compose exec api sh -c 'find /dados/arquivos -type f | wc -l'
+   ```
+
+   O log traz `materia_excluida` com `public_id` e contagens, sem o nome:
+
+   ```bash
+   docker compose logs api | grep materia_excluida
+   ```
+
+## Medições (T049)
+
+Valores medidos em 15/10/2026 no ambiente de nuvem (API, worker e PostgreSQL locais, um PDF fictício de 2 MB com 380 páginas e 760 trechos, gerado por `tests/fabricas_arquivos.py`). No Compose do Docker Desktop, os números devem ser parecidos; repita se o hardware for muito diferente.
+
+| Medida | Meta do plano | Medido |
+|---|---|---|
+| PDF de 2 MB do envio até **Concluído** (CS-003) | até 60 s | cerca de 9 s (10 rodadas, de 8,9 s a 9,2 s) |
+| Tempo da resposta do envio, com a verificação isolada do PDF | 0,2 a 0,5 s de custo do subprocesso | mediana de 251 ms (PDF de 1 MB) e de 262 ms (PDF de 2 MB), máximo de 295 ms, em 8 envios de cada |
+| Pico de memória da extração no `worker` | até 512 MiB por extração | o subprocesso de extração chegou a 114 MiB, e o processo do `worker`, a 130 MiB (somados, cerca de 245 MiB) |
+| Pico de memória da `api` durante o envio | 2 × 256 MiB (teto de cada verificação) | o processo da API ficou em 155 MiB, e o subprocesso da verificação do PDF chegou a 65 MiB |
+
+Como medir de novo: a duração está em `docker compose logs worker | grep processamento_concluido | tail -1` (campo `duracao_ms`); o tempo do envio, no campo `duracaoMs` do log `requisicao` da rota `POST /api/v1/materias/{id}/fontes`; a memória, com `docker stats worker` durante o processamento (o subprocesso de extração vive só alguns segundos, então a amostragem fina lê `/proc/<pid>/status` a cada poucos milissegundos).
 
 ## Falhas conhecidas
 
