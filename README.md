@@ -4,7 +4,7 @@ Plataforma web que funde **repetição espaçada** com uma **trilha visual de pr
 
 Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido com **Spec-Driven Development (SDD)**.
 
-> **Estado (20/10/2026):** o MVP está em implementação, em sequência, uma spec de cada vez. As specs 001 e 002 estão implementadas; a próxima é a 003. O acompanhamento por spec e tarefa está em [Progresso do desenvolvimento](#progresso-do-desenvolvimento).
+> **Estado (20/10/2026):** o MVP está em implementação, em sequência, uma spec de cada vez. A 002 está convergida e a 001 está implementada, faltando só a T063 (teste guiado com três pessoas); a próxima é a 003, com as tarefas aprovadas e ainda sem código. O acompanhamento por spec e tarefa está em [Progresso do desenvolvimento](#progresso-do-desenvolvimento).
 
 ## Equipe
 
