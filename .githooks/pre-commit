@@ -1,0 +1,7 @@
+#!/bin/sh
+# Mantém o progresso do README em dia quando o commit mexe em tasks.md ou no status de uma spec.
+# Ativação (uma vez por clone): git config core.hooksPath .githooks
+if git diff --cached --name-only | grep -qE '^docs/specs/[0-9]{3}-[^/]+/(tasks|README)\.md$'; then
+  PY=$(command -v python3 || command -v python) || { echo "pre-commit: Python não encontrado."; exit 1; }
+  "$PY" scripts/atualizar_readme_progresso.py && git add README.md
+fi

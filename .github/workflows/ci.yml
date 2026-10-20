@@ -16,6 +16,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  readme:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Progresso do README em dia com os tasks.md
+        run: python3 scripts/atualizar_readme_progresso.py --check
   backend:
     runs-on: ubuntu-24.04
     timeout-minutes: 30

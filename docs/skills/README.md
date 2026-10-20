@@ -9,6 +9,7 @@ Instruções reutilizáveis e independentes de ferramenta: servem para Claude, C
 | [`registrar-prompt.md`](registrar-prompt.md) | Em toda sessão com agente que crie ou altere arquivos |
 | [`padroes-implementacao.md`](padroes-implementacao.md) | Ao escrever código de backend, API, processamento ou testes |
 | [`padroes-interface.md`](padroes-interface.md) | Ao criar ou alterar telas e componentes |
+| [`atualizar-readme-progresso.md`](atualizar-readme-progresso.md) | Em todo commit que conclua tarefas de uma spec ou mude o status dela |
 
 ## Regras para os guias
 
