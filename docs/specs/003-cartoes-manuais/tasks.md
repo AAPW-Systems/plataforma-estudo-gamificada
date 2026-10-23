@@ -43,7 +43,7 @@
   - cada `CHECK` recusa a linha inválida;
   - a FK composta impede um cartão numa matéria de outro dono e uma referência a uma fonte de outra matéria ou de outro dono;
   - apagar uma fonte citada falha por `restrict`, e com `fonte_id` nulo a linha continua válida (DTEC 035).
-- [ ] T004 [P] Criar `tests/fabricas_cartoes.py`, com a linha de comando `python -m tests.fabricas_cartoes --email --materia --quantidade`. A linha de comando só roda com `APP_AMBIENTE=desenvolvimento` e só para contas do domínio `exemplo.com` (regra 10). A fábrica gera:
+- [x] T004 [P] Criar `tests/fabricas_cartoes.py`, com a linha de comando `python -m tests.fabricas_cartoes --email --materia --quantidade`. A linha de comando só roda com `APP_AMBIENTE=desenvolvimento` e só para contas do domínio `exemplo.com` (regra 10). A fábrica gera:
   - cartões manuais com e sem referência;
   - cartões `gerado_verificado` inseridos direto (RF-006);
   - cartões suspensos;

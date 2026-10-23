@@ -174,6 +174,16 @@ Arquivos: `backend/migracoes/versions/0004_cartoes.py`, `backend/src/app/cartoes
 
 O job `backend` falhou com **1 failed, 1701 passed, 1 skipped**: `test_env_example_traz_os_limites_de_cartao_com_os_padroes` abria `/.env.example`, que **não existe no contêiner do backend** (só `backend/` e o volume `docs` são montados), embora existisse no clone do host. O job `frontend` passou. Correção: o teste foi retirado (é um teste que depende de arquivo fora do contêiner), e a conferência do `.env.example` fica como verificação manual: um script confirmou as três linhas `CARTAO_FRENTE_MAX=1000`, `CARTAO_VERSO_MAX=2000` e `CARTAO_EXPLICACAO_MAX=1000`. O Compose repassa o `.env` ao `api` por `env_file`, e o CI o cria a partir do `.env.example`, então as variáveis chegam sem outro ajuste. **Lição:** teste que lê arquivo da raiz do repositório só roda no host; o que precisa rodar no CI lê de `/docs` (volume) ou de dentro de `backend/`.
 
+### Rodada 2 (T004 a T015): prompt
+
+```text
+continue com as tasks 4 a 15 da spec 003
+```
+
+### Evidência da T004 (fábrica de cartões)
+
+`backend/tests/fabricas_cartoes.py`: `gerar(n)` determinístico (ciclo de 12 receitas: as três origens, ativos e suspensos, os três estados do FSRS, referência a fonte só em `criado`, acentos, cedilha, variação de caixa, curingas `%` `_` `\`, marcação e script, quebras de linha e emoji), `cartao_ficticio`, `cartao_no_limite`, `cartao_acima_do_limite`, `texto_com_tamanho`, `inserir` e a CLI `python -m tests.fabricas_cartoes --email --materia --quantidade`, que recusa `APP_AMBIENTE` diferente de `desenvolvimento` (saída 2) e e-mail fora de `@exemplo.com` (saída 2, inclusive `@sub.exemplo.com`, `@exemplo.com.br` e `@exemplo.com.evil.com`) **antes** de abrir o banco (o teste troca `criar_engine` por uma função que falha). **Testes (38):** `tests/unit/test_fabricas_cartoes.py` (limites e normalização dos textos, variedade, coerência com o `Card`, CLI) e `tests/integration/cartoes/test_fabrica_insercao.py` (os 120 cartões entram no banco pelos `CHECK` e FKs reais, ordem de criação crescente, limites exatos, CLI semeando e recusando conta/matéria inexistente). **Vermelho antes:** erro de importação (módulo ausente). **Verde depois:** 38 passed; `ruff` e `mypy` limpos. **Mutação:** com a receita da referência trocada para `editado`, 3 testes caem (um unitário e dois de integração, pelo `CHECK` do banco).
+
 ## Pendências
 
 - **T004 a T045** (fábrica de cartões, testes de arquitetura, `CampoTextoLongo` e `SeloOrigem`, histórias US1 a US4 e fase final): não iniciadas nesta rodada, por decisão do pedido ("tasks 1 a 3").
