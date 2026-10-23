@@ -128,7 +128,7 @@ inicie as tasks 1 a 3 da spec 003
 
 ## Saída aceita
 
-Escopo desta rodada: **T001 a T003** concluídas com evidência. A 003 passa a **Implementando**; T004 a T045 seguem pendentes.
+Rodada 1: **T001 a T003** concluídas com evidência; a 003 passou a **Implementando**. Rodada 2: **T004 a T006, T008 a T013 e T015** (pedido: T004 a T015) e, por necessidade do CI, a **T016**; a **T007 fica aberta** (depende de Artur Lins no Compose). T017 em diante seguem pendentes.
 
 | Artefato | Ação |
 |---|---|
@@ -148,7 +148,13 @@ Pendente de revisão.
 
 - **Backend no host, depois da correção do CI:** `ruff format --check`, `ruff check` e `mypy` limpos; **1701 passed e 1 skipped** (permissão de escrita, pulado como superusuário) em duas execuções completas seguidas (303 s e 317 s). Linha de base de partida: 1629.
 - **CI da `develop`:** a execução 26 (`e2bc949`) estava verde na partida; a execução 27 (`9804ec1`, T001 a T003) falhou só pelo teste do `.env.example` (ver "Achado do CI"); a execução **28 (`ab3cce4`, cabeça) passou nos dois jobs**. O commit seguinte, só de documentação, não teve o CI aguardado.
-- **Frontend:** não houve mudança de código; `npm run lint` passa e falha com o arquivo temporário da T002.
+- **Frontend (rodada 1):** não houve mudança de código; `npm run lint` passa e falha com o arquivo temporário da T002.
+
+### Verificação da rodada 2 (T004 a T016)
+
+- **Backend no host:** `ruff format --check`, `ruff check` e `mypy` limpos; **2063 passed e 1 skipped** em duas execuções completas seguidas (418 s e 414 s); linha de base da rodada: 1701.
+- **Frontend:** **234 passed** (Node 22), `eslint`, `tsc` e `prettier --check` limpos; baseline 206. O Node 24 (o do CI) não foi instalado nesta rodada; o job `frontend` do CI roda nele.
+- **CI da `develop`:** a execução **30 (`4ecd02b`, cabeça do código) passou nos dois jobs** (backend: formatação, lint, tipos, 7 min de testes com migrações, contrato OpenAPI e imagem prod; frontend: formatação, lint, tipos, testes, tipos da API e imagem prod). O commit seguinte, só de documentação, não teve o CI aguardado.
 
 
 ### Evidência da T001 (limites dos cartões)
@@ -231,7 +237,9 @@ continue com as tasks 4 a 15 da spec 003
 
 ## Pendências
 
-- **T004 a T045** (fábrica de cartões, testes de arquitetura, `CampoTextoLongo` e `SeloOrigem`, histórias US1 a US4 e fase final): não iniciadas nesta rodada, por decisão do pedido ("tasks 1 a 3").
+- **T017 a T045** (interface da US1, US2, US3, US4 e fase final): não iniciadas; a próxima é a T017 (testes de componente do painel e da lista).
 - **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
 - **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
-- T007 (verificar a base com `docker compose up -d --build --wait`) depende de Artur Lins no Docker Desktop.
+- **T007** (verificar a base com `docker compose up -d --build --wait`, `\dx` com `unaccent` e a migração `0004` aplicada) depende de Artur Lins no Docker Desktop: **pedido novamente**. As histórias seguem sem ela, como previsto.
+- **Reverificações de outras specs (obrigações do plano):** a entrada do cartão novo na lição, o suspenso fora da lição e o reativado com o vencimento anterior são reverificados pela 005 com lições reais; as revisões e o XP preservados, pela 005 e pela 006.
+- **Teste de concorrência da edição durante a revisão (T021)** e os de suspender e excluir seguem para as US2 e US3.

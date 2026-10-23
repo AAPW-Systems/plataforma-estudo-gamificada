@@ -17,7 +17,7 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 |---|---|---|---|
 | [001](../specs/001-conta-acesso/plan.md) conta e acesso | Implementando | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
 | [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Convergida (15/10/2026; leitor de tela na rodada final do projeto) | `0003_acervo` | `materias`, `fontes` |
-| [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Implementando (T001 a T003 prontas em 23/10/2026) | `0004_cartoes` | `cartoes` |
+| [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Implementando (T001 a T006 e T008 a T016 prontas em 23/10/2026) | `0004_cartoes` | `cartoes` |
 | [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
 | [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
 | [006](../specs/006-xp-meta-sequencia/plan.md) XP, meta e sequência | Tarefas aprovadas | `0007_gamificacao` | `gamificacao`; `nucleo/disponibilidade.py`; provedor em `revisao/disponibilidade.py` |
