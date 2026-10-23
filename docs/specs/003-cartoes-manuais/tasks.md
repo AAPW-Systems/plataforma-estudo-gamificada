@@ -18,7 +18,7 @@
 
 ## Fase 1 Preparação
 
-- [ ] T001 Acrescentar os limites dos cartões:
+- [x] T001 Acrescentar os limites dos cartões:
   - **`.env.example`:** `CARTAO_FRENTE_MAX=1000`, `CARTAO_VERSO_MAX=2000` e `CARTAO_EXPLICACAO_MAX=1000` ([plano](plan.md#variáveis-de-ambiente-acréscimos-ao-envexample)).
   - **Configuração:** os campos correspondentes e os tetos (4.000, 8.000 e 4.000) em `app/nucleo/configuracao.py`.
 
