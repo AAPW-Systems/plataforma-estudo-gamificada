@@ -140,7 +140,7 @@ Em andamento.
 
 ### Evidência da T001 (limites dos cartões)
 
-`tests/unit/nucleo/test_configuracao.py` ganhou 15 casos novos (padrões 1000/2000/1000, aceitação de 1 e do teto, recusa de 0, -1 e teto + 1 nos três campos, leitura das variáveis `CARTAO_*` do ambiente e conferência do `.env.example`). **Vermelho antes:** 15 falhas (campos inexistentes). **Verde depois:** 73 passed no arquivo; `ruff format --check`, `ruff check` e `mypy` limpos. Os tetos (4.000, 8.000 e 4.000) ficaram em constantes do módulo (`CARTAO_FRENTE_TETO` etc.) para o DTO, o domínio e o `CHECK` reutilizarem.
+`tests/unit/nucleo/test_configuracao.py` ganhou 14 casos novos (padrões 1000/2000/1000, aceitação de 1 e do teto, recusa de 0, -1 e teto + 1 nos três campos e leitura das variáveis `CARTAO_*` do ambiente). **Vermelho antes:** 15 falhas, contando um 15º teste que lia o `.env.example` e foi retirado depois (ver "Achado do CI"). **Verde depois:** 72 passed no arquivo; `ruff format --check`, `ruff check` e `mypy` limpos. Os tetos (4.000, 8.000 e 4.000) ficaram em constantes do módulo (`CARTAO_FRENTE_TETO` etc.) para o DTO, o domínio e o `CHECK` reutilizarem.
 
 ### Evidência da T002 (regra de lint contra `dangerouslySetInnerHTML`)
 
@@ -152,10 +152,14 @@ Arquivos: `backend/migracoes/versions/0004_cartoes.py`, `backend/src/app/cartoes
 
 - **Testes novos (58):** `tests/integration/cartoes/test_restricoes.py` (57: extensão, padrões do FSRS, `id` sempre gerado pelo banco, tetos de texto em caracteres e não em bytes, obrigatoriedade, dificuldade, cópias da referência, referência só em `criado`, entrada no estudo, enums, FK composta da matéria, FK composta da fonte (outra matéria, outro dono, inexistente), `restrict` ao apagar a fonte citada, `fonte_id` nulo com as cópias, índices) e `test_migracoes.py::test_migracao_0004_dos_cartoes_sobe_e_desce` (sobe, desce até a `0003` sem resíduos de tabela, enums e índice, mantém a extensão e sobe de novo).
 - **Vermelho antes do verde:** 58 falhas com a migração ausente (os 14 que passavam eram os testes antigos de `test_migracoes`).
-- **Verde depois:** 72 passed nos dois arquivos, e `test_modelos_concordam_com_migracao` continua verde (modelo e migração sem diferença). `ruff format --check`, `ruff check` e `mypy` limpos. Suíte completa do backend no host: **1702 passed, 1 skipped** (1629 de partida + 15 da T001 + 58 da T003), 308 s.
+- **Verde depois:** 72 passed nos dois arquivos, e `test_modelos_concordam_com_migracao` continua verde (modelo e migração sem diferença). `ruff format --check`, `ruff check` e `mypy` limpos. Suíte completa do backend no host: **1702 passed, 1 skipped** (1629 de partida + 15 da T001 + 58 da T003, antes de retirar o teste do `.env.example`), 308 s e 300 s em duas execuções seguidas.
 - **Mutações verificadas (cada uma derrubou o teste esperado, migração restaurada depois):** sem o `CHECK` `fonte_id` só com cópias; sem o `CHECK` referência só em `criado`; sem o `CHECK` da entrada no estudo; FK da fonte só por `id` (sem dono e matéria); FK da fonte com `SET NULL` no lugar de `restrict`; FK da matéria só por `id`; teto da frente em 5.000.
 - **Decisão pequena (a confirmar):** a migração inclui o `CHECK` `dificuldade BETWEEN 1 AND 10`, que a descrição da coluna já pedia (data-model) mas a lista de `CHECK` da tarefa não citava. Acrescentei a linha ao `data-model.md` e ao comentário do `esquema-inicial.dbml`; nada mais mudou nos artefatos aprovados.
 - **Não verificado aqui:** o caso de falha "migração sem permissão para `CREATE EXTENSION`" do plano (a `unaccent` é *trusted* no PostgreSQL 13+, e o papel de teste é superusuário); a mensagem vem do próprio PostgreSQL.
+
+### Achado do CI (execução 27, `9804ec1`)
+
+O job `backend` falhou com **1 failed, 1701 passed, 1 skipped**: `test_env_example_traz_os_limites_de_cartao_com_os_padroes` abria `/.env.example`, que **não existe no contêiner do backend** (só `backend/` e o volume `docs` são montados), embora existisse no clone do host. O job `frontend` passou. Correção: o teste foi retirado (é um teste que depende de arquivo fora do contêiner), e a conferência do `.env.example` fica como verificação manual: um script confirmou as três linhas `CARTAO_FRENTE_MAX=1000`, `CARTAO_VERSO_MAX=2000` e `CARTAO_EXPLICACAO_MAX=1000`. O Compose repassa o `.env` ao `api` por `env_file`, e o CI o cria a partir do `.env.example`, então as variáveis chegam sem outro ajuste. **Lição:** teste que lê arquivo da raiz do repositório só roda no host; o que precisa rodar no CI lê de `/docs` (volume) ou de dentro de `backend/`.
 
 ## Pendências
 

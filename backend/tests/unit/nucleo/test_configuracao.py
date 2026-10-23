@@ -247,14 +247,3 @@ def test_limite_de_cartao_vem_do_ambiente(monkeypatch: pytest.MonkeyPatch) -> No
     )
     assert (config.cartao_frente_max, config.cartao_verso_max) == (500, 900)
     assert config.cartao_explicacao_max == 300
-
-
-def test_env_example_traz_os_limites_de_cartao_com_os_padroes() -> None:
-    """O `.env.example` documenta as três variáveis com os valores padrão do plano."""
-    from pathlib import Path
-
-    raiz = Path(__file__).resolve().parents[4]
-    linhas = (raiz / ".env.example").read_text(encoding="utf-8").splitlines()
-    assert "CARTAO_FRENTE_MAX=1000" in linhas
-    assert "CARTAO_VERSO_MAX=2000" in linhas
-    assert "CARTAO_EXPLICACAO_MAX=1000" in linhas
