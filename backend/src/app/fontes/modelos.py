@@ -54,6 +54,8 @@ class Fonte(Base):
         Index("fontes_materia_id_usuario_id_idx", "materia_id", "usuario_id"),
         Index("fontes_conteudo_unico_por_materia", "materia_id", "hash_sha256", unique=True),
         Index("fontes_usuario_id_idx", "usuario_id"),
+        # Alvo da FK composta da referência de um cartão manual (spec 003, DTEC 035).
+        Index("fontes_id_materia_usuario", "id", "materia_id", "usuario_id", unique=True),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)

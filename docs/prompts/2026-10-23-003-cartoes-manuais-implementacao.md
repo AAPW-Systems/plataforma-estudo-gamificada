@@ -146,6 +146,17 @@ Em andamento.
 
 A regra `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` **já estava** em `frontend/eslint.config.js` desde o commit `a236a0e` (001, T057/T058); a T002 não exigiu alteração de código. Verificação executada no host (sem Compose), `npm run lint` com Node 22: o código atual passa (saída limpa); com o arquivo temporário `src/temporario_t002.tsx` contendo `<div dangerouslySetInnerHTML={{ __html: html }} />`, o lint **falha** (`2:15 error dangerouslySetInnerHTML é proibido: exiba o texto como texto puro (DTEC 036)  no-restricted-syntax`, saída 1); removido o arquivo, volta a passar. A forma `docker compose run --rm web npm run lint` do tasks.md não pôde ser usada neste ambiente; o CI roda o mesmo `npm run lint`.
 
+### Evidência da T003 (entidade e migração `0004_cartoes`)
+
+Arquivos: `backend/migracoes/versions/0004_cartoes.py`, `backend/src/app/cartoes/{__init__,modelos}.py` (`Cartao`, `OrigemCartao`, `SituacaoCartao` só com `ativo` e `suspenso`, `EstadoFsrs`), `app/modelos.py` (registro) e o índice único `fontes_id_materia_usuario` também no modelo `Fonte`. A migração cria `unaccent`, os três enums, o índice em `fontes`, a tabela (PK `generated always as identity`, `public_id` com `gen_random_uuid()`, FKs compostas `restrict`, os `CHECK` e os índices `cartoes_devidos`, `cartoes_novos`, `cartoes_materia` e `cartoes_fonte_id_idx`), e a descida remove tudo menos a extensão.
+
+- **Testes novos (58):** `tests/integration/cartoes/test_restricoes.py` (57: extensão, padrões do FSRS, `id` sempre gerado pelo banco, tetos de texto em caracteres e não em bytes, obrigatoriedade, dificuldade, cópias da referência, referência só em `criado`, entrada no estudo, enums, FK composta da matéria, FK composta da fonte (outra matéria, outro dono, inexistente), `restrict` ao apagar a fonte citada, `fonte_id` nulo com as cópias, índices) e `test_migracoes.py::test_migracao_0004_dos_cartoes_sobe_e_desce` (sobe, desce até a `0003` sem resíduos de tabela, enums e índice, mantém a extensão e sobe de novo).
+- **Vermelho antes do verde:** 58 falhas com a migração ausente (os 14 que passavam eram os testes antigos de `test_migracoes`).
+- **Verde depois:** 72 passed nos dois arquivos, e `test_modelos_concordam_com_migracao` continua verde (modelo e migração sem diferença). `ruff format --check`, `ruff check` e `mypy` limpos. Suíte completa do backend no host: **1702 passed, 1 skipped** (1629 de partida + 15 da T001 + 58 da T003), 308 s.
+- **Mutações verificadas (cada uma derrubou o teste esperado, migração restaurada depois):** sem o `CHECK` `fonte_id` só com cópias; sem o `CHECK` referência só em `criado`; sem o `CHECK` da entrada no estudo; FK da fonte só por `id` (sem dono e matéria); FK da fonte com `SET NULL` no lugar de `restrict`; FK da matéria só por `id`; teto da frente em 5.000.
+- **Decisão pequena (a confirmar):** a migração inclui o `CHECK` `dificuldade BETWEEN 1 AND 10`, que a descrição da coluna já pedia (data-model) mas a lista de `CHECK` da tarefa não citava. Acrescentei a linha ao `data-model.md` e ao comentário do `esquema-inicial.dbml`; nada mais mudou nos artefatos aprovados.
+- **Não verificado aqui:** o caso de falha "migração sem permissão para `CREATE EXTENSION`" do plano (a `unaccent` é *trusted* no PostgreSQL 13+, e o papel de teste é superusuário); a mensagem vem do próprio PostgreSQL.
+
 ## Pendências
 
 - T007 (verificar a base com `docker compose up -d --build --wait`) depende de Artur Lins no Docker Desktop.

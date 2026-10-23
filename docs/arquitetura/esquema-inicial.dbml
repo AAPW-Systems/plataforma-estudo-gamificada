@@ -403,7 +403,7 @@ Table cartoes {
   CHECKs (spec 003): frente, verso e explicação dentro dos tetos absolutos (4.000, 8.000 e 4.000
   caracteres; os limites vigentes são configuráveis e menores, D-004); as três cópias da referência
   presentes juntas ou ausentes juntas; fonte_id só com as cópias; referência só com origem = criado;
-  entrada_estudo_em presente se e somente se situação ativo ou suspenso.
+  entrada_estudo_em presente se e somente se situação ativo ou suspenso; dificuldade de 1 a 10.
   CHECKs (spec 004): geracao_id nulo em origem criado; aguardando_revisao e recusado só com origem
   gerado_verificado; motivo_recusa só em recusado; explicação obrigatória em gerado_verificado.
   Selo de verificado e "Fonte apagada" dos gerados são derivados de geracoes.fonte_id (DTEC 045).

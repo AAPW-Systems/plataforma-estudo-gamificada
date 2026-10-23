@@ -74,6 +74,48 @@ def test_migracao_0003_do_acervo_sobe_e_desce(
         executar_alembic("upgrade", "head")
 
 
+def test_migracao_0004_dos_cartoes_sobe_e_desce(
+    configuracao: Configuracao, banco_migrado: None
+) -> None:
+    """T003: a 0004 cria e remove tabela, enums e índice de `fontes`; a extensão fica (DTEC 033)."""
+    try:
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            assert conexao.execute("SELECT to_regclass('cartoes')").fetchone() == ("cartoes",)
+            assert conexao.execute(
+                "SELECT identity_generation FROM information_schema.columns "
+                "WHERE table_schema='public' AND table_name='cartoes' AND column_name='id'"
+            ).fetchone() == ("ALWAYS",)
+            assert conexao.execute(
+                "SELECT count(*) FROM pg_type WHERE typname IN "
+                "('origem_cartao', 'situacao_cartao', 'estado_fsrs')"
+            ).fetchone() == (3,)
+            assert conexao.execute(
+                "SELECT array_agg(enumlabel::text ORDER BY enumsortorder) FROM pg_enum "
+                "WHERE enumtypid = 'situacao_cartao'::regtype"
+            ).fetchone() == (["ativo", "suspenso"],)
+            assert conexao.execute(
+                "SELECT to_regclass('fontes_id_materia_usuario')"
+            ).fetchone() == ("fontes_id_materia_usuario",)
+        executar_alembic("downgrade", "0003")
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            assert conexao.execute("SELECT to_regclass('cartoes')").fetchone() == (None,)
+            assert conexao.execute(
+                "SELECT count(*) FROM pg_type WHERE typname IN "
+                "('origem_cartao', 'situacao_cartao', 'estado_fsrs')"
+            ).fetchone() == (0,)
+            assert conexao.execute(
+                "SELECT to_regclass('fontes_id_materia_usuario')"
+            ).fetchone() == (None,)
+            assert conexao.execute("SELECT to_regclass('fontes')").fetchone() == ("fontes",)
+            # a extensão pode ter outros usos: a descida não a remove
+            assert conexao.execute(
+                "SELECT count(*) FROM pg_extension WHERE extname = 'unaccent'"
+            ).fetchone() == (1,)
+        executar_alembic("upgrade", "head")
+    finally:
+        executar_alembic("upgrade", "head")
+
+
 @pytest.mark.parametrize(
     "campo,valor",
     [

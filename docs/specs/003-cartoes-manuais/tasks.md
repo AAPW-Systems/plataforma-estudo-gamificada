@@ -27,7 +27,7 @@
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
 
-- [ ] T003 Criar a entidade e a migração dos cartões:
+- [x] T003 Criar a entidade e a migração dos cartões:
   - **Entidade:** `app/cartoes/modelos.py` (Cartao), com os enums `OrigemCartao`, `SituacaoCartao` e `EstadoFsrs`.
   - **Migração** `backend/migracoes/versions/0004_cartoes.py`, conforme o [modelo de dados](data-model.md):
     - `CREATE EXTENSION IF NOT EXISTS unaccent` (DTEC 033);
