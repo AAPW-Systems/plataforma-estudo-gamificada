@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-04 (parte manual) |
 | Estágio | **MVP** |
-| Status | Tarefas aprovadas |
+| Status | Implementando |
 | Depende de | [001](../001-conta-acesso/README.md), [002](../002-materias-fontes/README.md) |
 
 ## Ordem de leitura
@@ -33,3 +33,4 @@
 | 13/10/2026 | Tarefas (T001 a T045) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-13-003-cartoes-manuais-plano.md)) |
 | 13/10/2026 | Propagação do plano da 004 ([DTEC 045](../004-geracao-cartoes/research.md#decisão-dtec-045-revisão-dos-cartões-gerados)): nos cartões gerados, `verificado` e "Fonte apagada" passam a ser derivados também da fonte da geração, e o esquema `Cartao` ganha o campo `geracao`. A mudança no mapeador e no repositório da 003 é feita por uma tarefa da 004, sem alterar as tarefas aprovadas da 003 ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
+| 23/10/2026 | Implementação iniciada na `develop`: T001 a T003 (limites, regra de lint e migração `0004_cartoes`) com evidência; T004 em diante pendentes ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)) |

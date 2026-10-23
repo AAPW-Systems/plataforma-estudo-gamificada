@@ -128,7 +128,15 @@ inicie as tasks 1 a 3 da spec 003
 
 ## Saída aceita
 
-Em andamento. Escopo desta rodada: T001 a T003 (Fase 1 e o início da Fase 2); T004 a T007 e as histórias ficam para as próximas rodadas.
+Escopo desta rodada: **T001 a T003** concluídas com evidência. A 003 passa a **Implementando**; T004 a T045 seguem pendentes.
+
+| Artefato | Ação |
+|---|---|
+| `.env.example`, `backend/src/app/nucleo/configuracao.py`, `backend/tests/unit/nucleo/test_configuracao.py` | alterados: `CARTAO_FRENTE_MAX`, `CARTAO_VERSO_MAX`, `CARTAO_EXPLICACAO_MAX` e os tetos (T001) |
+| `frontend/eslint.config.js` | sem alteração: a regra contra `dangerouslySetInnerHTML` já existia; verificação registrada (T002) |
+| `backend/migracoes/versions/0004_cartoes.py`, `backend/src/app/cartoes/{__init__,modelos}.py`, `backend/src/app/{modelos,fontes/modelos}.py` | criados e alterados: migração, entidade e índice único de `fontes` (T003) |
+| `backend/tests/integration/cartoes/test_restricoes.py`, `backend/tests/integration/test_migracoes.py` | criados e alterados: restrições no banco e subida e descida da `0004` (T003) |
+| `docs/specs/003-cartoes-manuais/{tasks,data-model,README}.md`, `docs/specs/README.md`, `docs/arquitetura/esquema-inicial.dbml`, `docs/skills/contexto-tecnico.md`, `.agents/AGENTS.md`, `docs/prompts/README.md` | alterados: T001 a T003 marcadas, `CHECK` da dificuldade, status e índices |
 
 ## Alterações humanas
 
@@ -136,7 +144,12 @@ Pendente de revisão.
 
 ## Verificação
 
-Em andamento.
+**Ambiente da sessão.** Contêiner de nuvem Linux sem Compose utilizável: backend no host (`uv`, Python 3.13) contra o PostgreSQL 16 do sistema, frontend no Node 22. O CI do GitHub é a verificação em contêiner. As evidências por tarefa estão abaixo.
+
+- **Backend no host, depois da correção do CI:** `ruff format --check`, `ruff check` e `mypy` limpos; **1701 passed e 1 skipped** (permissão de escrita, pulado como superusuário) em duas execuções completas seguidas (303 s e 317 s). Linha de base de partida: 1629.
+- **CI da `develop`:** a execução 26 (`e2bc949`) estava verde na partida; a execução 27 (`9804ec1`, T001 a T003) falhou só pelo teste do `.env.example` (ver "Achado do CI"); a execução **28 (`ab3cce4`, cabeça) passou nos dois jobs**. O commit seguinte, só de documentação, não teve o CI aguardado.
+- **Frontend:** não houve mudança de código; `npm run lint` passa e falha com o arquivo temporário da T002.
+
 
 ### Evidência da T001 (limites dos cartões)
 
@@ -163,4 +176,7 @@ O job `backend` falhou com **1 failed, 1701 passed, 1 skipped**: `test_env_examp
 
 ## Pendências
 
+- **T004 a T045** (fábrica de cartões, testes de arquitetura, `CampoTextoLongo` e `SeloOrigem`, histórias US1 a US4 e fase final): não iniciadas nesta rodada, por decisão do pedido ("tasks 1 a 3").
+- **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
+- **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
 - T007 (verificar a base com `docker compose up -d --build --wait`) depende de Artur Lins no Docker Desktop.
