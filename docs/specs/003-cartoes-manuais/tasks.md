@@ -51,7 +51,7 @@
   - textos com acentos, cedilha, maiúsculas, curingas (`%`, `_`, `\`), marcação e script, quebras de linha e emoji.
 
   Teste em `tests/unit/test_fabricas_cartoes.py`: cada cartão gerado respeita os `CHECK` e os limites, e a linha de comando recusa outro ambiente e outro domínio.
-- [ ] T005 [P] Ampliar `tests/arquitetura/test_camadas.py`: `app/materias` e `app/fontes` não importam `app/cartoes`, e `app/cartoes/dominio.py` e `cursor.py` não importam FastAPI nem SQLAlchemy.
+- [x] T005 [P] Ampliar `tests/arquitetura/test_camadas.py`: `app/materias` e `app/fontes` não importam `app/cartoes`, e `app/cartoes/dominio.py` e `cursor.py` não importam FastAPI nem SQLAlchemy.
 - [ ] T006 [P] Criar em `frontend/src/componentes/ui/`, sobre o React Aria (DTEC 016), cada um com teste e `vitest-axe`:
   - `CampoTextoLongo`: `TextArea` com rótulo, erro associado por `aria-describedby`, contador em *code points* (`[...texto.normalize('NFC')].length`) e limite recebido por propriedade (DTEC 036);
   - `SeloOrigem`: "Gerado e verificado", "Editado por você", "Criado por você" e o complemento "Fonte apagada", sempre com texto e ícone (RF-009, RQ-003).
