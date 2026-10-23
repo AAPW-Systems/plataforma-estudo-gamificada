@@ -48,6 +48,20 @@
   .entrada[aria-invalid="true"] {
     border-color: var(--color-error);
   }
+  .entrada-longa {
+    min-height: calc(var(--spacing) * 24);
+    font: inherit;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    resize: vertical;
+  }
+  .contador {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+  .contador[data-excedido="true"] {
+    color: var(--color-error);
+  }
   .botao {
     min-height: calc(var(--spacing) * 11);
     padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
@@ -266,6 +280,21 @@
   }
   .selo-erro {
     color: var(--color-error);
+  }
+  .selos-origem {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+  .selo-origem-verificado {
+    color: var(--color-success);
+  }
+  .selo-origem-editado {
+    color: var(--color-accent);
+  }
+  .selo-origem-criado {
+    color: var(--color-muted);
   }
   .zona-arquivo-bloco {
     display: grid;
