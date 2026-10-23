@@ -87,6 +87,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/cartoes/limites": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Consultar Limites
+     * @description Limites de texto vigentes no ambiente (RF-001, D-004).
+     */
+    get: operations["consultarLimitesCartao"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/fontes/{fonteId}": {
     parameters: {
       query?: never;
@@ -190,6 +210,30 @@ export interface paths {
     head?: never;
     /** Renomear Materia */
     patch: operations["renomearMateria"];
+    trace?: never;
+  };
+  "/api/v1/materias/{materiaId}/cartoes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Listar Cartoes
+     * @description Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.
+     */
+    get: operations["listarCartoes"];
+    put?: never;
+    /**
+     * Criar Cartao
+     * @description Cria um cartão manual na matéria; com `fonteId`, a cita como referência (sem selo).
+     */
+    post: operations["criarCartao"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/materias/{materiaId}/exclusao": {
@@ -348,6 +392,47 @@ export interface components {
       /** Senha */
       senha: string;
     };
+    /** CartaoDTO */
+    Cartao: {
+      /**
+       * Atualizadoem
+       * Format: date-time
+       */
+      atualizadoEm: string;
+      /**
+       * Criadoem
+       * Format: date-time
+       */
+      criadoEm: string;
+      /** Explicacao */
+      explicacao: string | null;
+      /**
+       * Frente
+       * @description Texto puro; quebras de linha como `\n` (RQ-001)
+       */
+      frente: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Materiaid
+       * Format: uuid
+       */
+      materiaId: string;
+      origem: components["schemas"]["OrigemCartao"];
+      /** @description Só em cartões criados pelo estudante que citam uma fonte */
+      referencia: components["schemas"]["ReferenciaFonte"] | null;
+      situacao: components["schemas"]["SituacaoCartao"];
+      /**
+       * Verificado
+       * @description Verdadeiro só com origem `gerado_verificado`; nunca em cartão do estudante
+       */
+      verificado: boolean;
+      /** Verso */
+      verso: string;
+    };
     /**
      * CodigoErro
      * @description Códigos estáveis do contrato. As specs acrescentam; nunca renomeiam nem removem.
@@ -380,7 +465,8 @@ export interface components {
       | "codificacao_invalida"
       | "confirmacao_invalida"
       | "impacto_alterado"
-      | "reprocessamento_indisponivel";
+      | "reprocessamento_indisponivel"
+      | "cursor_invalido";
     /**
      * CodigoFalhaFonte
      * @description Nome do contrato (`CodigoFalhaFonte`); no código, `CodigoFalha` basta.
@@ -422,6 +508,29 @@ export interface components {
       cartoesAtivos: number;
       /** Fontes */
       fontes: number;
+    };
+    /** CriacaoCartaoEntradaDTO */
+    CriacaoCartaoEntrada: {
+      /**
+       * Explicacao
+       * @description Opcional; até `explicacaoMax` caracteres; vazia equivale a ausente
+       */
+      explicacao?: string | null;
+      /**
+       * Fonteid
+       * @description Fonte da mesma matéria, em qualquer estado, citada como referência (RF-002)
+       */
+      fonteId?: string | null;
+      /**
+       * Frente
+       * @description 1 a `frenteMax` caracteres depois da normalização; o teto absoluto é 4.000
+       */
+      frente: string;
+      /**
+       * Verso
+       * @description 1 a `versoMax` caracteres depois da normalização; o teto absoluto é 8.000
+       */
+      verso: string;
     };
     /** EntradaEntradaDTO */
     EntradaEntrada: {
@@ -560,6 +669,32 @@ export interface components {
        */
       nome: string;
     };
+    /** LimitesCartaoDTO */
+    LimitesCartao: {
+      /** Buscamax */
+      buscaMax: number;
+      /** Explicacaomax */
+      explicacaoMax: number;
+      /** Frentemax */
+      frenteMax: number;
+      /** Versomax */
+      versoMax: number;
+    };
+    /** ListaCartoesDTO */
+    ListaCartoes: {
+      /** Itens */
+      itens: components["schemas"]["Cartao"][];
+      /**
+       * Proximocursor
+       * @description Nulo na última página (DTEC 034)
+       */
+      proximoCursor: string | null;
+      /**
+       * Total
+       * @description Cartões que atendem aos filtros, em todas as páginas
+       */
+      total: number;
+    };
     /** ListaFontesDTO */
     ListaFontes: {
       /** Itens */
@@ -607,6 +742,11 @@ export interface components {
      * @enum {string}
      */
     ModoCartoes: "manter" | "excluir";
+    /**
+     * OrigemCartao
+     * @enum {string}
+     */
+    OrigemCartao: "gerado_verificado" | "editado" | "criado";
     /** PerfilDTO */
     Perfil: {
       /**
@@ -659,6 +799,31 @@ export interface components {
       /** Tamanholicao */
       tamanhoLicao?: number | null;
     };
+    /**
+     * ReferenciaFonteDTO
+     * @description Descrição da origem copiada na criação; não muda com a renomeação nem com a exclusão.
+     */
+    ReferenciaFonte: {
+      /**
+       * Enviadaem
+       * Format: date-time
+       */
+      enviadaEm: string;
+      /**
+       * Fonteapagada
+       * @description Exibe "Fonte apagada" junto da descrição (RF-009)
+       */
+      fonteApagada: boolean;
+      /**
+       * Fonteid
+       * @description Nulo depois que a fonte foi excluída
+       */
+      fonteId: string | null;
+      /** Nomearquivo */
+      nomeArquivo: string;
+      /** Titulo */
+      titulo: string;
+    };
     /** RenomeacaoFonteEntradaDTO */
     RenomeacaoFonteEntrada: {
       /** Titulo */
@@ -676,6 +841,11 @@ export interface components {
         [key: string]: "ok" | "falhou";
       } | null;
     };
+    /**
+     * SituacaoCartao
+     * @enum {string}
+     */
+    SituacaoCartao: "ativo" | "suspenso";
     /** TrocaSenhaEntradaDTO */
     TrocaSenhaEntrada: {
       /** Novasenha */
@@ -927,6 +1097,35 @@ export interface operations {
       };
       /** @description Forbidden */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarLimitesCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LimitesCartao"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
         headers: {
           [name: string]: unknown;
         };
@@ -1475,6 +1674,132 @@ export interface operations {
       };
       /** @description Conflict */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  listarCartoes: {
+    parameters: {
+      query?: {
+        /** @description `proximoCursor` da página anterior, com os mesmos filtros */
+        cursor?: string | null;
+        limite?: number;
+      };
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ListaCartoes"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  criarCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` da matéria */
+        materiaId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CriacaoCartaoEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cartao"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
         headers: {
           [name: string]: unknown;
         };

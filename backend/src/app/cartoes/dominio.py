@@ -13,8 +13,11 @@ from datetime import datetime
 
 from fsrs import Card, State
 
-from app.cartoes.modelos import EstadoFsrs, OrigemCartao
+from app.cartoes.modelos import EstadoFsrs, OrigemCartao, SituacaoCartao
 from app.nucleo.texto import tem_caractere_visivel
+
+# As enumerações moram em `modelos`; os DTOs as importam daqui (não importam `modelos`, DTEC 018).
+__all__ = ["EstadoFsrs", "OrigemCartao", "SituacaoCartao"]
 
 BUSCA_MAXIMA = 100  # caracteres do termo de busca (DTEC 033)
 PAGINA_PADRAO = 50  # itens por página quando o `limite` não vem (DTEC 034)

@@ -68,7 +68,7 @@
   - **Estado inicial:** igual ao de `fsrs.Card()` na versão fixada (RF-003, DTEC 037).
   - **Rótulos e derivados:** `verificado` só com `gerado_verificado`; `fonteApagada` com cópias presentes e fonte nula (RF-009).
   - **Cursor:** ida e volta; base64 inválido, adulterado e de filtros diferentes, todos com `cursor_invalido` (DTEC 034).
-- [ ] T009 [P] [US1] Criar os testes de integração em `tests/integration/cartoes/test_repositorio.py` e `tests/integration/cartoes/test_participante.py`:
+- [x] T009 [P] [US1] Criar os testes de integração em `tests/integration/cartoes/test_repositorio.py` e `tests/integration/cartoes/test_participante.py`:
   - **Repositório:** criação com filtro de dono; listagem só de `ativo` e `suspenso`, na ordem `criado_em desc, id desc`; paginação sem repetição nem salto com criação e exclusão entre as páginas; `total` correto.
   - **Referência:** cópia de título, nome e data da fonte; `FOR SHARE` na fonte.
   - **Participante (DTEC 027, emenda e DTEC 038):**
@@ -77,30 +77,30 @@
     - `ao_excluir_fonte` anulando `fonte_id` nos modos `manter` e `excluir`, sem tocar outros cartões;
     - `ao_excluir_materia` apagando os cartões da matéria;
     - `apagar_dados_usuario` apagando todos os cartões do usuário, na ordem anterior às fontes e às matérias.
-- [ ] T010 [P] [US1] Criar os testes funcionais em `tests/functional/cartoes/test_us1_criar.py`:
+- [x] T010 [P] [US1] Criar os testes funcionais em `tests/functional/cartoes/test_us1_criar.py`:
   - cenários 1 a 3 da US1. No cenário 1, o estado gravado é o de cartão novo (`aprendizado`, passo 0, sem última revisão), e `entrada_estudo_em` segue a ordem de criação (RF-003). No cenário 3, sai `verificado = false` com a referência (RF-002);
   - `GET /cartoes/limites` com os valores da configuração;
   - listagem com frente, origem e situação (RF-004) e a matéria sem cartões com `total = 0`;
   - casos de borda: frente, verso ou explicação só com espaços; marcação e script devolvidos literalmente (RQ-001);
   - fonte de referência em `pendente` e em `falhou` aceita (DTEC 035).
-- [ ] T011 [US1] Reexecutar com cartões reais os testes funcionais de exclusão da 002 (DTEC 027):
+- [x] T011 [US1] Reexecutar com cartões reais os testes funcionais de exclusão da 002 (DTEC 027):
   - **Onde:** parametrizar `tests/functional/fontes/test_us2_exclusao_fonte.py` e `tests/functional/materias/test_us3_organizar.py`, criados pela T033 e pela T040 da 002, para rodarem também com o participante real dos cartões, no lugar do participante falso.
   - **Exclusão da fonte:** nos dois modos, os cartões de referência são mantidos, com `fonteApagada = true` e a cópia intacta (D-006, D-009 da 002).
   - **Exclusão da matéria:** o impacto conta ativos e suspensos, e a exclusão os apaga.
   - **Contagens:** CS-004 da 002 com cartões reais, e a lista de matérias mostra só os ativos (emenda da DTEC 027).
-- [ ] T012 [P] [US1] Criar os testes de segurança em `tests/security/cartoes/test_cartoes_seguranca.py`:
+- [x] T012 [P] [US1] Criar os testes de segurança em `tests/security/cartoes/test_cartoes_seguranca.py`:
   - **Tabela de isolamento:** acrescentar a `tests/security/test_isolamento_rotas.py` os casos de `GET` e `POST /materias/{id}/cartoes` (DTEC 019).
   - **Propriedade:** criar cartão em matéria alheia responde `404`; uma fonte de outro estudante, de outra matéria ou inexistente responde `422` em `fonteId`, com a mesma mensagem (DTEC 035).
   - **Logs:** sem frente, verso, explicação nem título da referência, verificados com captura.
   - **Proteções herdadas:** `401` sem sessão e `403` sem CSRF nas rotas novas.
-- [ ] T013 [P] [US1] Criar os testes adversariais em `tests/adversarial/cartoes/test_criar_adversarial.py`:
+- [x] T013 [P] [US1] Criar os testes adversariais em `tests/adversarial/cartoes/test_criar_adversarial.py`:
   - **Entradas:** `<script>`, `<img onerror>`, caracteres bidirecionais e de largura zero devolvidos literalmente; payload no teto mais um (`422` do DTO); corpo acima de 64 KiB (`413` da 001); campos extras (`extra="forbid"`); `fonteId` que não é UUID; `limite` 0 e 101; cursor de outra conta (`422 cursor_invalido`, sem vazar nada).
   - **Concorrência:** criação com referência durante a exclusão da fonte. Ou o cartão nasce antes e fica com "Fonte apagada", ou a criação recebe `422`; nunca há referência a uma fonte inexistente.
 - [x] T014 [US1] Implementar `app/cartoes/dominio.py` (`normalizar_texto_cartao`, `validar_limites`, `estado_inicial`, rótulos e derivados) e `app/cartoes/cursor.py`, até que a T008 passe.
-- [ ] T015 [US1] Implementar a criação e a listagem do domínio `cartoes`, até que as T009 a T013 passem:
+- [x] T015 [US1] Implementar a criação e a listagem do domínio `cartoes`, até que as T009 a T013 passem:
   - **Camadas:** `app/cartoes/excecoes.py`, `repositorios.py` (filtro de dono, `situacoes_visiveis`, paginação, `FOR SHARE` na fonte), `servicos.py` (`limites`, `criar`, `listar`), `dtos.py` (tetos), `mapeadores.py` e `rotas.py` (`GET /cartoes/limites`, `GET` e `POST /materias/{id}/cartoes`, `Location` e `no-store`);
   - **Registros:** `app/cartoes/registros.py`, com o participante da exclusão e o `apagar_dados_usuario`, importado pela composição em `principal.py` e em `worker.py`.
-- [ ] T016 [US1] Ampliar `tests/integration/test_contrato_openapi.py` para verificar também `docs/specs/003-cartoes-manuais/contracts/openapi.yaml`, incluindo `cursor_invalido` no enum de `Erro`. Regenerar e versionar `backend/openapi.json` e rodar `npm run gerar:api` (o teto da busca vai para `limites.gerado.ts`).
+- [x] T016 [US1] Ampliar `tests/integration/test_contrato_openapi.py` para verificar também `docs/specs/003-cartoes-manuais/contracts/openapi.yaml`, incluindo `cursor_invalido` no enum de `Erro`. Regenerar e versionar `backend/openapi.json` e rodar `npm run gerar:api` (o teto da busca vai para `limites.gerado.ts`).
 - [ ] T017 [P] [US1] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`, todos com axe sem violações:
   - **Painel de criação:**
     - abre com o foco na frente;

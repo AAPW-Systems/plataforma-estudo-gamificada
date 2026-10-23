@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import func, select
@@ -11,45 +10,21 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
 from app.cartoes.modelos import Cartao, EstadoFsrs, OrigemCartao, SituacaoCartao
 from app.fontes.modelos import Fonte
-from app.identidade.repositorios import RepositorioUsuarios
-from app.materias.modelos import Materia
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from app.nucleo.configuracao import Configuracao
 from tests import fabricas_cartoes as fab
+from tests.apoio_cartoes import AGORA, semear_estudante, semear_fonte
 
 pytestmark = pytest.mark.integration
 
-AGORA = datetime(2026, 10, 20, 12, 0, tzinfo=UTC)
-
 
 async def _estudante(sessao: AsyncSession, email: str | None = None) -> tuple[int, int]:
-    usuario = await RepositorioUsuarios(sessao).criar(
-        nome="Estudante Teste",
-        email=email or f"fabrica.{uuid.uuid4().hex[:8]}@exemplo.com",
-        senha_hash="hash-ficticio",
-        fuso="America/Recife",
-        agora=AGORA,
-    )
-    materia = Materia(usuario_id=usuario.id, nome="Biologia")
-    sessao.add(materia)
-    await sessao.flush()
+    usuario, materia = await semear_estudante(sessao, email=email)
     return usuario.id, materia.id
 
 
 async def _fonte(sessao: AsyncSession, usuario_id: int, materia_id: int) -> Fonte:
-    fonte = Fonte(
-        usuario_id=usuario_id,
-        materia_id=materia_id,
-        titulo="Citologia",
-        nome_arquivo="citologia.pdf",
-        chave_objeto=f"usuarios/x/fontes/{uuid.uuid4()}",
-        tipo_midia="application/pdf",
-        tamanho_bytes=100,
-        hash_sha256=bytes(32),
-    )
-    sessao.add(fonte)
-    await sessao.flush()
-    return fonte
+    return await semear_fonte(sessao, usuario_id, materia_id)
 
 
 async def test_os_120_cartoes_da_fabrica_respeitam_check_e_fks_do_banco(

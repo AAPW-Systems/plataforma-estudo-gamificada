@@ -18,8 +18,9 @@ import yaml
 RAIZ = Path(__file__).parents[2]
 CONTRATO_001 = RAIZ / "docs" / "specs" / "001-conta-acesso" / "contracts" / "openapi.yaml"
 CONTRATO_002 = RAIZ / "docs" / "specs" / "002-materias-fontes" / "contracts" / "openapi.yaml"
+CONTRATO_003 = RAIZ / "docs" / "specs" / "003-cartoes-manuais" / "contracts" / "openapi.yaml"
 # O enum `Erro.codigo` é cumulativo: o da última spec contém os códigos de todas as anteriores.
-CONTRATOS = (CONTRATO_001, CONTRATO_002)
+CONTRATOS = (CONTRATO_001, CONTRATO_002, CONTRATO_003)
 
 RESTRICOES = (
     "minLength",

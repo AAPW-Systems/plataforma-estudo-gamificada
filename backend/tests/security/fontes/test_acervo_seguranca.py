@@ -105,7 +105,12 @@ async def _sao_identicas(de_outro: httpx.Response, inexistente: httpx.Response) 
 
 def test_a_tabela_de_isolamento_aponta_para_testes_que_existem() -> None:
     modulo = sys.modules[__name__]
-    nomes = [n for chave, n in CASOS_DE_ISOLAMENTO.items() if chave[1].startswith("/api/v1/")]
+    # Os casos dos cartões (spec 003) têm o seu próprio teste em `security/cartoes/`.
+    nomes = [
+        n
+        for chave, n in CASOS_DE_ISOLAMENTO.items()
+        if chave[1].startswith("/api/v1/") and "cartoes" not in chave[1]
+    ]
     for nome in nomes:
         assert callable(getattr(modulo, nome, None)), f"{nome} não existe em {__name__}"
 
