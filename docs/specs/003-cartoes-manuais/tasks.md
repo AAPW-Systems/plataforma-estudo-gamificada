@@ -62,7 +62,7 @@
 **Objetivo:** o estudante cria um cartão com frente, verso, explicação opcional e, se quiser, uma fonte da matéria como referência. O cartão aparece na lista como ativo, com a origem honesta, e fica pronto para entrar nas lições como cartão novo.  
 **Teste independente:** criar um cartão na matéria "Biologia" e confirmar que ele aparece na lista com "Criado por você" e que o estado gravado é o de um cartão novo na ordem de criação (passos 1 a 7 da US1 no [quickstart](quickstart.md)). A entrada numa lição real é reverificada pela 005.
 
-- [ ] T008 [P] [US1] Criar os testes unitários em `tests/unit/cartoes/test_dominio.py` e `tests/unit/cartoes/test_cursor.py`:
+- [x] T008 [P] [US1] Criar os testes unitários em `tests/unit/cartoes/test_dominio.py` e `tests/unit/cartoes/test_cursor.py`:
   - **Normalização:** NFC, `\r\n` e `\r`, controles C0 e C1 removidos (exceto `\n` e `\t`), extremidades, quebras internas preservadas, só espaços vira vazio. Com Hypothesis: idempotência e nenhuma quebra interna perdida (RF-011).
   - **Limites:** 0, 1, máximo e máximo + 1 em *code points*, com emoji e caracteres combinados; explicação vazia vira `None`; uma mensagem por campo (RF-001).
   - **Estado inicial:** igual ao de `fsrs.Card()` na versão fixada (RF-003, DTEC 037).
@@ -96,7 +96,7 @@
 - [ ] T013 [P] [US1] Criar os testes adversariais em `tests/adversarial/cartoes/test_criar_adversarial.py`:
   - **Entradas:** `<script>`, `<img onerror>`, caracteres bidirecionais e de largura zero devolvidos literalmente; payload no teto mais um (`422` do DTO); corpo acima de 64 KiB (`413` da 001); campos extras (`extra="forbid"`); `fonteId` que não é UUID; `limite` 0 e 101; cursor de outra conta (`422 cursor_invalido`, sem vazar nada).
   - **Concorrência:** criação com referência durante a exclusão da fonte. Ou o cartão nasce antes e fica com "Fonte apagada", ou a criação recebe `422`; nunca há referência a uma fonte inexistente.
-- [ ] T014 [US1] Implementar `app/cartoes/dominio.py` (`normalizar_texto_cartao`, `validar_limites`, `estado_inicial`, rótulos e derivados) e `app/cartoes/cursor.py`, até que a T008 passe.
+- [x] T014 [US1] Implementar `app/cartoes/dominio.py` (`normalizar_texto_cartao`, `validar_limites`, `estado_inicial`, rótulos e derivados) e `app/cartoes/cursor.py`, até que a T008 passe.
 - [ ] T015 [US1] Implementar a criação e a listagem do domínio `cartoes`, até que as T009 a T013 passem:
   - **Camadas:** `app/cartoes/excecoes.py`, `repositorios.py` (filtro de dono, `situacoes_visiveis`, paginação, `FOR SHARE` na fonte), `servicos.py` (`limites`, `criar`, `listar`), `dtos.py` (tetos), `mapeadores.py` e `rotas.py` (`GET /cartoes/limites`, `GET` e `POST /materias/{id}/cartoes`, `Location` e `no-store`);
   - **Registros:** `app/cartoes/registros.py`, com o participante da exclusão e o `apagar_dados_usuario`, importado pela composição em `principal.py` e em `worker.py`.
