@@ -142,6 +142,10 @@ Em andamento.
 
 `tests/unit/nucleo/test_configuracao.py` ganhou 15 casos novos (padrões 1000/2000/1000, aceitação de 1 e do teto, recusa de 0, -1 e teto + 1 nos três campos, leitura das variáveis `CARTAO_*` do ambiente e conferência do `.env.example`). **Vermelho antes:** 15 falhas (campos inexistentes). **Verde depois:** 73 passed no arquivo; `ruff format --check`, `ruff check` e `mypy` limpos. Os tetos (4.000, 8.000 e 4.000) ficaram em constantes do módulo (`CARTAO_FRENTE_TETO` etc.) para o DTO, o domínio e o `CHECK` reutilizarem.
 
+### Evidência da T002 (regra de lint contra `dangerouslySetInnerHTML`)
+
+A regra `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` **já estava** em `frontend/eslint.config.js` desde o commit `a236a0e` (001, T057/T058); a T002 não exigiu alteração de código. Verificação executada no host (sem Compose), `npm run lint` com Node 22: o código atual passa (saída limpa); com o arquivo temporário `src/temporario_t002.tsx` contendo `<div dangerouslySetInnerHTML={{ __html: html }} />`, o lint **falha** (`2:15 error dangerouslySetInnerHTML é proibido: exiba o texto como texto puro (DTEC 036)  no-restricted-syntax`, saída 1); removido o arquivo, volta a passar. A forma `docker compose run --rm web npm run lint` do tasks.md não pôde ser usada neste ambiente; o CI roda o mesmo `npm run lint`.
+
 ## Pendências
 
 - T007 (verificar a base com `docker compose up -d --build --wait`) depende de Artur Lins no Docker Desktop.

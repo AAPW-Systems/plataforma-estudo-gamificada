@@ -23,7 +23,7 @@
   - **Configuração:** os campos correspondentes e os tetos (4.000, 8.000 e 4.000) em `app/nucleo/configuracao.py`.
 
   **Testes** em `tests/unit/nucleo/test_configuracao.py`: a aplicação não sobe com limite menor que 1 ou acima do teto, e sobe com os padrões (D-004, DTEC 036).
-- [ ] T002 [P] Acrescentar a `frontend/eslint.config.js` a regra nativa `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` (DTEC 036, RQ-001). **Verificação:** um arquivo temporário com o atributo faz `docker compose run --rm web npm run lint` falhar, e o código atual passa.
+- [x] T002 [P] Acrescentar a `frontend/eslint.config.js` a regra nativa `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` (DTEC 036, RQ-001). **Verificação:** um arquivo temporário com o atributo faz `docker compose run --rm web npm run lint` falhar, e o código atual passa.
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
 
