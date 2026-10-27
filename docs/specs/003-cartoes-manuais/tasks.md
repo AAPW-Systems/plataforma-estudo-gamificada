@@ -101,7 +101,7 @@
   - **Camadas:** `app/cartoes/excecoes.py`, `repositorios.py` (filtro de dono, `situacoes_visiveis`, paginação, `FOR SHARE` na fonte), `servicos.py` (`limites`, `criar`, `listar`), `dtos.py` (tetos), `mapeadores.py` e `rotas.py` (`GET /cartoes/limites`, `GET` e `POST /materias/{id}/cartoes`, `Location` e `no-store`);
   - **Registros:** `app/cartoes/registros.py`, com o participante da exclusão e o `apagar_dados_usuario`, importado pela composição em `principal.py` e em `worker.py`.
 - [x] T016 [US1] Ampliar `tests/integration/test_contrato_openapi.py` para verificar também `docs/specs/003-cartoes-manuais/contracts/openapi.yaml`, incluindo `cursor_invalido` no enum de `Erro`. Regenerar e versionar `backend/openapi.json` e rodar `npm run gerar:api` (o teto da busca vai para `limites.gerado.ts`).
-- [ ] T017 [P] [US1] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`, todos com axe sem violações:
+- [x] T017 [P] [US1] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`, todos com axe sem violações:
   - **Painel de criação:**
     - abre com o foco na frente;
     - `Ctrl/⌘+Enter` aciona "Salvar e criar outro" (painel aberto, vazio, foco na frente), e "Salvar" fecha;
@@ -113,7 +113,7 @@
     - escolha opcional entre as fontes da matéria.
   - **Lista:** `SeloOrigem`, situação, texto com quebras de linha (`pre-wrap`) e marcação exibida literalmente; estado vazio com "Criar o primeiro cartão"; "Carregar mais" com `useInfiniteQuery`.
   - **Erro de rede:** o rascunho é mantido no painel.
-- [ ] T018 [US1] Implementar as telas, até que a T017 passe:
+- [x] T018 [US1] Implementar as telas, até que a T017 passe:
   - a rota `frontend/src/rotas/_autenticado/materias/$materiaId.cartoes.tsx`;
   - a navegação entre "Fontes" e "Cartões" na página da matéria ([design, 9.4](../../base-specs/design.md#94-matéria));
   - o painel de criação, a lista e as consultas e mutações em `frontend/src/funcionalidades/cartoes/`, invalidando a lista de cartões e a de matérias depois de criar.

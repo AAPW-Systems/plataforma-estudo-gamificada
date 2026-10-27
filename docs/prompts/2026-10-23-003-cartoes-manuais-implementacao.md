@@ -257,3 +257,22 @@ continue com as tasks 4 a 15 da spec 003
 - **Atualização:** a `develop` recebeu um merge feito por Artur Lins, que resolveu à mão um conflito no `pull` (`64a5b32`), trazendo o guia e o script do progresso no README (`scripts/atualizar_readme_progresso.py`, hook `.githooks/pre-commit`, job `readme` do CI e a regra nova no `AGENTS.md`). Puxei com `git pull --rebase`, sem conflito local; ativei o hook (`git config core.hooksPath .githooks`) e `python scripts/atualizar_readme_progresso.py --check` passou. Passo a incluir o `README.md` regenerado em todo commit que marcar tarefa.
 - **Evidência da T007:** a saída colada por Artur Lins mostra o `docker compose up -d --build --wait` no Docker Desktop: imagens construídas e `migrate` terminado, com `worker`, `api`, `web` e `db` `Healthy`. No `compose.yaml`, `api` e `worker` dependem do `migrate` com `condition: service_completed_successfully`, então a `0004_cartoes` (que começa por `CREATE EXTENSION IF NOT EXISTS unaccent`) foi aplicada: se a extensão faltasse, a migração falharia e a `api` não subiria. O `\dx` literal do `psql` **não veio na saída colada**; a extensão está provada de forma indireta aqui e, no CI, pelo teste de migração e pelos testes de busca da US4 (a vir). Se Artur Lins quiser a prova direta: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\dx"'`. A integração contínua já estava verde na execução 30.
 - **Resultado:** T007 marcada `[x]`; T001 a T016 prontas. A próxima é a T017.
+
+## Rodada 4 (27/10/2026): T017 a T027
+
+### Prompts
+
+```text
+continue com as tasks 17 a 27 da spec 003
+```
+
+```text
+continue, mudei  o modelo para o opus
+```
+
+### Evidência da T017 e da T018 (interface da US1)
+
+- **Arquivos:** `frontend/src/api/cartoes.ts` (consultas de limites e da lista paginada com `useInfiniteQuery`, criação), `funcionalidades/cartoes/{AbaCartoes,ItemCartao,PainelCartao,esquemas,textos}.ts(x)`, a rota `rotas/_autenticado/materias/$materiaId.cartoes.tsx`, a navegação "Fontes" e "Cartões" em `$materiaId.tsx` (a área Cartões tem endereço próprio e sobrevive ao recarregamento e ao Voltar), estilos em `estilos/global.css` e `routeTree.gen.ts` regenerado. O `Botao` passou a aceitar `ref` (React 19), para o foco ir a "Continuar editando" na pergunta de descarte.
+- **Comportamento:** painel lateral sobre o `Modal` do React Aria, com o foco na frente ao abrir; `Ctrl/⌘+Enter` salva e deixa o painel aberto, vazio e com o foco na frente, anunciando "Cartão criado." numa região viva; "Salvar" fecha e o foco volta ao acionador; `Enter` quebra a linha; `Esc` fecha sem perguntar se nada foi digitado e, com texto, mostra a pergunta "Descartar o que você digitou?" (`alertdialog`); validação no envio com a mesma contagem do servidor (*code points* depois de tirar as pontas) e os limites de `GET /cartoes/limites`; erros do `422` junto do campo (inclusive `fonteId` na escolha da fonte), com os valores mantidos e o foco no primeiro inválido; um único envio enquanto salva; erro de rede mantém o rascunho. A lista mostra frente e verso como texto (`pre-wrap`), o `SeloOrigem`, a situação, a referência com "Fonte apagada", o total, o estado vazio com "Criar o primeiro cartão" e "Carregar mais". Depois de criar, a lista de cartões é invalidada, e a contagem de cartões ativos é gravada no cache da lista de matérias e da matéria (`setQueryData`) antes de a rede responder.
+- **Testes (23):** `PainelCartao.test.tsx` (14), `AbaCartoes.test.tsx` (7) e `AbasMateria.test.tsx` (2), com `vitest-axe` sem violações no painel aberto, com erro, na pergunta de descarte, na lista e na página com as abas. **Vermelho antes:** os dois primeiros arquivos falhavam por módulos ausentes; na primeira implementação, 3 casos falharam (foco depois de "Salvar e criar outro" e dois artefatos do próprio teste), e depois 2 casos de `Esc` falharam porque o `onKeyDown` de um campo do React Aria não deixa o evento subir: o tratador passou a chamar `continuePropagation()` para as teclas que não usa. **Verde depois:** frontend com **257 passed** (234 + 23), `eslint`, `tsc`, `prettier --check` e `vite build` limpos (Node 22).
+

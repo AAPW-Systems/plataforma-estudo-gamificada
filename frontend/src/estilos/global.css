@@ -485,3 +485,81 @@
     min-width: 0;
   }
 }
+
+@layer components {
+  .abas-materia {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+    margin-block: calc(var(--spacing) * 4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .aba-materia {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    border-bottom: 3px solid transparent;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .aba-materia[aria-current="page"] {
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+  }
+  .aba-cartoes {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    min-width: 0;
+  }
+  .cabecalho-secao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 3);
+  }
+  .item-cartao {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-cartao);
+    background: var(--color-surface);
+    min-width: 0;
+  }
+  .texto-cartao {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .item-cartao-frente {
+    font-weight: 600;
+  }
+  .item-cartao-verso {
+    color: var(--color-muted);
+  }
+  .item-cartao-detalhes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+  .modal-painel {
+    margin: 0 0 0 auto;
+    min-height: 100%;
+    max-width: 36rem;
+    border-radius: 0;
+  }
+  .dica-teclado {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+  .confirmacao-descarte {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 3);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--radius-controle);
+  }
+  .confirmacao-descarte p {
+    margin: 0;
+  }
+}

@@ -17,6 +17,7 @@ import { Route as PublicoCadastroRouteImport } from './rotas/_publico/cadastro'
 import { Route as PublicoEntrarRouteImport } from './rotas/_publico/entrar'
 import { Route as AutenticadoMateriasIndexRouteImport } from './rotas/_autenticado/materias/index'
 import { Route as AutenticadoMateriasMateriaIdRouteImport } from './rotas/_autenticado/materias/$materiaId'
+import { Route as AutenticadoMateriasMateriaIdCartoesRouteImport } from './rotas/_autenticado/materias/$materiaId.cartoes'
 import { Route as AutenticadoMateriasMateriaIdFontesFonteIdRouteImport } from './rotas/_autenticado/materias/$materiaId.fontes.$fonteId'
 
 const AutenticadoRoute = AutenticadoRouteImport.update({
@@ -59,6 +60,12 @@ const AutenticadoMateriasMateriaIdRoute =
     path: '/materias/$materiaId',
     getParentRoute: () => AutenticadoRoute,
   } as any)
+const AutenticadoMateriasMateriaIdCartoesRoute =
+  AutenticadoMateriasMateriaIdCartoesRouteImport.update({
+    id: '/cartoes',
+    path: '/cartoes',
+    getParentRoute: () => AutenticadoMateriasMateriaIdRoute,
+  } as any)
 const AutenticadoMateriasMateriaIdFontesFonteIdRoute =
   AutenticadoMateriasMateriaIdFontesFonteIdRouteImport.update({
     id: '/fontes/$fonteId',
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof PublicoEntrarRoute
   '/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
   '/materias/': typeof AutenticadoMateriasIndexRoute
+  '/materias/$materiaId/cartoes': typeof AutenticadoMateriasMateriaIdCartoesRoute
   '/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof PublicoEntrarRoute
   '/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
   '/materias': typeof AutenticadoMateriasIndexRoute
+  '/materias/$materiaId/cartoes': typeof AutenticadoMateriasMateriaIdCartoesRoute
   '/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRoutesById {
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/_autenticado/': typeof AutenticadoIndexRoute
   '/_autenticado/materias/$materiaId': typeof AutenticadoMateriasMateriaIdRouteWithChildren
   '/_autenticado/materias/': typeof AutenticadoMateriasIndexRoute
+  '/_autenticado/materias/$materiaId/cartoes': typeof AutenticadoMateriasMateriaIdCartoesRoute
   '/_autenticado/materias/$materiaId/fontes/$fonteId': typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 export interface FileRouteTypes {
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/materias/$materiaId'
     | '/materias/'
+    | '/materias/$materiaId/cartoes'
     | '/materias/$materiaId/fontes/$fonteId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/materias/$materiaId'
     | '/materias'
+    | '/materias/$materiaId/cartoes'
     | '/materias/$materiaId/fontes/$fonteId'
   id:
     | '__root__'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
     | '/_autenticado/'
     | '/_autenticado/materias/$materiaId'
     | '/_autenticado/materias/'
+    | '/_autenticado/materias/$materiaId/cartoes'
     | '/_autenticado/materias/$materiaId/fontes/$fonteId'
   fileRoutesById: FileRoutesById
 }
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoMateriasMateriaIdRouteImport
       parentRoute: typeof AutenticadoRoute
     }
+    '/_autenticado/materias/$materiaId/cartoes': {
+      id: '/_autenticado/materias/$materiaId/cartoes'
+      path: '/cartoes'
+      fullPath: '/materias/$materiaId/cartoes'
+      preLoaderRoute: typeof AutenticadoMateriasMateriaIdCartoesRouteImport
+      parentRoute: typeof AutenticadoMateriasMateriaIdRoute
+    }
     '/_autenticado/materias/$materiaId/fontes/$fonteId': {
       id: '/_autenticado/materias/$materiaId/fontes/$fonteId'
       path: '/fontes/$fonteId'
@@ -202,11 +222,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AutenticadoMateriasMateriaIdRouteChildren {
+  AutenticadoMateriasMateriaIdCartoesRoute: typeof AutenticadoMateriasMateriaIdCartoesRoute
   AutenticadoMateriasMateriaIdFontesFonteIdRoute: typeof AutenticadoMateriasMateriaIdFontesFonteIdRoute
 }
 
 const AutenticadoMateriasMateriaIdRouteChildren: AutenticadoMateriasMateriaIdRouteChildren =
   {
+    AutenticadoMateriasMateriaIdCartoesRoute:
+      AutenticadoMateriasMateriaIdCartoesRoute,
     AutenticadoMateriasMateriaIdFontesFonteIdRoute:
       AutenticadoMateriasMateriaIdFontesFonteIdRoute,
   }

@@ -1,0 +1,54 @@
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
+
+import { chaves as chavesAcervo } from "./acervo";
+import { cliente } from "./cliente";
+import type { components } from "./esquema.gerado";
+
+export type Cartao = components["schemas"]["Cartao"];
+export type LimitesCartao = components["schemas"]["LimitesCartao"];
+export type ListaCartoes = components["schemas"]["ListaCartoes"];
+export type CriacaoCartao = components["schemas"]["CriacaoCartaoEntrada"];
+
+/** A lista de cartões fica sob a chave da matéria: invalidar a matéria a inclui. */
+export const chavesCartoes = {
+  limites: ["cartoes", "limites"] as const,
+  lista: (materiaId: string) => [...chavesAcervo.materia(materiaId), "cartoes"] as const,
+};
+
+function exigir<T>(dados: T | undefined): T {
+  if (dados === undefined) throw new Error("A API respondeu sem corpo.");
+  return dados;
+}
+
+/** Limites vigentes no ambiente (D-004): a tela nunca fixa números. */
+export const consultaLimitesCartao = queryOptions({
+  queryKey: chavesCartoes.limites,
+  queryFn: async () => exigir((await cliente.GET("/api/v1/cartoes/limites")).data),
+});
+
+/** Páginas da lista, por cursor (DTEC 034); "Carregar mais" pede a próxima. */
+export const consultaCartoes = (materiaId: string) =>
+  infiniteQueryOptions({
+    queryKey: chavesCartoes.lista(materiaId),
+    queryFn: async ({ pageParam }) =>
+      exigir(
+        (
+          await cliente.GET("/api/v1/materias/{materiaId}/cartoes", {
+            params: {
+              path: { materiaId },
+              query: pageParam ? { cursor: pageParam } : {},
+            },
+          })
+        ).data,
+      ),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (pagina) => pagina.proximoCursor ?? undefined,
+  });
+
+export async function criarCartao(materiaId: string, corpo: CriacaoCartao): Promise<Cartao> {
+  const { data } = await cliente.POST("/api/v1/materias/{materiaId}/cartoes", {
+    params: { path: { materiaId } },
+    body: corpo,
+  });
+  return exigir(data);
+}

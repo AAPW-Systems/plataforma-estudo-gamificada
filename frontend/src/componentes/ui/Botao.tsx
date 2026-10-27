@@ -1,8 +1,10 @@
+import type { Ref } from "react";
 import { Button, type ButtonProps } from "react-aria-components";
 
 export interface BotaoProps extends ButtonProps {
   variante?: "primario" | "secundario" | "discreto" | "destrutivo";
   carregando?: boolean;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Botao({

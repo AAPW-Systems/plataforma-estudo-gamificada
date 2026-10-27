@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { consultaMateria, consultaUsoAcervo } from "../../../api/acervo";
@@ -14,8 +14,9 @@ export const Route = createFileRoute("/_autenticado/materias/$materiaId")({
 });
 
 /**
- * Página da matéria (design 9.4 e 9.5): o acervo com o envio e, ao lado, o painel da fonte
- * aberta (rota filha). A área de cartões fica vazia até a spec 003.
+ * Página da matéria (design 9.4 e 9.5), em duas áreas navegáveis por links: "Fontes" (o acervo
+ * com o envio e, ao lado, o painel da fonte aberta, rota filha) e "Cartões" (rota filha própria,
+ * que sobrevive ao recarregamento e ao botão Voltar).
  */
 function PaginaMateria() {
   const { materiaId } = Route.useParams();
@@ -23,6 +24,9 @@ function PaginaMateria() {
   const { data: uso } = useQuery(consultaUsoAcervo);
   const [confirmacao, definirConfirmacao] = useState<string>();
   const navegar = useNavigate();
+  const naAbaCartoes = Boolean(
+    useMatchRoute()({ to: "/materias/$materiaId/cartoes", params: { materiaId } }),
+  );
 
   if (error) {
     const naoEncontrada = error instanceof ErroApi && error.status === 404;
@@ -54,28 +58,45 @@ function PaginaMateria() {
       ) : (
         <h1>Carregando a matéria…</h1>
       )}
-      <div className="pagina-materia">
-        <div className="pagina-materia-fontes">
-          {uso && (
-            <EnvioFonte
-              materiaId={materiaId}
-              uso={uso}
-              aoEnviada={(fonte) => {
-                definirConfirmacao(`Fonte «${fonte.titulo}» enviada.`);
-              }}
-            />
-          )}
-          {confirmacao && <Aviso>{confirmacao}</Aviso>}
-          <AcervoFontes materiaId={materiaId} />
-        </div>
+      <nav aria-label="Áreas da matéria" className="abas-materia">
+        <Link
+          to="/materias/$materiaId"
+          params={{ materiaId }}
+          className="aba-materia"
+          aria-current={naAbaCartoes ? undefined : "page"}
+          activeOptions={{ exact: true }}
+        >
+          Fontes
+        </Link>
+        <Link
+          to="/materias/$materiaId/cartoes"
+          params={{ materiaId }}
+          className="aba-materia"
+          aria-current={naAbaCartoes ? "page" : undefined}
+        >
+          Cartões
+        </Link>
+      </nav>
+      {naAbaCartoes ? (
         <Outlet />
-      </div>
-      <section aria-labelledby="titulo-cartoes" className="secao-perfil">
-        <h2 id="titulo-cartoes">Cartões</h2>
-        <p className="estado-vazio">
-          Os cartões desta matéria aparecem aqui quando você criar ou gerar o primeiro.
-        </p>
-      </section>
+      ) : (
+        <div className="pagina-materia">
+          <div className="pagina-materia-fontes">
+            {uso && (
+              <EnvioFonte
+                materiaId={materiaId}
+                uso={uso}
+                aoEnviada={(fonte) => {
+                  definirConfirmacao(`Fonte «${fonte.titulo}» enviada.`);
+                }}
+              />
+            )}
+            {confirmacao && <Aviso>{confirmacao}</Aviso>}
+            <AcervoFontes materiaId={materiaId} />
+          </div>
+          <Outlet />
+        </div>
+      )}
     </main>
   );
 }
