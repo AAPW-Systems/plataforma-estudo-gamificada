@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -122,3 +123,49 @@ class ServicoCartoes:
                 segredo=self._configuracao.segredo,
             )
         return PaginaCartoes(itens, proximo, total)
+
+    async def consultar(self, usuario_id: int, public_id: UUID) -> LinhaCartao:
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            return await RepositorioCartoes(sessao).buscar(usuario_id, public_id)
+
+    async def editar(
+        self,
+        *,
+        usuario_id: int,
+        usuario_public_id: UUID | str,
+        public_id: UUID,
+        alteracoes: Mapping[str, str | None],
+    ) -> LinhaCartao:
+        """Edita frente, verso ou explicação sem tocar no agendamento (US2; RF-005, RF-006).
+
+        Sem mudança efetiva depois da normalização, nada é gravado: nem `atualizado_em` nem a
+        origem mudam (US2-3). Vale a última gravação entre duas abas (DTEC 037).
+        """
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            repositorio = RepositorioCartoes(sessao)
+            linha = await repositorio.buscar(usuario_id, public_id, para_atualizar=True)
+            cartao = linha.cartao
+            atual = dominio.TextoCartao(cartao.frente, cartao.verso, cartao.explicacao)
+            try:
+                novo = dominio.validar_edicao(atual, alteracoes, self.limites())
+            except TextoInvalido as erro:
+                raise TextoCartaoInvalido(erro.campos) from None
+            mudou = dominio.houve_mudanca(atual, novo)
+            if mudou:
+                origem = dominio.origem_apos_edicao(cartao.origem, mudou=True)
+                origem_mudou = origem is not cartao.origem
+                await repositorio.editar(cartao, novo, origem, self._relogio.agora())
+        if not mudou:
+            logger.info(
+                "cartao_edicao_sem_mudanca",
+                cartao_public_id=str(cartao.public_id),
+                usuario_public_id=str(usuario_public_id),
+            )
+        else:
+            logger.info(
+                "cartao_editado",
+                cartao_public_id=str(cartao.public_id),
+                usuario_public_id=str(usuario_public_id),
+                origem_mudou=origem_mudou,
+            )
+        return linha

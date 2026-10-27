@@ -107,6 +107,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/cartoes/{cartaoId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Consultar Cartao
+     * @description Dados de um cartão ativo ou suspenso.
+     */
+    get: operations["consultarCartao"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Editar Cartao
+     * @description Edita frente, verso ou explicação, sem mudar o agendamento (US2; RF-005, RF-006).
+     */
+    patch: operations["editarCartao"];
+    trace?: never;
+  };
   "/api/v1/fontes/{fonteId}": {
     parameters: {
       query?: never;
@@ -531,6 +555,21 @@ export interface components {
        * @description 1 a `versoMax` caracteres depois da normalização; o teto absoluto é 8.000
        */
       verso: string;
+    };
+    /**
+     * EdicaoCartaoEntradaDTO
+     * @description Campos ausentes não mudam; `explicacao` nula ou vazia remove a explicação (US2).
+     */
+    EdicaoCartaoEntrada: {
+      /**
+       * Explicacao
+       * @description `null` ou vazia remove a explicação
+       */
+      explicacao?: string | null;
+      /** Frente */
+      frente?: string;
+      /** Verso */
+      verso?: string;
     };
     /** EntradaEntradaDTO */
     EntradaEntrada: {
@@ -1126,6 +1165,128 @@ export interface operations {
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  consultarCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` do cartão */
+        cartaoId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cartao"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  editarCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` do cartão */
+        cartaoId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EdicaoCartaoEntrada"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cartao"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
         headers: {
           [name: string]: unknown;
         };

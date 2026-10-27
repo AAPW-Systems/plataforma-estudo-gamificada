@@ -279,6 +279,38 @@
         "title": "CriacaoCartaoEntradaDTO",
         "type": "object"
       },
+      "EdicaoCartaoEntrada": {
+        "additionalProperties": false,
+        "description": "Campos ausentes não mudam; `explicacao` nula ou vazia remove a explicação (US2).",
+        "minProperties": 1,
+        "properties": {
+          "explicacao": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`null` ou vazia remove a explicação",
+            "title": "Explicacao"
+          },
+          "frente": {
+            "maxLength": 4000,
+            "title": "Frente",
+            "type": "string"
+          },
+          "verso": {
+            "maxLength": 8000,
+            "title": "Verso",
+            "type": "string"
+          }
+        },
+        "title": "EdicaoCartaoEntradaDTO",
+        "type": "object"
+      },
       "EntradaEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -1452,6 +1484,166 @@
           }
         },
         "summary": "Consultar Limites",
+        "tags": [
+          "cartoes"
+        ]
+      }
+    },
+    "/api/v1/cartoes/{cartaoId}": {
+      "get": {
+        "description": "Dados de um cartão ativo ou suspenso.",
+        "operationId": "consultarCartao",
+        "parameters": [
+          {
+            "description": "`public_id` do cartão",
+            "in": "path",
+            "name": "cartaoId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` do cartão",
+              "format": "uuid",
+              "title": "Cartaoid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Cartao",
+        "tags": [
+          "cartoes"
+        ]
+      },
+      "patch": {
+        "description": "Edita frente, verso ou explicação, sem mudar o agendamento (US2; RF-005, RF-006).",
+        "operationId": "editarCartao",
+        "parameters": [
+          {
+            "description": "`public_id` do cartão",
+            "in": "path",
+            "name": "cartaoId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` do cartão",
+              "format": "uuid",
+              "title": "Cartaoid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdicaoCartaoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Editar Cartao",
         "tags": [
           "cartoes"
         ]

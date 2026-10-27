@@ -20,6 +20,10 @@ export const limites = {
     frente: { maxLength: 4000 },
     verso: { maxLength: 8000 },
   },
+  EdicaoCartaoEntrada: {
+    frente: { maxLength: 4000 },
+    verso: { maxLength: 8000 },
+  },
   EntradaEntrada: {
     email: { maxLength: 254 },
     senha: { maxLength: 128, minLength: 1 },

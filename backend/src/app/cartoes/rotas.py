@@ -12,6 +12,7 @@ from app.cartoes.dominio import PAGINA_MAXIMA, PAGINA_PADRAO
 from app.cartoes.dtos import (
     CartaoDTO,
     CriacaoCartaoEntradaDTO,
+    EdicaoCartaoEntradaDTO,
     LimitesCartaoDTO,
     ListaCartoesDTO,
 )
@@ -24,6 +25,7 @@ roteador = APIRouter(prefix="/api/v1", tags=["cartoes"])
 _ERRO: dict[str, Any] = {"model": ErroDTO}
 # O caminho público é camelCase (`{materiaId}`), como no contrato; o parâmetro Python, snake_case.
 MateriaId = Annotated[UUID, Path(alias="materiaId", description="`public_id` da matéria")]
+CartaoId = Annotated[UUID, Path(alias="cartaoId", description="`public_id` do cartão")]
 _RESPOSTAS_CSRF: dict[int | str, dict[str, Any]] = {400: _ERRO, 403: _ERRO}
 
 
@@ -80,4 +82,32 @@ async def criar_cartao(
         fonte_public_id=entrada.fonte_id,
     )
     resposta.headers["Location"] = f"/api/v1/cartoes/{linha.cartao.public_id}"
+    return cartao_para_dto(linha)
+
+
+@roteador.get(
+    "/cartoes/{cartaoId}",
+    operation_id="consultarCartao",
+    responses={401: _ERRO, 404: _ERRO},
+)
+async def consultar_cartao(cartao_id: CartaoId, atual: UsuarioAtual, servico: Servico) -> CartaoDTO:
+    """Dados de um cartão ativo ou suspenso."""
+    return cartao_para_dto(await servico.consultar(atual.usuario.id, cartao_id))
+
+
+@roteador.patch(
+    "/cartoes/{cartaoId}",
+    operation_id="editarCartao",
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO, 422: _ERRO},
+)
+async def editar_cartao(
+    cartao_id: CartaoId, entrada: EdicaoCartaoEntradaDTO, atual: UsuarioAtual, servico: Servico
+) -> CartaoDTO:
+    """Edita frente, verso ou explicação, sem mudar o agendamento (US2; RF-005, RF-006)."""
+    linha = await servico.editar(
+        usuario_id=atual.usuario.id,
+        usuario_public_id=atual.usuario.public_id,
+        public_id=cartao_id,
+        alteracoes=entrada.alteracoes(),
+    )
     return cartao_para_dto(linha)

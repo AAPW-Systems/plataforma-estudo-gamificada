@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, func, select, tuple_
+from sqlalchemy import ColumnElement, Select, func, select, tuple_, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -126,6 +126,55 @@ class RepositorioCartoes:
         return cartao
 
     @staticmethod
+    def _com_identificadores() -> Select[Cartao, UUID, UUID]:
+        return (
+            select(Cartao, Materia.public_id, Fonte.public_id)
+            .join(Materia, Materia.id == Cartao.materia_id)
+            .outerjoin(Fonte, Fonte.id == Cartao.fonte_id)
+        )
+
+    async def buscar(
+        self, usuario_id: int, public_id: UUID, *, para_atualizar: bool = False
+    ) -> LinhaCartao:
+        """O cartão do estudante numa situação visível, ou `404` idêntico ao de inexistente.
+
+        Cartão de outro estudante, inexistente, aguardando revisão ou recusado (004) dão a mesma
+        resposta (DTEC 019 e 038). `para_atualizar` trava só a linha do cartão (`FOR UPDATE OF`).
+        """
+        consulta = self._com_identificadores().where(
+            Cartao.public_id == public_id,
+            Cartao.usuario_id == usuario_id,
+            Cartao.situacao.in_(SITUACOES_VISIVEIS),
+        )
+        if para_atualizar:
+            consulta = consulta.with_for_update(of=Cartao)
+        linha = (await self._sessao.execute(consulta)).one_or_none()
+        if linha is None:
+            raise RecursoNaoEncontrado()
+        cartao, materia_public_id, fonte_public_id = linha
+        return LinhaCartao(cartao, materia_public_id, fonte_public_id)
+
+    async def editar(
+        self, cartao: Cartao, texto: TextoCartao, origem: OrigemCartao, agora: datetime
+    ) -> None:
+        """Um único `UPDATE` só do conteúdo, da origem e de `atualizado_em` (DTEC 037).
+
+        As colunas do FSRS nunca aparecem aqui: a revisão (005) as escreve, e as duas escritas
+        não se cruzam, mesmo em paralelo (CS-002).
+        """
+        await self._sessao.execute(
+            update(Cartao)
+            .where(Cartao.id == cartao.id, Cartao.usuario_id == cartao.usuario_id)
+            .values(
+                frente=texto.frente,
+                verso=texto.verso,
+                explicacao=texto.explicacao,
+                origem=origem,
+                atualizado_em=agora,
+            )
+        )
+
+    @staticmethod
     def _filtro(usuario_id: int, materia_id: int) -> tuple[ColumnElement[bool], ...]:
         return (
             Cartao.usuario_id == usuario_id,
@@ -154,9 +203,7 @@ class RepositorioCartoes:
         mais para saber se há próxima página.
         """
         consulta = (
-            select(Cartao, Materia.public_id, Fonte.public_id)
-            .join(Materia, Materia.id == Cartao.materia_id)
-            .outerjoin(Fonte, Fonte.id == Cartao.fonte_id)
+            self._com_identificadores()
             .where(*self._filtro(usuario_id, materia_id))
             .order_by(Cartao.criado_em.desc(), Cartao.id.desc())
             .limit(limite + 1)

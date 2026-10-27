@@ -31,13 +31,11 @@ pytestmark = pytest.mark.integration
 # (método, caminho) -> tarefa que entrega a rota (o contrato da 003 chega por histórias; os da 001
 # e da 002 estão completos).
 OPERACOES_PENDENTES: dict[tuple[str, str], str] = {
-    ("get", "/api/v1/cartoes/{cartaoId}"): "T024 (US2)",
-    ("patch", "/api/v1/cartoes/{cartaoId}"): "T024 (US2)",
     ("delete", "/api/v1/cartoes/{cartaoId}"): "T030 (US3)",
     ("post", "/api/v1/cartoes/{cartaoId}/suspensao"): "T030 (US3)",
     ("post", "/api/v1/cartoes/{cartaoId}/reativacao"): "T030 (US3)",
 }
-ESQUEMAS_PENDENTES: dict[str, str] = {"EdicaoCartaoEntrada": "T024 (US2)"}
+ESQUEMAS_PENDENTES: dict[str, str] = {}
 RAIZ_BACKEND = Path(__file__).parents[2]
 
 

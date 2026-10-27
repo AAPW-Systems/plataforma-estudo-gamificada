@@ -100,3 +100,47 @@ def ajustar_limites_cartoes(aplicacao: Any, **alteracoes: Any) -> None:
     nova = aplicacao.state.configuracao.model_copy(update=alteracoes)
     aplicacao.state.cartoes._configuracao = nova
     aplicacao.state.configuracao = nova
+
+
+async def semear_na_materia(
+    fabrica: FabricaSessoes, materia_public_id: str, itens: Any
+) -> list[str]:
+    """Insere cartões da fábrica (`CartaoFicticio`) na matéria de quem a criou pela API.
+
+    Serve para o que a API da 003 não cria: cartões `gerado_verificado` (só a 004 os cria) e
+    cartões já revisados, em estados do FSRS diferentes do novo.
+    """
+    from tests.fabricas_cartoes import inserir
+
+    async with unidade_de_trabalho(fabrica) as sessao:
+        materia = (
+            await sessao.execute(
+                select(Materia).where(Materia.public_id == uuid.UUID(materia_public_id))
+            )
+        ).scalar_one()
+        cartoes = await inserir(
+            sessao,
+            usuario_id=materia.usuario_id,
+            materia_id=materia.id,
+            itens=list(itens),
+            agora=AGORA,
+        )
+        return [str(c.public_id) for c in cartoes]
+
+
+async def estado_fsrs(fabrica: FabricaSessoes, cartao_public_id: str) -> tuple[Any, ...]:
+    """As seis colunas do FSRS do cartão, para conferir que não mudaram (CS-002)."""
+    async with unidade_de_trabalho(fabrica) as sessao:
+        cartao = (
+            await sessao.execute(
+                select(Cartao).where(Cartao.public_id == uuid.UUID(cartao_public_id))
+            )
+        ).scalar_one()
+        return (
+            cartao.estado_fsrs,
+            cartao.passo,
+            cartao.estabilidade,
+            cartao.dificuldade,
+            cartao.vencimento,
+            cartao.ultima_revisao,
+        )

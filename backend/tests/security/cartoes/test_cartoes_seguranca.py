@@ -6,9 +6,10 @@ logs (data-model, "Privacidade"), com duas contas reais.
 
 from __future__ import annotations
 
+import importlib
 import io
 import logging
-import sys
+import pkgutil
 import uuid
 from collections.abc import AsyncIterator, Iterator
 
@@ -85,11 +86,19 @@ async def _sao_identicas(de_outro: httpx.Response, inexistente: httpx.Response) 
 
 
 def test_a_tabela_de_isolamento_aponta_para_testes_que_existem() -> None:
-    modulo = sys.modules[__name__]
+    """Os casos das rotas de cartões ficam nos módulos de `tests/security/cartoes/`."""
+    import tests.security.cartoes as pacote
+
+    modulos = [
+        importlib.import_module(f"{pacote.__name__}.{info.name}")
+        for info in pkgutil.iter_modules(pacote.__path__)
+    ]
     nomes = [n for chave, n in CASOS_DE_ISOLAMENTO.items() if "/cartoes" in chave[1]]
     assert nomes, "nenhuma rota de cartões na tabela de isolamento"
     for nome in nomes:
-        assert callable(getattr(modulo, nome, None)), f"{nome} não existe em {__name__}"
+        assert any(callable(getattr(m, nome, None)) for m in modulos), (
+            f"{nome} não existe em tests/security/cartoes/"
+        )
 
 
 async def test_lista_de_cartoes_de_outro_e_404(

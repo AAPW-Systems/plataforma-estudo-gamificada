@@ -8,6 +8,7 @@ biblioteca (RN-26, DTEC 037).
 from __future__ import annotations
 
 import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -23,6 +24,7 @@ BUSCA_MAXIMA = 100  # caracteres do termo de busca (DTEC 033)
 PAGINA_PADRAO = 50  # itens por página quando o `limite` não vem (DTEC 034)
 PAGINA_MAXIMA = 100
 ROTULO_FONTE_APAGADA = "Fonte apagada"
+_CAMPOS_DE_TEXTO = frozenset({"frente", "verso", "explicacao"})
 
 _ROTULOS_ORIGEM = {
     OrigemCartao.GERADO_VERIFICADO: "Gerado e verificado",
@@ -93,6 +95,34 @@ def _visivel(texto: str) -> str:
     return texto if tem_caractere_visivel(texto) else ""
 
 
+def _validar_campo(campo: str, valor: str | None, limites: LimitesTexto) -> str | None:
+    """O texto normalizado do campo, ou `TextoInvalido` com a mensagem dele."""
+    texto = _visivel(normalizar_texto_cartao(valor or ""))
+    if campo == "explicacao":
+        if len(texto) > limites.explicacao:
+            raise TextoInvalido({campo: f"Use até {_milhares(limites.explicacao)} caracteres."})
+        return texto or None
+    maximo = {"frente": limites.frente, "verso": limites.verso}[campo]
+    if not 1 <= len(texto) <= maximo:
+        raise TextoInvalido({campo: f"Use de 1 a {_milhares(maximo)} caracteres."})
+    return texto
+
+
+def _validar_campos(
+    valores: Mapping[str, str | None], limites: LimitesTexto
+) -> dict[str, str | None]:
+    erros: dict[str, str] = {}
+    normalizados: dict[str, str | None] = {}
+    for campo, valor in valores.items():
+        try:
+            normalizados[campo] = _validar_campo(campo, valor, limites)
+        except TextoInvalido as erro:
+            erros.update(erro.campos)
+    if erros:
+        raise TextoInvalido(erros)
+    return normalizados
+
+
 def validar_limites(
     frente: str, verso: str, explicacao: str | None, limites: LimitesTexto
 ) -> TextoCartao:
@@ -101,22 +131,47 @@ def validar_limites(
     Frente e verso têm de ter de 1 a seu limite; a explicação é opcional, e vazia vira `None`.
     A contagem é em code points, depois da normalização, igual à da interface.
     """
-    erros: dict[str, str] = {}
-    normalizados: dict[str, str] = {}
-    for campo, valor, maximo in (
-        ("frente", frente, limites.frente),
-        ("verso", verso, limites.verso),
-    ):
-        texto = _visivel(normalizar_texto_cartao(valor))
-        if not 1 <= len(texto) <= maximo:
-            erros[campo] = f"Use de 1 a {_milhares(maximo)} caracteres."
-        normalizados[campo] = texto
-    complemento = _visivel(normalizar_texto_cartao(explicacao or ""))
-    if len(complemento) > limites.explicacao:
-        erros["explicacao"] = f"Use até {_milhares(limites.explicacao)} caracteres."
-    if erros:
-        raise TextoInvalido(erros)
-    return TextoCartao(normalizados["frente"], normalizados["verso"], complemento or None)
+    textos = _validar_campos({"frente": frente, "verso": verso, "explicacao": explicacao}, limites)
+    return TextoCartao(str(textos["frente"]), str(textos["verso"]), textos["explicacao"])
+
+
+def validar_edicao(
+    atual: TextoCartao, alteracoes: Mapping[str, str | None], limites: LimitesTexto
+) -> TextoCartao:
+    """O texto depois da edição parcial: só os campos enviados são normalizados e conferidos.
+
+    Um campo ausente fica como está, mesmo que um limite configurado depois seja menor que ele
+    (D-004). `explicacao` nula ou vazia remove a explicação. Campo fora dos três é erro de
+    programação (`KeyError`): o DTO já recusa campos extras.
+    """
+    for campo in alteracoes:
+        if campo not in _CAMPOS_DE_TEXTO:
+            raise KeyError(campo)
+    textos = _validar_campos(alteracoes, limites)
+    return TextoCartao(
+        frente=str(textos.get("frente", atual.frente)),
+        verso=str(textos.get("verso", atual.verso)),
+        explicacao=textos["explicacao"] if "explicacao" in textos else atual.explicacao,
+    )
+
+
+def houve_mudanca(atual: TextoCartao, novo: TextoCartao) -> bool:
+    """Mudança efetiva, comparando os textos já normalizados (US2-3).
+
+    Espaços nas pontas, `\r\n` no lugar de `\n` e explicação vazia no lugar de nula não são
+    mudança; maiúsculas e minúsculas são (o estudante quis mudar).
+    """
+    return atual != novo
+
+
+def origem_apos_edicao(origem: OrigemCartao, *, mudou: bool) -> OrigemCartao:
+    """`gerado_verificado` com mudança efetiva vira `editado` e perde o selo (RF-006, DTEC 038).
+
+    `editado` e `criado` não mudam, e a origem nunca volta a `gerado_verificado`.
+    """
+    if mudou and origem is OrigemCartao.GERADO_VERIFICADO:
+        return OrigemCartao.EDITADO
+    return origem
 
 
 # --- Estado de agendamento (RF-003, DTEC 037) ----------------------------------------------------

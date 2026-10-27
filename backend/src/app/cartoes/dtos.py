@@ -9,11 +9,12 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import ConfigDict, Field, field_validator
 
 from app.cartoes.dominio import BUSCA_MAXIMA, OrigemCartao, SituacaoCartao
 from app.nucleo.configuracao import CARTAO_EXPLICACAO_TETO, CARTAO_FRENTE_TETO, CARTAO_VERSO_TETO
 from app.nucleo.dtos import EntradaDTO, ModeloDTO
+from app.nucleo.erros import EntradaInvalida
 
 
 class CriacaoCartaoEntradaDTO(EntradaDTO):
@@ -34,6 +35,38 @@ class CriacaoCartaoEntradaDTO(EntradaDTO):
         default=None,
         description="Fonte da mesma matéria, em qualquer estado, citada como referência (RF-002)",
     )
+
+
+class EdicaoCartaoEntradaDTO(EntradaDTO):
+    """Campos ausentes não mudam; `explicacao` nula ou vazia remove a explicação (US2)."""
+
+    model_config = ConfigDict(json_schema_extra={"minProperties": 1})
+
+    frente: str = Field(default=None, max_length=CARTAO_FRENTE_TETO)  # type: ignore[assignment]
+    verso: str = Field(default=None, max_length=CARTAO_VERSO_TETO)  # type: ignore[assignment]
+    explicacao: str | None = Field(
+        default=None,
+        max_length=CARTAO_EXPLICACAO_TETO,
+        description="`null` ou vazia remove a explicação",
+    )
+
+    @field_validator("frente", "verso", mode="before")
+    @classmethod
+    def _nao_nulo(cls, valor: object) -> object:
+        # Frente e verso podem faltar, mas não ser nulos: o cartão sempre tem os dois.
+        if valor is None:
+            raise ValueError("Informe o texto.")
+        return valor
+
+    def alteracoes(self) -> dict[str, str | None]:
+        """Só os campos enviados, com os nomes do domínio.
+
+        Corpo `{}` é um objeto legível, mas sem nada para editar: `422`, não o `400` que um
+        validador de modelo daria (o erro dele não tem campo).
+        """
+        if not self.model_fields_set:
+            raise EntradaInvalida("Informe ao menos um campo para editar.")
+        return {campo: getattr(self, campo) for campo in self.model_fields_set}
 
 
 class ReferenciaFonteDTO(ModeloDTO):
