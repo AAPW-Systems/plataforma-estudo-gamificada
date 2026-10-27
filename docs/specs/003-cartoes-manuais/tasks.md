@@ -117,7 +117,7 @@
   - a rota `frontend/src/rotas/_autenticado/materias/$materiaId.cartoes.tsx`;
   - a navegação entre "Fontes" e "Cartões" na página da matéria ([design, 9.4](../../base-specs/design.md#94-matéria));
   - o painel de criação, a lista e as consultas e mutações em `frontend/src/funcionalidades/cartoes/`, invalidando a lista de cartões e a de matérias depois de criar.
-- [ ] T019 [US1] Executar os passos 1 a 7 da US1 no quickstart, inclusive o CS-001 cronometrado só com teclado, e os testes `functional`, `security` e `adversarial` da US1. Registrar a evidência.
+- [x] T019 [US1] Executar os passos 1 a 7 da US1 no quickstart, inclusive o CS-001 cronometrado só com teclado, e os testes `functional`, `security` e `adversarial` da US1. Registrar a evidência.
 
 ## Fase 4 História de usuário 2 Editar um cartão (P2)
 
