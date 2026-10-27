@@ -8,6 +8,7 @@ export type Cartao = components["schemas"]["Cartao"];
 export type LimitesCartao = components["schemas"]["LimitesCartao"];
 export type ListaCartoes = components["schemas"]["ListaCartoes"];
 export type CriacaoCartao = components["schemas"]["CriacaoCartaoEntrada"];
+export type EdicaoCartao = components["schemas"]["EdicaoCartaoEntrada"];
 
 /** A lista de cartões fica sob a chave da matéria: invalidar a matéria a inclui. */
 export const chavesCartoes = {
@@ -48,6 +49,15 @@ export const consultaCartoes = (materiaId: string) =>
 export async function criarCartao(materiaId: string, corpo: CriacaoCartao): Promise<Cartao> {
   const { data } = await cliente.POST("/api/v1/materias/{materiaId}/cartoes", {
     params: { path: { materiaId } },
+    body: corpo,
+  });
+  return exigir(data);
+}
+
+/** Envia só os campos alterados; o agendamento não muda (RF-005). */
+export async function editarCartao(cartaoId: string, corpo: EdicaoCartao): Promise<Cartao> {
+  const { data } = await cliente.PATCH("/api/v1/cartoes/{cartaoId}", {
+    params: { path: { cartaoId } },
     body: corpo,
   });
   return exigir(data);

@@ -1,11 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, Heading, Modal, ModalOverlay } from "react-aria-components";
 import { Controller, useForm } from "react-hook-form";
 
 import { type Materia, chaves } from "../../api/acervo";
-import { type Cartao, type LimitesCartao, chavesCartoes, criarCartao } from "../../api/cartoes";
+import {
+  type Cartao,
+  type EdicaoCartao,
+  type LimitesCartao,
+  type ListaCartoes,
+  chavesCartoes,
+  criarCartao,
+  editarCartao,
+} from "../../api/cartoes";
 import { Botao } from "../../componentes/ui/Botao";
 import { CampoTextoLongo } from "../../componentes/ui/CampoTextoLongo";
 import { MensagemErroFormulario } from "../../componentes/ui/MensagemErroFormulario";
@@ -22,6 +30,48 @@ export interface PainelCartaoProps {
   aberto: boolean;
   aoAlterarAberto: (aberto: boolean) => void;
   aoCriado?: (cartao: Cartao) => void;
+  /** Cartão a editar (US2): o painel abre com os valores dele e só salva o que mudou. */
+  cartao?: Cartao;
+}
+
+function valoresDe(cartao: Cartao | undefined): DadosCartao {
+  if (!cartao) return CARTAO_VAZIO;
+  return {
+    frente: cartao.frente,
+    verso: cartao.verso,
+    explicacao: cartao.explicacao ?? "",
+    fonteId: "",
+  };
+}
+
+/** Só os campos alterados; explicação vazia vai como `null`, que a remove. */
+function alteracoesDe(iniciais: DadosCartao, dados: DadosCartao): EdicaoCartao {
+  const alteracoes: EdicaoCartao = {};
+  if (dados.frente !== iniciais.frente) alteracoes.frente = dados.frente;
+  if (dados.verso !== iniciais.verso) alteracoes.verso = dados.verso;
+  if (dados.explicacao !== iniciais.explicacao) {
+    alteracoes.explicacao = dados.explicacao.trim() === "" ? null : dados.explicacao;
+  }
+  return alteracoes;
+}
+
+/** Troca o cartão editado nas páginas já carregadas, sem esperar a lista voltar da rede. */
+function substituirNaLista(
+  queryClient: ReturnType<typeof useQueryClient>,
+  materiaId: string,
+  editado: Cartao,
+) {
+  queryClient.setQueryData<InfiniteData<ListaCartoes>>(chavesCartoes.lista(materiaId), (dados) =>
+    dados
+      ? {
+          ...dados,
+          pages: dados.pages.map((pagina) => ({
+            ...pagina,
+            itens: pagina.itens.map((item) => (item.id === editado.id ? editado : item)),
+          })),
+        }
+      : dados,
+  );
 }
 
 /** Soma um cartão ativo à matéria na lista e na consulta, antes de a rede responder. */
@@ -35,9 +85,10 @@ function contarNovoCartao(queryClient: ReturnType<typeof useQueryClient>, materi
 }
 
 /**
- * Painel lateral de criação de cartão (US1; CS-001). Só com o teclado: `Tab` entre os campos,
+ * Painel lateral de criação (US1; CS-001) e de edição (US2) de cartão. Só com o teclado: `Tab` entre os campos,
  * `Enter` quebra a linha, `Ctrl/⌘+Enter` salva e abre outro em branco, `Esc` fecha (e pergunta
  * antes de descartar o que foi digitado). Os erros ficam junto do campo, com os valores mantidos.
+ * Na edição, `Ctrl/⌘+Enter` salva e fecha, e a fonte de referência não muda.
  */
 export function PainelCartao({
   materiaId,
@@ -46,14 +97,17 @@ export function PainelCartao({
   aberto,
   aoAlterarAberto,
   aoCriado,
+  cartao,
 }: PainelCartaoProps) {
+  const editando = cartao !== undefined;
   const queryClient = useQueryClient();
   const esquema = useMemo(() => esquemaCartao(limites), [limites]);
+  const iniciais = useMemo(() => valoresDe(cartao), [cartao]);
   const formulario = useForm<DadosCartao>({
     resolver: zodResolver(esquema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: CARTAO_VAZIO,
+    defaultValues: iniciais,
   });
   const { control, handleSubmit, register, reset, setFocus, getValues, formState } = formulario;
   const [mensagem, definirMensagem] = useState<string>();
@@ -74,7 +128,7 @@ export function PainelCartao({
   }, [confirmandoDescarte]);
 
   function fechar() {
-    reset(CARTAO_VAZIO);
+    reset(iniciais);
     definirMensagem(undefined);
     definirAnuncio("");
     definirConfirmandoDescarte(false);
@@ -83,7 +137,10 @@ export function PainelCartao({
 
   function tentarFechar() {
     if (enviando.current) return;
-    const digitado = Object.values(getValues()).some((valor) => valor.trim() !== "");
+    const atuais = getValues();
+    const digitado = editando
+      ? Object.keys(alteracoesDe(iniciais, atuais)).length > 0
+      : Object.values(atuais).some((valor) => valor.trim() !== "");
     if (digitado) definirConfirmandoDescarte(true);
     else fechar();
   }
@@ -95,7 +152,16 @@ export function PainelCartao({
       definirMensagem(undefined);
       definirAnuncio("");
       try {
-        const cartao = await criarCartao(materiaId, {
+        if (cartao) {
+          const alteracoes = alteracoesDe(iniciais, dados);
+          if (Object.keys(alteracoes).length > 0) {
+            substituirNaLista(queryClient, materiaId, await editarCartao(cartao.id, alteracoes));
+            void queryClient.invalidateQueries({ queryKey: chavesCartoes.lista(materiaId) });
+          }
+          fechar();
+          return;
+        }
+        const criado = await criarCartao(materiaId, {
           frente: dados.frente,
           verso: dados.verso,
           explicacao: dados.explicacao.trim() === "" ? null : dados.explicacao,
@@ -104,7 +170,7 @@ export function PainelCartao({
         contarNovoCartao(queryClient, materiaId);
         void queryClient.invalidateQueries({ queryKey: chavesCartoes.lista(materiaId) });
         void queryClient.invalidateQueries({ queryKey: chaves.materias });
-        aoCriado?.(cartao);
+        aoCriado?.(criado);
         if (criarOutro) {
           reset(CARTAO_VAZIO);
           definirAnuncio("Cartão criado.");
@@ -120,7 +186,7 @@ export function PainelCartao({
     })();
   }
 
-  /** `Ctrl/⌘+Enter` em qualquer campo: salvar e criar outro. */
+  /** `Ctrl/⌘+Enter` em qualquer campo: salvar e criar outro (na edição, salvar e fechar). */
   function aoTeclar(evento: {
     key: string;
     ctrlKey: boolean;
@@ -131,7 +197,7 @@ export function PainelCartao({
   }) {
     if (evento.key === "Enter" && (evento.ctrlKey || evento.metaKey)) {
       evento.preventDefault();
-      salvar(true);
+      salvar(!editando);
       return;
     }
     // Esc e as demais teclas seguem para o painel (que fecha com Esc).
@@ -160,10 +226,10 @@ export function PainelCartao({
               salvar(false);
             }}
           >
-            <Heading slot="title">Novo cartão</Heading>
+            <Heading slot="title">{editando ? "Editar cartão" : "Novo cartão"}</Heading>
             <p className="dica-teclado">
-              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> no macOS) salva e abre
-              outro cartão.
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (<kbd>⌘</kbd>+<kbd>Enter</kbd> no macOS){" "}
+              {editando ? "salva as alterações." : "salva e abre outro cartão."}
             </p>
             <div role="status" aria-live="polite" className="sr-only">
               {anuncio}
@@ -197,32 +263,34 @@ export function PainelCartao({
                 )}
               />
             ))}
-            <div className="campo">
-              <label htmlFor="fonte-referencia">Fonte de referência (opcional)</label>
-              <select
-                id="fonte-referencia"
-                className="entrada"
-                aria-invalid={erroFonte ? true : undefined}
-                aria-describedby={`fonte-referencia-ajuda${erroFonte ? " fonte-referencia-erro" : ""}`}
-                {...register("fonteId")}
-                onKeyDown={aoTeclar}
-              >
-                <option value="">Nenhuma</option>
-                {fontes.map((fonte) => (
-                  <option key={fonte.id} value={fonte.id}>
-                    {fonte.titulo}
-                  </option>
-                ))}
-              </select>
-              <span id="fonte-referencia-ajuda" className="contador">
-                Só para consulta: citar uma fonte não dá o selo de verificado.
-              </span>
-              {erroFonte && (
-                <span id="fonte-referencia-erro" className="erro-campo">
-                  {erroFonte}
+            {!editando && (
+              <div className="campo">
+                <label htmlFor="fonte-referencia">Fonte de referência (opcional)</label>
+                <select
+                  id="fonte-referencia"
+                  className="entrada"
+                  aria-invalid={erroFonte ? true : undefined}
+                  aria-describedby={`fonte-referencia-ajuda${erroFonte ? " fonte-referencia-erro" : ""}`}
+                  {...register("fonteId")}
+                  onKeyDown={aoTeclar}
+                >
+                  <option value="">Nenhuma</option>
+                  {fontes.map((fonte) => (
+                    <option key={fonte.id} value={fonte.id}>
+                      {fonte.titulo}
+                    </option>
+                  ))}
+                </select>
+                <span id="fonte-referencia-ajuda" className="contador">
+                  Só para consulta: citar uma fonte não dá o selo de verificado.
                 </span>
-              )}
-            </div>
+                {erroFonte && (
+                  <span id="fonte-referencia-erro" className="erro-campo">
+                    {erroFonte}
+                  </span>
+                )}
+              </div>
+            )}
             {confirmandoDescarte ? (
               <div
                 role="alertdialog"
@@ -231,9 +299,15 @@ export function PainelCartao({
                 className="confirmacao-descarte"
               >
                 <p id="titulo-descarte">
-                  <strong>Descartar o que você digitou?</strong>
+                  <strong>
+                    {editando ? "Descartar as alterações?" : "Descartar o que você digitou?"}
+                  </strong>
                 </p>
-                <p id="texto-descarte">O cartão ainda não foi salvo.</p>
+                <p id="texto-descarte">
+                  {editando
+                    ? "As alterações ainda não foram salvas."
+                    : "O cartão ainda não foi salvo."}
+                </p>
                 <div className="acoes-dialogo">
                   <Botao
                     ref={continuar}
@@ -255,15 +329,17 @@ export function PainelCartao({
                 <Botao variante="discreto" isDisabled={ocupado} onPress={tentarFechar}>
                   Cancelar
                 </Botao>
-                <Botao
-                  variante="secundario"
-                  carregando={ocupado}
-                  onPress={() => {
-                    salvar(true);
-                  }}
-                >
-                  Salvar e criar outro
-                </Botao>
+                {!editando && (
+                  <Botao
+                    variante="secundario"
+                    carregando={ocupado}
+                    onPress={() => {
+                      salvar(true);
+                    }}
+                  >
+                    Salvar e criar outro
+                  </Botao>
+                )}
                 <Botao type="submit" carregando={ocupado}>
                   Salvar
                 </Botao>

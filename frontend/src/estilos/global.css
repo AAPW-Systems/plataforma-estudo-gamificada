@@ -541,6 +541,11 @@
     align-items: center;
     gap: calc(var(--spacing) * 2);
   }
+  .item-cartao-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+  }
   /* Painel lateral: encostado à direita e com pelo menos a altura da tela. `align-self` evita o
      esticamento do flex, que fixaria a altura e deixaria o conteúdo mais alto fora do fundo. */
   .modal-painel {

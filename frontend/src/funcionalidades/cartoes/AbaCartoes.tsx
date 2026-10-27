@@ -2,7 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { consultaFontes } from "../../api/acervo";
-import { consultaCartoes, consultaLimitesCartao } from "../../api/cartoes";
+import { type Cartao, consultaCartoes, consultaLimitesCartao } from "../../api/cartoes";
 import { Botao } from "../../componentes/ui/Botao";
 import { ItemCartao } from "./ItemCartao";
 import { PainelCartao } from "./PainelCartao";
@@ -14,6 +14,7 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
   const { data: fontes } = useQuery(consultaFontes(materiaId));
   const cartoes = useInfiniteQuery(consultaCartoes(materiaId));
   const [aberto, definirAberto] = useState(false);
+  const [emEdicao, definirEmEdicao] = useState<Cartao>();
 
   const paginas = cartoes.data?.pages ?? [];
   const itens = paginas.flatMap((pagina) => pagina.itens);
@@ -52,7 +53,13 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
       {itens.length > 0 && (
         <ul aria-label="Cartões da matéria" className="lista-cartoes">
           {itens.map((cartao) => (
-            <ItemCartao key={cartao.id} cartao={cartao} />
+            <ItemCartao
+              key={cartao.id}
+              cartao={cartao}
+              aoEditar={() => {
+                definirEmEdicao(cartao);
+              }}
+            />
           ))}
         </ul>
       )}
@@ -74,6 +81,19 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
           fontes={fontes ?? []}
           aberto={aberto}
           aoAlterarAberto={definirAberto}
+        />
+      )}
+      {limites && emEdicao && (
+        <PainelCartao
+          key={emEdicao.id}
+          materiaId={materiaId}
+          limites={limites}
+          fontes={[]}
+          cartao={emEdicao}
+          aberto
+          aoAlterarAberto={(proximo) => {
+            if (!proximo) definirEmEdicao(undefined);
+          }}
         />
       )}
     </section>
