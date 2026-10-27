@@ -7,10 +7,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware import Middleware
 
+import app.cartoes.registros  # noqa: F401  (registra o participante e a exclusão de cartões)
 import app.fontes.registros  # noqa: F401  (registra o participante e a exclusão de fontes)
 import app.identidade.registros  # noqa: F401  (registra a exclusão da identidade)
 import app.materias.registros  # noqa: F401  (registra a exclusão de matérias)
 import app.revisao.registros  # noqa: F401  (registra a exclusão de revisao)
+from app.cartoes.rotas import roteador as cartoes
+from app.cartoes.servicos import ServicoCartoes
 from app.fontes.excecoes import ArquivoMuitoGrande
 from app.fontes.registros import participante_fontes
 from app.fontes.rotas import roteador as fontes
@@ -75,6 +78,9 @@ def criar_aplicacao(
         app.state.materias = ServicoMaterias(
             app.state.fabrica_sessoes, configuracao, registro_acervo, app.state.relogio
         )
+        app.state.cartoes = ServicoCartoes(
+            app.state.fabrica_sessoes, configuracao, app.state.relogio
+        )
         app.state.fontes = ServicoFontes(
             app.state.fabrica_sessoes,
             configuracao,
@@ -121,5 +127,6 @@ def criar_aplicacao(
     app.include_router(identidade)
     app.include_router(materias)
     app.include_router(fontes)
+    app.include_router(cartoes)
     instalar_openapi(app)
     return app

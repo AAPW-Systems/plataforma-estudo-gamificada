@@ -1,12 +1,15 @@
 """US3: renomear matérias e fontes e excluir uma matéria em cascata, cenários 1 a 5 (T040; CS-004).
 
-Os cartões ainda não existem (003 e 004): participantes falsos fazem o papel deles (DTEC 027) e
-registram cada chamada. API e worker rodam em processo, sobre o mesmo banco e armazenamento.
+Os cartões gerados (004) ainda não existem: participantes falsos fazem o papel deles (DTEC 027)
+e registram cada chamada. Os cartões criados pelo estudante (003) são reais: a última seção
+reexecuta a exclusão da matéria com o participante real (T011 da 003). API e worker rodam em
+processo, sobre o mesmo banco e armazenamento.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -16,6 +19,7 @@ from procrastinate import App
 from sqlalchemy import select
 from structlog.testing import capture_logs
 
+from app.cartoes.modelos import SituacaoCartao
 from app.fontes.modelos import Fonte
 from app.nucleo.armazenamento import Armazenamento
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
@@ -31,8 +35,11 @@ from tests.apoio_acervo import (
     id_interno_da_materia,
     trechos_da_fonte,
 )
+from tests.apoio_cartoes import cartoes_da_materia, criar_cartao
 from tests.conftest import executar_jobs
 from tests.fabricas_arquivos import ArquivoGerado
+from tests.fabricas_cartoes import cartao_ficticio
+from tests.fabricas_cartoes import inserir as inserir_cartoes
 from tests.participantes_falsos import ParticipanteFalso
 
 pytestmark = pytest.mark.functional
@@ -554,3 +561,161 @@ async def test_renomear_fonte_que_falhou_e_permitido(
     resposta = await estudante.patch(f"/api/v1/fontes/{fonte['id']}", json={"titulo": "Revisar"})
     assert resposta.status_code == 200
     assert resposta.json()["estado"] == "falhou" and resposta.json()["podeTentarNovamente"] is True
+
+
+# --- T011 (spec 003): a mesma exclusão com cartões reais, sem o participante falso ---------------
+#
+# Os cartões criados pelo estudante (003) são reais: a lista de matérias conta só os ativos, o
+# diálogo soma ativos e suspensos, e a exclusão os apaga junto com as fontes que eles citam.
+
+
+async def _materia_com_cartoes_reais(
+    app: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+    nome: str = "Biologia",
+) -> tuple[dict[str, Any], int, dict[str, Any]]:
+    """Matéria com 1 fonte e 5 cartões: 3 ativos (um cita a fonte) e 2 suspensos."""
+    materia = await criar_materia(estudante, nome)
+    fonte = (await enviar(estudante, materia["id"], validos["resumo.txt"], titulo="Resumo")).json()
+    await executar_jobs(fila)
+    await criar_cartao(estudante, materia["id"], frente="Ativo 1", fonteId=fonte["id"])
+    await criar_cartao(estudante, materia["id"], frente="Ativo 2")
+    await criar_cartao(estudante, materia["id"], frente="Ativo 3")
+    interno = await id_interno_da_materia(_fabrica(app), materia["id"])
+    async with unidade_de_trabalho(_fabrica(app)) as sessao:
+        usuario_id = (
+            await sessao.execute(select(Fonte.usuario_id).where(Fonte.materia_id == interno))
+        ).scalar_one()
+        await inserir_cartoes(
+            sessao,
+            usuario_id=usuario_id,
+            materia_id=interno,
+            itens=[cartao_ficticio(situacao=SituacaoCartao.SUSPENSO) for _ in range(2)],
+            agora=datetime.now(UTC),
+        )
+    return materia, interno, fonte
+
+
+async def test_lista_de_materias_mostra_so_ativos_e_o_impacto_soma_os_suspensos(
+    acervo: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+) -> None:
+    """Emenda da DTEC 027: `cartoesAtivos` da lista exclui os suspensos; o diálogo os soma."""
+    materia, _, _ = await _materia_com_cartoes_reais(acervo, estudante, fila, validos)
+    quimica = await criar_materia(estudante, "Química")
+
+    lista = {m["nome"]: m for m in (await estudante.get("/api/v1/materias")).json()["itens"]}
+    impacto = await estudante.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")
+
+    assert lista["Biologia"]["cartoesAtivos"] == 3
+    assert lista["Biologia"]["cartoesAguardandoRevisao"] == 0
+    assert lista["Química"]["cartoesAtivos"] == 0 and quimica["id"]
+    assert impacto.json()["contagens"] == {
+        "fontes": 1,
+        "cartoesAtivos": 5,
+        "cartoesAguardandoRevisao": 0,
+    }
+    assert (await estudante.get(f"/api/v1/materias/{materia['id']}")).json()["cartoesAtivos"] == 3
+
+
+async def test_exclusao_apaga_todos_os_cartoes_da_materia_e_so_os_dela(
+    acervo: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+) -> None:
+    """CS-004 com cartões reais: o que o diálogo mostra é o que sai (ativos e suspensos)."""
+    materia, interno, fonte = await _materia_com_cartoes_reais(acervo, estudante, fila, validos)
+    outra = await criar_materia(estudante, "Química")
+    await criar_cartao(estudante, outra["id"], frente="Da outra matéria")
+    chave = await chave_da_fonte(_fabrica(acervo), fonte["id"])
+    exibido = (await estudante.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")).json()
+    assert (
+        len(await cartoes_da_materia(_fabrica(acervo), interno))
+        == exibido["contagens"]["cartoesAtivos"]
+    )
+
+    with capture_logs() as registros:
+        resposta = await estudante.post(
+            f"/api/v1/materias/{materia['id']}/exclusao",
+            json={"nomeConfirmacao": "Biologia", "impactoConfirmado": exibido["contagens"]},
+        )
+
+    assert resposta.status_code == 204
+    assert await cartoes_da_materia(_fabrica(acervo), interno) == []
+    assert await contar_linhas_da_materia(_fabrica(acervo), interno) == (0, 0, 0)
+    assert not await _armazenamento(acervo).existe(chave)
+    assert [c["frente"] for c in (await _listar_cartoes(estudante, outra["id"]))] == [
+        "Da outra matéria"
+    ]
+    apagados = [r for r in registros if r["event"] == "cartoes_materia_apagados"]
+    assert [e["quantidade"] for e in apagados] == [5]
+    excluida = [r for r in registros if r["event"] == "materia_excluida"]
+    assert excluida[0]["cartoes_ativos"] == 5
+    assert "Ativo 1" not in str(registros) and "Resumo" not in str(registros)
+
+
+async def _listar_cartoes(estudante: httpx.AsyncClient, materia_id: str) -> list[dict[str, Any]]:
+    corpo = (await estudante.get(f"/api/v1/materias/{materia_id}/cartoes")).json()
+    itens: list[dict[str, Any]] = corpo["itens"]
+    return itens
+
+
+async def test_cartao_criado_depois_do_impacto_faz_a_exclusao_da_materia_pedir_nova_confirmacao(
+    acervo: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+) -> None:
+    materia, interno, _ = await _materia_com_cartoes_reais(acervo, estudante, fila, validos)
+    visto = (await estudante.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")).json()
+    await criar_cartao(estudante, materia["id"], frente="Chegou depois")
+
+    resposta = await estudante.post(
+        f"/api/v1/materias/{materia['id']}/exclusao",
+        json={"nomeConfirmacao": "Biologia", "impactoConfirmado": visto["contagens"]},
+    )
+
+    assert resposta.status_code == 409 and resposta.json()["codigo"] == "impacto_alterado"
+    assert len(await cartoes_da_materia(_fabrica(acervo), interno)) == 6, "nada foi apagado"
+
+
+async def test_exclusao_da_materia_nao_e_barrada_por_cartao_que_cita_fonte_da_propria_materia(
+    acervo: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+) -> None:
+    """As FKs `restrict` de cartões para fontes e matéria exigem a ordem do registro (DTEC 027)."""
+    materia, _, _ = await _materia_com_cartoes_reais(acervo, estudante, fila, validos)
+    exibido = (await estudante.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")).json()
+    resposta = await estudante.post(
+        f"/api/v1/materias/{materia['id']}/exclusao",
+        json={"nomeConfirmacao": "Biologia", "impactoConfirmado": exibido["contagens"]},
+    )
+    assert resposta.status_code == 204
+    assert await _nomes_na_lista(estudante) == []
+
+
+async def test_participantes_falso_e_real_somam_sem_dupla_contagem(
+    acervo: FastAPI,
+    estudante: httpx.AsyncClient,
+    fila: App,
+    validos: dict[str, ArquivoGerado],
+    cartoes: tuple[ParticipanteFalso, ParticipanteFalso],
+) -> None:
+    """DTEC 038: os cartões gerados (falsos) somam aos manuais (reais) uma única vez."""
+    materia, interno, _ = await _materia_com_cartoes_reais(acervo, estudante, fila, validos)
+    cartoes[1].por_materia[interno] = ContagensAcervo(
+        cartoes_ativos=2, cartoes_suspensos=1, cartoes_aguardando_revisao=4
+    )
+
+    impacto = (await estudante.get(f"/api/v1/materias/{materia['id']}/impacto-exclusao")).json()
+    na_lista = (await estudante.get("/api/v1/materias")).json()["itens"][0]
+
+    assert impacto["contagens"] == {"fontes": 1, "cartoesAtivos": 8, "cartoesAguardandoRevisao": 4}
+    assert na_lista["cartoesAtivos"] == 5 and na_lista["cartoesAguardandoRevisao"] == 4

@@ -5,6 +5,7 @@ Cada spec acrescenta aqui a importação dos modelos do seu domínio.
 
 from __future__ import annotations
 
+from app.cartoes.modelos import Cartao
 from app.fontes.modelos import Fonte, Trecho
 from app.identidade.modelos import Sessao, TentativaAcesso, Usuario
 from app.materias.modelos import Materia
@@ -13,6 +14,7 @@ from app.revisao.modelos import ParametrosFsrs
 
 __all__ = [
     "Base",
+    "Cartao",
     "Fonte",
     "Materia",
     "ParametrosFsrs",

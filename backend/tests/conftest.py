@@ -71,6 +71,25 @@ def banco_migrado(configuracao: Configuracao) -> Iterator[None]:
     yield
 
 
+@pytest.fixture(scope="module")
+def situacoes_da_004(configuracao: Configuracao, banco_migrado: None) -> Iterator[None]:
+    """Acrescenta `aguardando_revisao` e `recusado` a `situacao_cartao` até a 004 existir.
+
+    A 003 cria só `ativo` e `suspenso` (DTEC 038); os testes que precisam de um cartão fora das
+    situações visíveis usam este valor, confirmado numa conexão própria (o valor novo só pode ser
+    usado depois do commit). Ao fim do módulo, descer e subir a `0004` recria o tipo sem eles,
+    e os outros módulos enxergam o banco como a migração o deixa.
+    """
+    with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+        for valor in ("aguardando_revisao", "recusado"):
+            conexao.execute(f"ALTER TYPE situacao_cartao ADD VALUE IF NOT EXISTS '{valor}'")  # noqa: S608
+    try:
+        yield
+    finally:
+        executar_alembic("downgrade", "0003")
+        executar_alembic("upgrade", "head")
+
+
 @pytest.fixture(scope="session")
 async def engine(configuracao: Configuracao, banco_migrado: None) -> AsyncIterator[AsyncEngine]:
     engine = criar_engine(configuracao)

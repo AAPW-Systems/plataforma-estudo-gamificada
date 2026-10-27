@@ -37,3 +37,6 @@ class CodigoErro(StrEnum):
     CONFIRMACAO_INVALIDA = "confirmacao_invalida"
     IMPACTO_ALTERADO = "impacto_alterado"
     REPROCESSAMENTO_INDISPONIVEL = "reprocessamento_indisponivel"
+
+    # Spec 003 (cartões)
+    CURSOR_INVALIDO = "cursor_invalido"

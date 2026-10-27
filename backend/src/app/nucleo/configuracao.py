@@ -16,6 +16,12 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 TAMANHO_MINIMO_SEGREDO = 32
 
+# Tetos absolutos do texto dos cartões (DTEC 036): valem no DTO e no CHECK do banco, e o limite
+# configurado por ambiente (D-004) nunca passa deles.
+CARTAO_FRENTE_TETO = 4000
+CARTAO_VERSO_TETO = 8000
+CARTAO_EXPLICACAO_TETO = 4000
+
 RedeConfiavel = ipaddress.IPv4Network | ipaddress.IPv6Network
 
 
@@ -75,6 +81,11 @@ class Configuracao(BaseSettings):
     extracao_memoria_mb: int = Field(default=512, ge=1)
     reconciliacao_margem_min: int = Field(default=60, ge=1)
     fila_segundos_travado: int = Field(default=60, ge=1)
+
+    # Cartões (spec 003, D-004): limites de texto por ambiente, expostos em GET /cartoes/limites.
+    cartao_frente_max: int = Field(default=1000, ge=1, le=CARTAO_FRENTE_TETO)
+    cartao_verso_max: int = Field(default=2000, ge=1, le=CARTAO_VERSO_TETO)
+    cartao_explicacao_max: int = Field(default=1000, ge=1, le=CARTAO_EXPLICACAO_TETO)
 
     log_nivel: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 

@@ -23,6 +23,10 @@ PROIBIDOS = {
 # conhecem framework nem banco; `extracao` roda no subprocesso e também não importa o núcleo.
 MODULOS_PUROS_FONTES = {"app.fontes.extracao", "app.fontes.divisao", "app.fontes.validacao"}
 FRAMEWORKS = {"fastapi", "starlette", "sqlalchemy"}
+# Spec 003 (plano, "Dependências entre domínios"): `cartoes` depende de `materias` e de `fontes`, e
+# nunca o contrário. As regras puras dos cartões (a 004 as reutiliza) não conhecem framework.
+DOMINIOS_QUE_NAO_CONHECEM_CARTOES = ("app.materias.", "app.fontes.", "app.identidade.")
+MODULOS_PUROS_CARTOES = {"app.cartoes.dominio", "app.cartoes.cursor"}
 
 
 def importacoes(codigo: str, modulo: str) -> list[str]:
@@ -47,6 +51,12 @@ def violacoes(codigo: str, modulo: str) -> list[str]:
         if modulo.startswith("app.materias.") and importacao.startswith("app.fontes"):
             erros.append(importacao)
         if modulo in MODULOS_PUROS_FONTES and partes & FRAMEWORKS:
+            erros.append(importacao)
+        if modulo.startswith(DOMINIOS_QUE_NAO_CONHECEM_CARTOES) and importacao.startswith(
+            "app.cartoes"
+        ):
+            erros.append(importacao)
+        if modulo in MODULOS_PUROS_CARTOES and partes & FRAMEWORKS:
             erros.append(importacao)
         if modulo == "app.fontes.extracao" and importacao.startswith("app.nucleo"):
             erros.append(importacao)
@@ -90,6 +100,18 @@ def test_camadas_respeitam_dtec018() -> None:
         ("app.fontes.extracao", "from app.nucleo.erros import ErroAplicacao"),
         ("app.fontes.divisao", "from starlette.responses import Response"),
         ("app.fontes.validacao", "from sqlalchemy.ext.asyncio import AsyncSession"),
+        # Spec 003: o acervo e a identidade não conhecem os cartões (DTEC 027 e 038).
+        ("app.materias.servicos", "from app.cartoes.repositorios import RepositorioCartoes"),
+        ("app.materias.dominio", "import app.cartoes.dominio"),
+        ("app.fontes.registros", "from app.cartoes import modelos"),
+        ("app.fontes.servicos", "from app.cartoes.registros import participante_cartoes"),
+        ("app.identidade.servicos", "from app.cartoes.servicos import ServicoCartoes"),
+        # O domínio e o cursor dos cartões são puros, sem framework nem banco.
+        ("app.cartoes.dominio", "import fastapi"),
+        ("app.cartoes.dominio", "from sqlalchemy import select"),
+        ("app.cartoes.cursor", "import fastapi"),
+        ("app.cartoes.cursor", "from sqlalchemy.ext.asyncio import AsyncSession"),
+        ("app.cartoes.cursor", "from starlette.responses import Response"),
     ],
 )
 def test_detector_recusa_importacao_proibida(modulo: str, codigo: str) -> None:

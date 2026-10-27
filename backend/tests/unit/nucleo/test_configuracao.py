@@ -190,3 +190,60 @@ def test_alvo_igual_ao_maximo_e_aceito() -> None:
 def test_armazenamento_nao_e_menor_que_um_arquivo() -> None:
     with pytest.raises(ValidationError, match="COTA_ARMAZENAMENTO_BYTES"):
         _criar(cota_armazenamento_bytes=1000, fonte_tamanho_max_bytes=2000)
+
+
+# --- Cartões (plano da 003, "Variáveis de ambiente"; D-004, DTEC 036) ---------------------------
+
+
+def test_cartoes_tem_os_padroes_do_plano() -> None:
+    config = _criar()
+    assert config.cartao_frente_max == 1000
+    assert config.cartao_verso_max == 2000
+    assert config.cartao_explicacao_max == 1000
+
+
+@pytest.mark.parametrize(
+    ("campo", "teto"),
+    [
+        ("cartao_frente_max", 4000),
+        ("cartao_verso_max", 8000),
+        ("cartao_explicacao_max", 4000),
+    ],
+)
+def test_limite_de_cartao_aceita_de_1_ate_o_teto(campo: str, teto: int) -> None:
+    assert getattr(_criar(**{campo: 1}), campo) == 1
+    assert getattr(_criar(**{campo: teto}), campo) == teto
+
+
+@pytest.mark.parametrize(
+    ("campo", "invalido"),
+    [
+        ("cartao_frente_max", 0),
+        ("cartao_frente_max", -1),
+        ("cartao_frente_max", 4001),
+        ("cartao_verso_max", 0),
+        ("cartao_verso_max", -1),
+        ("cartao_verso_max", 8001),
+        ("cartao_explicacao_max", 0),
+        ("cartao_explicacao_max", -1),
+        ("cartao_explicacao_max", 4001),
+    ],
+)
+def test_nao_sobe_com_limite_de_cartao_fora_de_1_ate_o_teto(campo: str, invalido: int) -> None:
+    with pytest.raises(ValidationError, match=campo):
+        _criar(**{campo: invalido})
+
+
+def test_limite_de_cartao_vem_do_ambiente(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CARTAO_FRENTE_MAX", "500")
+    monkeypatch.setenv("CARTAO_VERSO_MAX", "900")
+    monkeypatch.setenv("CARTAO_EXPLICACAO_MAX", "300")
+    config = Configuracao(
+        postgres_user="u",
+        postgres_password="p",  # type: ignore[arg-type]
+        postgres_db="d",
+        segredo_aplicacao=SEGREDO_VALIDO,  # type: ignore[arg-type]
+        origens_permitidas=["http://localhost:5173"],
+    )
+    assert (config.cartao_frente_max, config.cartao_verso_max) == (500, 900)
+    assert config.cartao_explicacao_max == 300

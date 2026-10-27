@@ -44,6 +44,87 @@
         "title": "CadastroEntradaDTO",
         "type": "object"
       },
+      "Cartao": {
+        "properties": {
+          "atualizadoEm": {
+            "format": "date-time",
+            "title": "Atualizadoem",
+            "type": "string"
+          },
+          "criadoEm": {
+            "format": "date-time",
+            "title": "Criadoem",
+            "type": "string"
+          },
+          "explicacao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explicacao"
+          },
+          "frente": {
+            "description": "Texto puro; quebras de linha como `\\n` (RQ-001)",
+            "title": "Frente",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "materiaId": {
+            "format": "uuid",
+            "title": "Materiaid",
+            "type": "string"
+          },
+          "origem": {
+            "$ref": "#/components/schemas/OrigemCartao"
+          },
+          "referencia": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenciaFonte"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Só em cartões criados pelo estudante que citam uma fonte"
+          },
+          "situacao": {
+            "$ref": "#/components/schemas/SituacaoCartao"
+          },
+          "verificado": {
+            "description": "Verdadeiro só com origem `gerado_verificado`; nunca em cartão do estudante",
+            "title": "Verificado",
+            "type": "boolean"
+          },
+          "verso": {
+            "title": "Verso",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "materiaId",
+          "frente",
+          "verso",
+          "explicacao",
+          "origem",
+          "verificado",
+          "situacao",
+          "referencia",
+          "criadoEm",
+          "atualizadoEm"
+        ],
+        "title": "CartaoDTO",
+        "type": "object"
+      },
       "CodigoErro": {
         "description": "Códigos estáveis do contrato. As specs acrescentam; nunca renomeiam nem removem.",
         "enum": [
@@ -73,7 +154,8 @@
           "codificacao_invalida",
           "confirmacao_invalida",
           "impacto_alterado",
-          "reprocessamento_indisponivel"
+          "reprocessamento_indisponivel",
+          "cursor_invalido"
         ],
         "title": "CodigoErro",
         "type": "string"
@@ -146,6 +228,55 @@
           "cartoesAguardandoRevisao"
         ],
         "title": "ContagensExclusaoMateriaDTO",
+        "type": "object"
+      },
+      "CriacaoCartaoEntrada": {
+        "additionalProperties": false,
+        "properties": {
+          "explicacao": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opcional; até `explicacaoMax` caracteres; vazia equivale a ausente",
+            "title": "Explicacao"
+          },
+          "fonteId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fonte da mesma matéria, em qualquer estado, citada como referência (RF-002)",
+            "title": "Fonteid"
+          },
+          "frente": {
+            "description": "1 a `frenteMax` caracteres depois da normalização; o teto absoluto é 4.000",
+            "maxLength": 4000,
+            "title": "Frente",
+            "type": "string"
+          },
+          "verso": {
+            "description": "1 a `versoMax` caracteres depois da normalização; o teto absoluto é 8.000",
+            "maxLength": 8000,
+            "title": "Verso",
+            "type": "string"
+          }
+        },
+        "required": [
+          "frente",
+          "verso"
+        ],
+        "title": "CriacaoCartaoEntradaDTO",
         "type": "object"
       },
       "EntradaEntrada": {
@@ -500,6 +631,78 @@
         "title": "ImpactoExclusaoMateriaDTO",
         "type": "object"
       },
+      "LimitesCartao": {
+        "properties": {
+          "buscaMax": {
+            "maximum": 100.0,
+            "minimum": 100.0,
+            "title": "Buscamax",
+            "type": "integer"
+          },
+          "explicacaoMax": {
+            "maximum": 4000.0,
+            "minimum": 1.0,
+            "title": "Explicacaomax",
+            "type": "integer"
+          },
+          "frenteMax": {
+            "maximum": 4000.0,
+            "minimum": 1.0,
+            "title": "Frentemax",
+            "type": "integer"
+          },
+          "versoMax": {
+            "maximum": 8000.0,
+            "minimum": 1.0,
+            "title": "Versomax",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "frenteMax",
+          "versoMax",
+          "explicacaoMax",
+          "buscaMax"
+        ],
+        "title": "LimitesCartaoDTO",
+        "type": "object"
+      },
+      "ListaCartoes": {
+        "properties": {
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/Cartao"
+            },
+            "title": "Itens",
+            "type": "array"
+          },
+          "proximoCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nulo na última página (DTEC 034)",
+            "title": "Proximocursor"
+          },
+          "total": {
+            "description": "Cartões que atendem aos filtros, em todas as páginas",
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "itens",
+          "proximoCursor",
+          "total"
+        ],
+        "title": "ListaCartoesDTO",
+        "type": "object"
+      },
       "ListaFontes": {
         "properties": {
           "itens": {
@@ -604,6 +807,15 @@
           "excluir"
         ],
         "title": "ModoCartoes",
+        "type": "string"
+      },
+      "OrigemCartao": {
+        "enum": [
+          "gerado_verificado",
+          "editado",
+          "criado"
+        ],
+        "title": "OrigemCartao",
         "type": "string"
       },
       "Perfil": {
@@ -751,6 +963,51 @@
         "title": "PerfilAlteracaoDTO",
         "type": "object"
       },
+      "ReferenciaFonte": {
+        "description": "Descrição da origem copiada na criação; não muda com a renomeação nem com a exclusão.",
+        "properties": {
+          "enviadaEm": {
+            "format": "date-time",
+            "title": "Enviadaem",
+            "type": "string"
+          },
+          "fonteApagada": {
+            "description": "Exibe \"Fonte apagada\" junto da descrição (RF-009)",
+            "title": "Fonteapagada",
+            "type": "boolean"
+          },
+          "fonteId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nulo depois que a fonte foi excluída",
+            "title": "Fonteid"
+          },
+          "nomeArquivo": {
+            "title": "Nomearquivo",
+            "type": "string"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fonteId",
+          "titulo",
+          "nomeArquivo",
+          "enviadaEm",
+          "fonteApagada"
+        ],
+        "title": "ReferenciaFonteDTO",
+        "type": "object"
+      },
       "RenomeacaoFonteEntrada": {
         "additionalProperties": false,
         "properties": {
@@ -801,6 +1058,14 @@
         ],
         "title": "Saude",
         "type": "object"
+      },
+      "SituacaoCartao": {
+        "enum": [
+          "ativo",
+          "suspenso"
+        ],
+        "title": "SituacaoCartao",
+        "type": "string"
       },
       "TrocaSenhaEntrada": {
         "additionalProperties": false,
@@ -1157,6 +1422,38 @@
         "summary": "Sair",
         "tags": [
           "autenticacao"
+        ]
+      }
+    },
+    "/api/v1/cartoes/limites": {
+      "get": {
+        "description": "Limites de texto vigentes no ambiente (RF-001, D-004).",
+        "operationId": "consultarLimitesCartao",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitesCartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Consultar Limites",
+        "tags": [
+          "cartoes"
         ]
       }
     },
@@ -1851,6 +2148,197 @@
         "summary": "Renomear Materia",
         "tags": [
           "materias"
+        ]
+      }
+    },
+    "/api/v1/materias/{materiaId}/cartoes": {
+      "get": {
+        "description": "Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.",
+        "operationId": "listarCartoes",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "`proximoCursor` da página anterior, com os mesmos filtros",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`proximoCursor` da página anterior, com os mesmos filtros",
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limite",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limite",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCartoes"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Listar Cartoes",
+        "tags": [
+          "cartoes"
+        ]
+      },
+      "post": {
+        "description": "Cria um cartão manual na matéria; com `fonteId`, a cita como referência (sem selo).",
+        "operationId": "criarCartao",
+        "parameters": [
+          {
+            "description": "`public_id` da matéria",
+            "in": "path",
+            "name": "materiaId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` da matéria",
+              "format": "uuid",
+              "title": "Materiaid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriacaoCartaoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Criar Cartao",
+        "tags": [
+          "cartoes"
         ]
       }
     },

@@ -50,6 +50,7 @@ Os valores iniciais do FSRS vêm de `fsrs.Card()` na criação ([DTEC 037](resea
 ### Restrições (`CHECK`)
 
 - `char_length(frente) BETWEEN 1 AND 4000`, `char_length(verso) BETWEEN 1 AND 8000`, `explicacao IS NULL OR char_length(explicacao) BETWEEN 1 AND 4000`.
+- `dificuldade IS NULL OR dificuldade BETWEEN 1 AND 10` (a faixa já constava da descrição da coluna; o `CHECK` a impõe no banco, incluído na migração `0004`).
 - Cópias da referência juntas: `(referencia_titulo IS NULL) = (referencia_nome_arquivo IS NULL) AND (referencia_titulo IS NULL) = (referencia_enviada_em IS NULL)`.
 - `fonte_id IS NULL OR referencia_titulo IS NOT NULL`.
 - Referência só em cartão manual: `referencia_titulo IS NULL OR origem = 'criado'`.

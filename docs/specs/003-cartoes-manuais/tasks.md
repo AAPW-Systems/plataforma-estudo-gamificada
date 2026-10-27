@@ -18,16 +18,16 @@
 
 ## Fase 1 Preparação
 
-- [ ] T001 Acrescentar os limites dos cartões:
+- [x] T001 Acrescentar os limites dos cartões:
   - **`.env.example`:** `CARTAO_FRENTE_MAX=1000`, `CARTAO_VERSO_MAX=2000` e `CARTAO_EXPLICACAO_MAX=1000` ([plano](plan.md#variáveis-de-ambiente-acréscimos-ao-envexample)).
   - **Configuração:** os campos correspondentes e os tetos (4.000, 8.000 e 4.000) em `app/nucleo/configuracao.py`.
 
   **Testes** em `tests/unit/nucleo/test_configuracao.py`: a aplicação não sobe com limite menor que 1 ou acima do teto, e sobe com os padrões (D-004, DTEC 036).
-- [ ] T002 [P] Acrescentar a `frontend/eslint.config.js` a regra nativa `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` (DTEC 036, RQ-001). **Verificação:** um arquivo temporário com o atributo faz `docker compose run --rm web npm run lint` falhar, e o código atual passa.
+- [x] T002 [P] Acrescentar a `frontend/eslint.config.js` a regra nativa `no-restricted-syntax` com o seletor `JSXAttribute[name.name='dangerouslySetInnerHTML']` (DTEC 036, RQ-001). **Verificação:** um arquivo temporário com o atributo faz `docker compose run --rm web npm run lint` falhar, e o código atual passa.
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
 
-- [ ] T003 Criar a entidade e a migração dos cartões:
+- [x] T003 Criar a entidade e a migração dos cartões:
   - **Entidade:** `app/cartoes/modelos.py` (Cartao), com os enums `OrigemCartao`, `SituacaoCartao` e `EstadoFsrs`.
   - **Migração** `backend/migracoes/versions/0004_cartoes.py`, conforme o [modelo de dados](data-model.md):
     - `CREATE EXTENSION IF NOT EXISTS unaccent` (DTEC 033);
@@ -43,7 +43,7 @@
   - cada `CHECK` recusa a linha inválida;
   - a FK composta impede um cartão numa matéria de outro dono e uma referência a uma fonte de outra matéria ou de outro dono;
   - apagar uma fonte citada falha por `restrict`, e com `fonte_id` nulo a linha continua válida (DTEC 035).
-- [ ] T004 [P] Criar `tests/fabricas_cartoes.py`, com a linha de comando `python -m tests.fabricas_cartoes --email --materia --quantidade`. A linha de comando só roda com `APP_AMBIENTE=desenvolvimento` e só para contas do domínio `exemplo.com` (regra 10). A fábrica gera:
+- [x] T004 [P] Criar `tests/fabricas_cartoes.py`, com a linha de comando `python -m tests.fabricas_cartoes --email --materia --quantidade`. A linha de comando só roda com `APP_AMBIENTE=desenvolvimento` e só para contas do domínio `exemplo.com` (regra 10). A fábrica gera:
   - cartões manuais com e sem referência;
   - cartões `gerado_verificado` inseridos direto (RF-006);
   - cartões suspensos;
@@ -51,8 +51,8 @@
   - textos com acentos, cedilha, maiúsculas, curingas (`%`, `_`, `\`), marcação e script, quebras de linha e emoji.
 
   Teste em `tests/unit/test_fabricas_cartoes.py`: cada cartão gerado respeita os `CHECK` e os limites, e a linha de comando recusa outro ambiente e outro domínio.
-- [ ] T005 [P] Ampliar `tests/arquitetura/test_camadas.py`: `app/materias` e `app/fontes` não importam `app/cartoes`, e `app/cartoes/dominio.py` e `cursor.py` não importam FastAPI nem SQLAlchemy.
-- [ ] T006 [P] Criar em `frontend/src/componentes/ui/`, sobre o React Aria (DTEC 016), cada um com teste e `vitest-axe`:
+- [x] T005 [P] Ampliar `tests/arquitetura/test_camadas.py`: `app/materias` e `app/fontes` não importam `app/cartoes`, e `app/cartoes/dominio.py` e `cursor.py` não importam FastAPI nem SQLAlchemy.
+- [x] T006 [P] Criar em `frontend/src/componentes/ui/`, sobre o React Aria (DTEC 016), cada um com teste e `vitest-axe`:
   - `CampoTextoLongo`: `TextArea` com rótulo, erro associado por `aria-describedby`, contador em *code points* (`[...texto.normalize('NFC')].length`) e limite recebido por propriedade (DTEC 036);
   - `SeloOrigem`: "Gerado e verificado", "Editado por você", "Criado por você" e o complemento "Fonte apagada", sempre com texto e ícone (RF-009, RQ-003).
 - [ ] T007 **Verificar a base:** `docker compose up --build` aplica a `0004`, a extensão `unaccent` existe (`\dx` no `psql`) e a integração contínua passa na `develop`. Registrar a evidência no registro de prompts da sessão de implementação.
@@ -62,13 +62,13 @@
 **Objetivo:** o estudante cria um cartão com frente, verso, explicação opcional e, se quiser, uma fonte da matéria como referência. O cartão aparece na lista como ativo, com a origem honesta, e fica pronto para entrar nas lições como cartão novo.  
 **Teste independente:** criar um cartão na matéria "Biologia" e confirmar que ele aparece na lista com "Criado por você" e que o estado gravado é o de um cartão novo na ordem de criação (passos 1 a 7 da US1 no [quickstart](quickstart.md)). A entrada numa lição real é reverificada pela 005.
 
-- [ ] T008 [P] [US1] Criar os testes unitários em `tests/unit/cartoes/test_dominio.py` e `tests/unit/cartoes/test_cursor.py`:
+- [x] T008 [P] [US1] Criar os testes unitários em `tests/unit/cartoes/test_dominio.py` e `tests/unit/cartoes/test_cursor.py`:
   - **Normalização:** NFC, `\r\n` e `\r`, controles C0 e C1 removidos (exceto `\n` e `\t`), extremidades, quebras internas preservadas, só espaços vira vazio. Com Hypothesis: idempotência e nenhuma quebra interna perdida (RF-011).
   - **Limites:** 0, 1, máximo e máximo + 1 em *code points*, com emoji e caracteres combinados; explicação vazia vira `None`; uma mensagem por campo (RF-001).
   - **Estado inicial:** igual ao de `fsrs.Card()` na versão fixada (RF-003, DTEC 037).
   - **Rótulos e derivados:** `verificado` só com `gerado_verificado`; `fonteApagada` com cópias presentes e fonte nula (RF-009).
   - **Cursor:** ida e volta; base64 inválido, adulterado e de filtros diferentes, todos com `cursor_invalido` (DTEC 034).
-- [ ] T009 [P] [US1] Criar os testes de integração em `tests/integration/cartoes/test_repositorio.py` e `tests/integration/cartoes/test_participante.py`:
+- [x] T009 [P] [US1] Criar os testes de integração em `tests/integration/cartoes/test_repositorio.py` e `tests/integration/cartoes/test_participante.py`:
   - **Repositório:** criação com filtro de dono; listagem só de `ativo` e `suspenso`, na ordem `criado_em desc, id desc`; paginação sem repetição nem salto com criação e exclusão entre as páginas; `total` correto.
   - **Referência:** cópia de título, nome e data da fonte; `FOR SHARE` na fonte.
   - **Participante (DTEC 027, emenda e DTEC 038):**
@@ -77,30 +77,30 @@
     - `ao_excluir_fonte` anulando `fonte_id` nos modos `manter` e `excluir`, sem tocar outros cartões;
     - `ao_excluir_materia` apagando os cartões da matéria;
     - `apagar_dados_usuario` apagando todos os cartões do usuário, na ordem anterior às fontes e às matérias.
-- [ ] T010 [P] [US1] Criar os testes funcionais em `tests/functional/cartoes/test_us1_criar.py`:
+- [x] T010 [P] [US1] Criar os testes funcionais em `tests/functional/cartoes/test_us1_criar.py`:
   - cenários 1 a 3 da US1. No cenário 1, o estado gravado é o de cartão novo (`aprendizado`, passo 0, sem última revisão), e `entrada_estudo_em` segue a ordem de criação (RF-003). No cenário 3, sai `verificado = false` com a referência (RF-002);
   - `GET /cartoes/limites` com os valores da configuração;
   - listagem com frente, origem e situação (RF-004) e a matéria sem cartões com `total = 0`;
   - casos de borda: frente, verso ou explicação só com espaços; marcação e script devolvidos literalmente (RQ-001);
   - fonte de referência em `pendente` e em `falhou` aceita (DTEC 035).
-- [ ] T011 [US1] Reexecutar com cartões reais os testes funcionais de exclusão da 002 (DTEC 027):
+- [x] T011 [US1] Reexecutar com cartões reais os testes funcionais de exclusão da 002 (DTEC 027):
   - **Onde:** parametrizar `tests/functional/fontes/test_us2_exclusao_fonte.py` e `tests/functional/materias/test_us3_organizar.py`, criados pela T033 e pela T040 da 002, para rodarem também com o participante real dos cartões, no lugar do participante falso.
   - **Exclusão da fonte:** nos dois modos, os cartões de referência são mantidos, com `fonteApagada = true` e a cópia intacta (D-006, D-009 da 002).
   - **Exclusão da matéria:** o impacto conta ativos e suspensos, e a exclusão os apaga.
   - **Contagens:** CS-004 da 002 com cartões reais, e a lista de matérias mostra só os ativos (emenda da DTEC 027).
-- [ ] T012 [P] [US1] Criar os testes de segurança em `tests/security/cartoes/test_cartoes_seguranca.py`:
+- [x] T012 [P] [US1] Criar os testes de segurança em `tests/security/cartoes/test_cartoes_seguranca.py`:
   - **Tabela de isolamento:** acrescentar a `tests/security/test_isolamento_rotas.py` os casos de `GET` e `POST /materias/{id}/cartoes` (DTEC 019).
   - **Propriedade:** criar cartão em matéria alheia responde `404`; uma fonte de outro estudante, de outra matéria ou inexistente responde `422` em `fonteId`, com a mesma mensagem (DTEC 035).
   - **Logs:** sem frente, verso, explicação nem título da referência, verificados com captura.
   - **Proteções herdadas:** `401` sem sessão e `403` sem CSRF nas rotas novas.
-- [ ] T013 [P] [US1] Criar os testes adversariais em `tests/adversarial/cartoes/test_criar_adversarial.py`:
+- [x] T013 [P] [US1] Criar os testes adversariais em `tests/adversarial/cartoes/test_criar_adversarial.py`:
   - **Entradas:** `<script>`, `<img onerror>`, caracteres bidirecionais e de largura zero devolvidos literalmente; payload no teto mais um (`422` do DTO); corpo acima de 64 KiB (`413` da 001); campos extras (`extra="forbid"`); `fonteId` que não é UUID; `limite` 0 e 101; cursor de outra conta (`422 cursor_invalido`, sem vazar nada).
   - **Concorrência:** criação com referência durante a exclusão da fonte. Ou o cartão nasce antes e fica com "Fonte apagada", ou a criação recebe `422`; nunca há referência a uma fonte inexistente.
-- [ ] T014 [US1] Implementar `app/cartoes/dominio.py` (`normalizar_texto_cartao`, `validar_limites`, `estado_inicial`, rótulos e derivados) e `app/cartoes/cursor.py`, até que a T008 passe.
-- [ ] T015 [US1] Implementar a criação e a listagem do domínio `cartoes`, até que as T009 a T013 passem:
+- [x] T014 [US1] Implementar `app/cartoes/dominio.py` (`normalizar_texto_cartao`, `validar_limites`, `estado_inicial`, rótulos e derivados) e `app/cartoes/cursor.py`, até que a T008 passe.
+- [x] T015 [US1] Implementar a criação e a listagem do domínio `cartoes`, até que as T009 a T013 passem:
   - **Camadas:** `app/cartoes/excecoes.py`, `repositorios.py` (filtro de dono, `situacoes_visiveis`, paginação, `FOR SHARE` na fonte), `servicos.py` (`limites`, `criar`, `listar`), `dtos.py` (tetos), `mapeadores.py` e `rotas.py` (`GET /cartoes/limites`, `GET` e `POST /materias/{id}/cartoes`, `Location` e `no-store`);
   - **Registros:** `app/cartoes/registros.py`, com o participante da exclusão e o `apagar_dados_usuario`, importado pela composição em `principal.py` e em `worker.py`.
-- [ ] T016 [US1] Ampliar `tests/integration/test_contrato_openapi.py` para verificar também `docs/specs/003-cartoes-manuais/contracts/openapi.yaml`, incluindo `cursor_invalido` no enum de `Erro`. Regenerar e versionar `backend/openapi.json` e rodar `npm run gerar:api` (o teto da busca vai para `limites.gerado.ts`).
+- [x] T016 [US1] Ampliar `tests/integration/test_contrato_openapi.py` para verificar também `docs/specs/003-cartoes-manuais/contracts/openapi.yaml`, incluindo `cursor_invalido` no enum de `Erro`. Regenerar e versionar `backend/openapi.json` e rodar `npm run gerar:api` (o teto da busca vai para `limites.gerado.ts`).
 - [ ] T017 [P] [US1] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`, todos com axe sem violações:
   - **Painel de criação:**
     - abre com o foco na frente;

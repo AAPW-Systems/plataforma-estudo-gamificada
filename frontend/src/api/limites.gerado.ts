@@ -16,6 +16,10 @@ export const limites = {
     cartoesAtivos: { minimum: 0 },
     fontes: { minimum: 0 },
   },
+  CriacaoCartaoEntrada: {
+    frente: { maxLength: 4000 },
+    verso: { maxLength: 8000 },
+  },
   EntradaEntrada: {
     email: { maxLength: 254 },
     senha: { maxLength: 128, minLength: 1 },
@@ -24,6 +28,13 @@ export const limites = {
   ExclusaoContaEntrada: { senhaAtual: { maxLength: 128, minLength: 1 } },
   ExclusaoMateriaEntrada: { nomeConfirmacao: { maxLength: 60, minLength: 1 } },
   Fonte: { tamanhoBytes: { minimum: 1 } },
+  LimitesCartao: {
+    buscaMax: { maximum: 100, minimum: 100 },
+    explicacaoMax: { maximum: 4000, minimum: 1 },
+    frenteMax: { maximum: 4000, minimum: 1 },
+    versoMax: { maximum: 8000, minimum: 1 },
+  },
+  ListaCartoes: { total: { minimum: 0 } },
   Materia: {
     cartoesAguardandoRevisao: { minimum: 0 },
     cartoesAtivos: { minimum: 0 },
