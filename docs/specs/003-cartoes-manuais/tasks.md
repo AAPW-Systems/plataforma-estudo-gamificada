@@ -124,28 +124,28 @@
 **Objetivo:** o estudante corrige frente, verso ou explicação sem mudar o agendamento. Um cartão gerado editado passa a "Editado por você".  
 **Teste independente:** editar um cartão "Gerado e verificado" da fábrica e confirmar que a origem muda para "Editado por você" e que vencimento, estabilidade e as demais colunas do FSRS não mudam. A evidência mantida é reverificada pela 004.
 
-- [ ] T020 [P] [US2] Criar os testes unitários em `tests/unit/cartoes/test_edicao.py`:
+- [x] T020 [P] [US2] Criar os testes unitários em `tests/unit/cartoes/test_edicao.py`:
   - `houve_mudanca` depois da normalização (só espaços nas extremidades ou `\r\n` no lugar de `\n` não é mudança; explicação vazia e nula são iguais);
   - tabela de `origem_apos_edicao`: três origens, com e sem mudança (RF-006, US2-3).
-- [ ] T021 [P] [US2] Criar os testes de integração em `tests/integration/cartoes/test_edicao_fsrs.py` (CS-002, RF-005):
+- [x] T021 [P] [US2] Criar os testes de integração em `tests/integration/cartoes/test_edicao_fsrs.py` (CS-002, RF-005):
   - todas as colunas do FSRS iguais antes e depois de uma edição;
   - edição sem mudança: nenhuma escrita, com `atualizado_em` igual;
   - uma atualização do agendamento simulada numa conexão separada, em paralelo à edição: as duas sobrevivem.
-- [ ] T022 [P] [US2] Criar os testes funcionais em `tests/functional/cartoes/test_us2_editar.py`:
+- [x] T022 [P] [US2] Criar os testes funcionais em `tests/functional/cartoes/test_us2_editar.py`:
   - cenários 1 a 3 da US2, o 2 sobre um cartão `gerado_verificado` da fábrica (`verificado` passa a `false`);
   - `GET /cartoes/{id}`;
   - edição parcial e remoção da explicação com `null`;
   - CS-002 com 20 edições sobre cartões em estados diferentes do FSRS.
-- [ ] T023 [P] [US2] Criar os testes de segurança e adversariais em `tests/security/cartoes/test_editar_seguranca.py` e `tests/adversarial/cartoes/test_editar_adversarial.py`:
+- [x] T023 [P] [US2] Criar os testes de segurança e adversariais em `tests/security/cartoes/test_editar_seguranca.py` e `tests/adversarial/cartoes/test_editar_adversarial.py`:
   - acrescentar à tabela de isolamento `GET` e `PATCH /cartoes/{id}`; cartão alheio responde `404` idêntico;
   - cartão aguardando revisão responde `404` (a fixture acrescenta o valor de enum numa transação própria até a 004 existir; DTEC 038);
   - corpo vazio (`minProperties`) e campos extras;
   - duas edições simultâneas: a última vale, sem erro;
   - exclusão durante a edição: `404` ou edição aplicada antes, nunca `500`.
-- [ ] T024 [US2] Implementar `houve_mudanca` e `origem_apos_edicao` em `app/cartoes/dominio.py`, mais `consultar` e `editar` em `servicos.py` e `repositorios.py` (`FOR UPDATE`; `UPDATE` só de `frente`, `verso`, `explicacao`, `origem` e `atualizado_em`). Implementar também os DTOs e as rotas `GET` e `PATCH /cartoes/{id}`, até que as T020 a T023 passem.
-- [ ] T025 [P] [US2] Criar os testes de componente da edição em `frontend/src/funcionalidades/cartoes/`: painel com os valores atuais, `Ctrl/⌘+Enter` salva e fecha, `SeloOrigem` atualizado para "Editado por você" depois de editar um gerado, erro do `422` junto do campo e axe sem violações.
-- [ ] T026 [US2] Implementar a ação "Editar" na lista, reutilizando o painel, até que a T025 passe.
-- [ ] T027 [US2] Executar o teste independente da US2 e a verificação complementar do quickstart (edição e CS-002 pela consulta ao banco) e registrar a evidência.
+- [x] T024 [US2] Implementar `houve_mudanca` e `origem_apos_edicao` em `app/cartoes/dominio.py`, mais `consultar` e `editar` em `servicos.py` e `repositorios.py` (`FOR UPDATE`; `UPDATE` só de `frente`, `verso`, `explicacao`, `origem` e `atualizado_em`). Implementar também os DTOs e as rotas `GET` e `PATCH /cartoes/{id}`, até que as T020 a T023 passem.
+- [x] T025 [P] [US2] Criar os testes de componente da edição em `frontend/src/funcionalidades/cartoes/`: painel com os valores atuais, `Ctrl/⌘+Enter` salva e fecha, `SeloOrigem` atualizado para "Editado por você" depois de editar um gerado, erro do `422` junto do campo e axe sem violações.
+- [x] T026 [US2] Implementar a ação "Editar" na lista, reutilizando o painel, até que a T025 passe.
+- [x] T027 [US2] Executar o teste independente da US2 e a verificação complementar do quickstart (edição e CS-002 pela consulta ao banco) e registrar a evidência.
 
 ## Fase 5 História de usuário 3 Suspender, reativar e excluir (P2)
 
