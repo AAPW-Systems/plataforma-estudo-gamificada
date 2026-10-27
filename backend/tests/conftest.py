@@ -72,13 +72,13 @@ def banco_migrado(configuracao: Configuracao) -> Iterator[None]:
 
 
 @pytest.fixture(scope="module")
-def situacoes_da_004(configuracao: Configuracao, banco_migrado: None) -> Iterator[None]:
+async def situacoes_da_004(configuracao: Configuracao, engine: AsyncEngine) -> AsyncIterator[None]:
     """Acrescenta `aguardando_revisao` e `recusado` a `situacao_cartao` até a 004 existir.
 
     A 003 cria só `ativo` e `suspenso` (DTEC 038); os testes que precisam de um cartão fora das
     situações visíveis usam este valor, confirmado numa conexão própria (o valor novo só pode ser
     usado depois do commit). Ao fim do módulo, descer e subir a `0004` recria o tipo sem eles,
-    e os outros módulos enxergam o banco como a migração o deixa.
+    e os outros módulos enxergam o banco como a migração o deixa, com o pool renovado.
     """
     with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
         for valor in ("aguardando_revisao", "recusado"):
@@ -88,6 +88,9 @@ def situacoes_da_004(configuracao: Configuracao, banco_migrado: None) -> Iterato
     finally:
         executar_alembic("downgrade", "0003")
         executar_alembic("upgrade", "head")
+        # O tipo recriado tem outro OID: as conexões do pool guardam comandos preparados com o
+        # antigo e o próximo módulo falharia com "cache lookup failed for type".
+        await engine.dispose()
 
 
 @pytest.fixture(scope="session")
