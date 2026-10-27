@@ -37,6 +37,14 @@ achados e pendências da 002) e as DTEC 027 (com as emendas de 13/10 e 15/10/202
   na documentação ou nos registros. O rodapé `Claude-Session: ...` também não deve entrar.
 - Nunca reescreva o histórico publicado (regra 14); os commits antigos em nome de Claude ficam como estão.
 
+### Prompt 2 (rodada 3, em 27/10/2026)
+
+```text
+[saída do `docker compose up -d --build --wait` colada duas vezes pelo usuário, no Windows com Docker Desktop: imagens `plataforma-api:dev` e `plataforma-web:dev` construídas em 247 s; contêiner `migrate` Exited; `worker`, `api`, `web` e `db` Healthy]
+
+obs: deu um conflito no repositório local ao fazer o pull, fiz a correção e dei o push, atualize antes de fazer outras coisas
+```
+
 ## Estado de partida
 
 - Spec 002 Convergida; 001 em Implementando (T063 e o leitor de tela são humanos). Backend: 1629 testes (1 pulado,
@@ -240,6 +248,12 @@ continue com as tasks 4 a 15 da spec 003
 - **T017 a T045** (interface da US1, US2, US3, US4 e fase final): não iniciadas; a próxima é a T017 (testes de componente do painel e da lista).
 - **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
 - **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
-- **T007** (verificar a base com `docker compose up -d --build --wait`, `\dx` com `unaccent` e a migração `0004` aplicada) depende de Artur Lins no Docker Desktop: **pedido novamente**. As histórias seguem sem ela, como previsto.
+- ~~T007~~: resolvida na rodada 3 (abaixo).
 - **Reverificações de outras specs (obrigações do plano):** a entrada do cartão novo na lição, o suspenso fora da lição e o reativado com o vencimento anterior são reverificados pela 005 com lições reais; as revisões e o XP preservados, pela 005 e pela 006.
 - **Teste de concorrência da edição durante a revisão (T021)** e os de suspender e excluir seguem para as US2 e US3.
+
+## Rodada 3 (27/10/2026): atualização da `develop` e T007
+
+- **Atualização:** a `develop` recebeu um merge feito por Artur Lins, que resolveu à mão um conflito no `pull` (`64a5b32`), trazendo o guia e o script do progresso no README (`scripts/atualizar_readme_progresso.py`, hook `.githooks/pre-commit`, job `readme` do CI e a regra nova no `AGENTS.md`). Puxei com `git pull --rebase`, sem conflito local; ativei o hook (`git config core.hooksPath .githooks`) e `python scripts/atualizar_readme_progresso.py --check` passou. Passo a incluir o `README.md` regenerado em todo commit que marcar tarefa.
+- **Evidência da T007:** a saída colada por Artur Lins mostra o `docker compose up -d --build --wait` no Docker Desktop: imagens construídas e `migrate` terminado, com `worker`, `api`, `web` e `db` `Healthy`. No `compose.yaml`, `api` e `worker` dependem do `migrate` com `condition: service_completed_successfully`, então a `0004_cartoes` (que começa por `CREATE EXTENSION IF NOT EXISTS unaccent`) foi aplicada: se a extensão faltasse, a migração falharia e a `api` não subiria. O `\dx` literal do `psql` **não veio na saída colada**; a extensão está provada de forma indireta aqui e, no CI, pelo teste de migração e pelos testes de busca da US4 (a vir). Se Artur Lins quiser a prova direta: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\dx"'`. A integração contínua já estava verde na execução 30.
+- **Resultado:** T007 marcada `[x]`; T001 a T016 prontas. A próxima é a T017.
