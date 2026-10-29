@@ -101,7 +101,7 @@
   - `app/ia/provedores.py`;
   - `app/ia/cliente.py` (`executar(agente, entrada, contexto)`: orçamento, timeout, `UsageLimits`, classificação dos erros em `ErroTransitorioIA`, `LimiteProvedor`, `RespostaInvalida` e `OrcamentoEsgotado`, e o registro do consumo numa transação própria);
   - `app/ia/repositorios.py`, `excecoes.py` e `registros.py`, importado pela composição em `principal.py` e em `worker.py`.
-- [ ] T010 [P] Criar em `frontend/src/componentes/ui/`, sobre o React Aria (DTEC 016), cada um com teste e `vitest-axe`:
+- [x] T010 [P] Criar em `frontend/src/componentes/ui/`, sobre o React Aria (DTEC 016), cada um com teste e `vitest-axe`:
   - `CitacaoDestacada`: o texto do trecho com o intervalo da citação em `<mark>`, contado em *code points* como no servidor, sempre como texto puro;
   - `PainelEvidencia`: fonte, trecho com a citação destacada e a página só quando conhecida; ou "Fonte apagada" com título, arquivo, página e data, sem o trecho. Recolhido por padrão e expansível ([design, 9.8](../../base-specs/design.md#98-evidência)).
 - [ ] T011 **Verificar a base:** `docker compose up --build` aplica a `0005`, `\dT+ situacao_cartao` mostra os quatro valores, e a integração contínua passa na `develop`. Registrar a evidência no registro de prompts da sessão de implementação.
