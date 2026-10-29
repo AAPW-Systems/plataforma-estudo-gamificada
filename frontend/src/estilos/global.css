@@ -541,6 +541,20 @@
     align-items: center;
     gap: calc(var(--spacing) * 2);
   }
+  /* Busca e filtros: em coluna no celular, lado a lado quando cabem. */
+  .barra-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    align-items: flex-end;
+  }
+  .barra-filtros .campo {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .barra-filtros .campo-busca {
+    flex: 2 1 16rem;
+  }
   .item-cartao-acoes {
     display: flex;
     flex-wrap: wrap;

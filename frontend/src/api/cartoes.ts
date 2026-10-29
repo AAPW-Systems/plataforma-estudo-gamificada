@@ -9,6 +9,15 @@ export type LimitesCartao = components["schemas"]["LimitesCartao"];
 export type ListaCartoes = components["schemas"]["ListaCartoes"];
 export type CriacaoCartao = components["schemas"]["CriacaoCartaoEntrada"];
 export type EdicaoCartao = components["schemas"]["EdicaoCartaoEntrada"];
+export type SituacaoCartao = components["schemas"]["SituacaoCartao"];
+export type OrigemCartao = components["schemas"]["OrigemCartao"];
+
+/** Busca e filtros da lista (US4); ausentes valem como "todos". */
+export interface FiltrosCartoes {
+  busca?: string;
+  situacao?: SituacaoCartao;
+  origem?: OrigemCartao;
+}
 
 /** A lista de cartões fica sob a chave da matéria: invalidar a matéria a inclui. */
 export const chavesCartoes = {
@@ -27,17 +36,20 @@ export const consultaLimitesCartao = queryOptions({
   queryFn: async () => exigir((await cliente.GET("/api/v1/cartoes/limites")).data),
 });
 
-/** Páginas da lista, por cursor (DTEC 034); "Carregar mais" pede a próxima. */
-export const consultaCartoes = (materiaId: string) =>
+/**
+ * Páginas da lista, por cursor (DTEC 034); "Carregar mais" pede a próxima. Cada combinação de
+ * filtros tem a sua entrada no cache, sob a chave da lista: invalidar a lista invalida todas.
+ */
+export const consultaCartoes = (materiaId: string, filtros: FiltrosCartoes = {}) =>
   infiniteQueryOptions({
-    queryKey: chavesCartoes.lista(materiaId),
+    queryKey: [...chavesCartoes.lista(materiaId), filtros] as const,
     queryFn: async ({ pageParam }) =>
       exigir(
         (
           await cliente.GET("/api/v1/materias/{materiaId}/cartoes", {
             params: {
               path: { materiaId },
-              query: pageParam ? { cursor: pageParam } : {},
+              query: { ...filtros, ...(pageParam ? { cursor: pageParam } : {}) },
             },
           })
         ).data,

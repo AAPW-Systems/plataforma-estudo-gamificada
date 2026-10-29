@@ -1,9 +1,15 @@
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { consultaFontes } from "../../api/acervo";
 import {
   type Cartao,
+  type FiltrosCartoes,
   consultaCartoes,
   consultaLimitesCartao,
   reativarCartao,
@@ -11,16 +17,37 @@ import {
 } from "../../api/cartoes";
 import { ErroApi } from "../../api/erros";
 import { Botao } from "../../componentes/ui/Botao";
+import { BarraFiltros } from "./BarraFiltros";
 import { invalidarCartoesEMaterias, removerDaLista, substituirNaLista } from "./cache";
 import { ItemCartao } from "./ItemCartao";
 import { PainelCartao } from "./PainelCartao";
+import { haFiltros } from "./filtros";
 import { totalDeCartoes } from "./textos";
 
 /** Cartões ativos e suspensos da matéria, com a criação no painel lateral (design 9.4; US1). */
-export function AbaCartoes({ materiaId }: { materiaId: string }) {
+const SEM_FILTROS: FiltrosCartoes = {};
+const IGNORAR = () => undefined;
+
+export interface AbaCartoesProps {
+  materiaId: string;
+  /** Busca e filtros vigentes; a rota os guarda na URL (US4). */
+  filtros?: FiltrosCartoes;
+  aoMudarFiltros?: (filtros: FiltrosCartoes) => void;
+}
+
+export function AbaCartoes({
+  materiaId,
+  filtros = SEM_FILTROS,
+  aoMudarFiltros = IGNORAR,
+}: AbaCartoesProps) {
   const { data: limites } = useQuery(consultaLimitesCartao);
   const { data: fontes } = useQuery(consultaFontes(materiaId));
-  const cartoes = useInfiniteQuery(consultaCartoes(materiaId));
+  // Ao trocar a busca ou um filtro, a lista anterior fica à vista até a nova chegar.
+  const cartoes = useInfiniteQuery({
+    ...consultaCartoes(materiaId, filtros),
+    placeholderData: keepPreviousData,
+  });
+  const filtrando = haFiltros(filtros);
   const [aberto, definirAberto] = useState(false);
   const [emEdicao, definirEmEdicao] = useState<Cartao>();
   const [anuncio, definirAnuncio] = useState("");
@@ -89,7 +116,7 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
         {total !== undefined && total > 0 && (
           <p className="item-detalhes">{totalDeCartoes(total)}</p>
         )}
-        {total !== undefined && total > 0 && (
+        {total !== undefined && (total > 0 || filtrando) && (
           <Botao isDisabled={!limites} onPress={abrir}>
             Criar cartão
           </Botao>
@@ -98,6 +125,9 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
       <div role="status" aria-live="polite" className="sr-only">
         {anuncio}
       </div>
+      {total !== undefined && (total > 0 || filtrando) && (
+        <BarraFiltros filtros={filtros} aoMudar={aoMudarFiltros} />
+      )}
       {erroAcao && (
         <p role="alert" className="erro-formulario">
           {erroAcao}
@@ -109,7 +139,20 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
           Não foi possível carregar os cartões. Tente novamente.
         </p>
       )}
-      {total === 0 && (
+      {total === 0 && filtrando && (
+        <div className="estado-vazio">
+          <p>Nenhum cartão corresponde à busca.</p>
+          <Botao
+            variante="secundario"
+            onPress={() => {
+              aoMudarFiltros({});
+            }}
+          >
+            Limpar busca e filtros
+          </Botao>
+        </div>
+      )}
+      {total === 0 && !filtrando && (
         <div className="estado-vazio">
           <p>Esta matéria ainda não tem cartões.</p>
           <Botao isDisabled={!limites} onPress={abrir}>

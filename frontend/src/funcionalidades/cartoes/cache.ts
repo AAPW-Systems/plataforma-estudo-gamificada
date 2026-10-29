@@ -8,13 +8,16 @@ function alterarPaginas(
   materiaId: string,
   alterar: (itens: Cartao[]) => Cartao[],
 ) {
-  queryClient.setQueryData<InfiniteData<ListaCartoes>>(chavesCartoes.lista(materiaId), (dados) =>
-    dados
-      ? {
-          ...dados,
-          pages: dados.pages.map((pagina) => ({ ...pagina, itens: alterar(pagina.itens) })),
-        }
-      : dados,
+  // Por prefixo: o cartão é trocado em todas as combinações de filtros já carregadas.
+  queryClient.setQueriesData<InfiniteData<ListaCartoes>>(
+    { queryKey: chavesCartoes.lista(materiaId) },
+    (dados) =>
+      dados
+        ? {
+            ...dados,
+            pages: dados.pages.map((pagina) => ({ ...pagina, itens: alterar(pagina.itens) })),
+          }
+        : dados,
   );
 }
 
