@@ -1,0 +1,81 @@
+# Implementação da spec 004 (geração de cartões): base, T001 a T011
+
+**Data:** 2026-10-29
+**Autor:** Artur Lins (condução); implementação pelo agente
+**Agente e modelo:** agente de programação (o identificador do modelo não é registrado em artefatos do repositório)
+**Etapa SDD:** implementar
+**Funcionalidade:** 004-geracao-cartoes
+**Responsável pela implementação e revisor do conjunto de avaliação (T001):** Artur Lins
+
+## Contexto fornecido
+
+- A 003 está `Convergida` (29/10/2026). Esta sessão cobre só a base da 004 (Fases 1 e 2, T001 a T011); a US1 (T012 em diante) não começa.
+- Contêiner de nuvem Linux sem Docker; PostgreSQL do sistema ligado com `pg_ctlcluster 16 main start`. A T011 (Compose) é verificada por Artur Lins no Docker Desktop.
+
+## Prompts
+
+### Prompt 1
+
+```text
+Implemente a base da spec 004 (docs/specs/004-geracao-cartoes): tarefas T001 a T011 (Fases 1 e 2), na branch `develop`, seguindo o AGENTS.md e o SDD à risca. Não comece a US1 (T012 em diante).
+
+Antes de agir:
+- Leia o AGENTS.md, a constituição, `docs/skills/contexto-tecnico.md`, `docs/skills/padroes-implementacao.md` (inclusive a seção da 003), `docs/skills/padroes-interface.md`, `docs/skills/registrar-prompt.md` e todos os artefatos de `docs/specs/004-geracao-cartoes/` (spec, plan, research com as DTEC 039 a 047, data-model, contracts, quickstart, tasks e traceability).
+- Atualize a `develop` (`git pull --rebase origin develop`) e confira se o CI está verde.
+- Crie o registro da sessão em `docs/prompts/AAAA-MM-DD-004-geracao-cartoes-implementacao.md`, com este prompt literal, adicione-o ao índice e vá acrescentando a evidência de cada tarefa.
+
+T001 vem primeiro e depende de mim: pergunte-me quem é a pessoa responsável pela implementação e revisora do conjunto de avaliação. Não faça nenhuma outra tarefa antes da minha resposta e da minha aprovação. Depois, registre o nome no plan.md e no registro da sessão.
+
+Autoria dos commits:
+- Configure `git config --local user.name "Artur Lins"` e `git config --local user.email "artur.olins@gmail.com"`, e confira com `git log -1 --format='%an <%ae>'`.
+- Nenhum `Co-Authored-By` em nenhum commit, e nenhuma menção a modelo ou ferramenta de IA nos commits, no código, na documentação ou nos registros.
+- O rodapé `Claude-Session: ...` também não entra.
+- Nunca reescreva o histórico publicado (regra 14): sem amend, rebase de commits publicados nem force-push, mesmo que algum hook peça.
+
+Fluxo de trabalho:
+- Testes antes do código: mostre o vermelho antes do verde e registre os dois.
+- Para cada regra importante, quebre a implementação de propósito (mutação) e confira que algum teste cai; depois restaure o código.
+- Um commit atômico por tarefa ou por par teste e implementação, em Conventional Commits em português, citando o ID (ex.: `feat(ia): núcleo do cliente de IA [T008-T009]`).
+- Todo commit que marca tarefa `[x]` inclui o `README.md` regenerado por `python scripts/atualizar_readme_progresso.py`. O hook `.githooks/pre-commit` não executa no clone de nuvem, então rode o script à mão.
+- Só marque `[x]` com evidência registrada no registro da sessão.
+
+Antes de cada push:
+- `git pull --rebase origin develop`;
+- backend completo duas vezes seguidas, verde, com `ruff format --check`, `ruff check` e `mypy` limpos;
+- frontend com `eslint`, `tsc`, `prettier --check`, `vitest` e `vite build` limpos;
+- depois do push, confira o CI.
+
+Restrições:
+- Sem dependência fora da stack aprovada. As da T002 (`pydantic-ai-slim` com os extras `google` e `groq`, e `pydantic-evals`) estão nas DTEC 007 e 011; fixe as versões no `uv.lock`.
+- Nenhuma chamada real a provedor de IA: `models.ALLOW_MODEL_REQUESTS = False` e `IA_PROVEDOR=teste` nos testes.
+- Sem segredos: as chaves ficam vazias no `.env.example`. Preserve o `.env` local e nunca imprima os valores dele.
+- Sem dados pessoais reais: só contas `@exemplo.com`.
+- Dúvida de produto vira questão Q-xxx na spec e pergunta para mim; não decida.
+
+Pontos já conhecidos da 003 que afetam esta base:
+- A migração `0005` acrescenta `aguardando_revisao` e `recusado` a `situacao_cartao`, então o teste `tests/integration/cartoes/test_restricoes.py::test_situacoes_da_004_ainda_nao_existem_no_enum` vai falhar, e o fixture `situacoes_da_004` de `tests/conftest.py` deixa de ser necessário. Trate isso na T004 de forma explícita: troque o teste por um que confira os quatro valores, troque o fixture por cartões reais nessas situações e registre a mudança. Os testes da 003 que usavam o fixture continuam cobrindo o mesmo caso ("aguardando revisão ou recusado responde 404 e fica fora da lista").
+- Fixtures que recriam um tipo do banco precisam de `await engine.dispose()` depois. O defeito (`cache lookup failed for type`) só aparece na suíte completa.
+- O participante falso dos cartões gerados (`tests/participantes_falsos.py`) segue nos testes da 002 até a 004 ter o participante real; não o remova nesta base.
+- No ambiente de nuvem não há serviço do Docker, nem há PostgreSQL rodando por padrão; ligue-o com `pg_ctlcluster 16 main start`. A T011 (`docker compose up --build` com a `0005` e `\dT+ situacao_cartao` mostrando quatro valores) é verificada por mim no Docker Desktop: deixe-a aberta com o comando pronto e só a marque depois que eu colar a saída. A parte do CI verde da T011 você confere.
+- O teste com leitor de tela fica para a rodada final do projeto (decisão de 15/10/2026).
+
+Ao terminar, relate o que foi feito, como foi verificado, o que ficou pendente e o que depende de mim, sem declarar como verificado algo que não foi executado. Atualize o registro, as tarefas, o README da spec, o "Estado atual" do AGENTS.md e o `contexto-tecnico.md`.
+```
+
+### Prompt 2 (resposta à pergunta da T001)
+
+```text
+Artur Lins
+```
+
+## Evidência por tarefa
+
+- **T001:** nome "Artur Lins" registrado no campo do `plan.md` (linha 10) e no cabeçalho deste registro. Aprovado por Artur Lins em 29/10/2026 ("Aprovado, pode seguir").
+
+## Saída aceita
+
+*Em andamento.*
+
+## Pendências
+
+*Em andamento.*

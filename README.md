@@ -43,7 +43,7 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 | [001: Conta, sessão, isolamento e preferências](docs/specs/001-conta-acesso/spec.md) | 64 de 65 ([tarefas](docs/specs/001-conta-acesso/tasks.md)) | Implementando (falta T063) |
 | [002: Matérias, envio e processamento de fontes](docs/specs/002-materias-fontes/spec.md) | 51 de 51 ([tarefas](docs/specs/002-materias-fontes/tasks.md)) | Convergida |
 | [003: Cartões criados e gerenciados pelo estudante](docs/specs/003-cartoes-manuais/spec.md) | 45 de 45 ([tarefas](docs/specs/003-cartoes-manuais/tasks.md)) | Convergida |
-| [004: Geração de cartões pela IA e revisão dos gerados](docs/specs/004-geracao-cartoes/spec.md) | 0 de 59 ([tarefas](docs/specs/004-geracao-cartoes/tasks.md)) | Tarefas aprovadas |
+| [004: Geração de cartões pela IA e revisão dos gerados](docs/specs/004-geracao-cartoes/spec.md) | 1 de 59 ([tarefas](docs/specs/004-geracao-cartoes/tasks.md)) | Tarefas aprovadas |
 | [005: Lição com repetição espaçada e trilha de progressão](docs/specs/005-licao-trilha/spec.md) | 0 de 49 ([tarefas](docs/specs/005-licao-trilha/tasks.md)) | Tarefas aprovadas |
 | [006: XP, meta diária e sequência](docs/specs/006-xp-meta-sequencia/spec.md) | 0 de 45 ([tarefas](docs/specs/006-xp-meta-sequencia/tasks.md)) | Tarefas aprovadas |
 | [007: Evolução mínima](docs/specs/007-evolucao/spec.md) | 0 de 26 ([tarefas](docs/specs/007-evolucao/tasks.md)) | Tarefas aprovadas |

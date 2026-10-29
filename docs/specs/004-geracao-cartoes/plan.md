@@ -7,7 +7,7 @@
 
 - Artur Lins: decisões técnicas e aprovações desta fase de documentação.
 - Implementação e revisão do conjunto de avaliação (RQ-007, D-012): qualquer pessoa da equipe pode assumir. Quem assumir registra o nome abaixo antes da primeira execução do conjunto de avaliação (tarefa de abertura).
-  - **Responsável pela implementação e revisor do conjunto de avaliação:** *a definir no início da implementação*.
+  - **Responsável pela implementação e revisor do conjunto de avaliação:** Artur Lins (registrado em 29/10/2026, T001).
 
 **Status:** aprovado em 13/10/2026 por Artur Lins (equipe), com as DTEC 039 a 047
 
