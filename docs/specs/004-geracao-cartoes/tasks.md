@@ -20,7 +20,7 @@
 ## Fase 1 Preparação
 
 - [x] T001 **Registrar a pessoa responsável (RQ-007, D-012):** quem assumir a implementação da 004 escreve o próprio nome no campo "Responsável pela implementação e revisor do conjunto de avaliação" do [plano](plan.md) e no registro de prompts da sessão de implementação. **Verificação:** o nome está nos dois lugares antes de qualquer outra tarefa, e Artur Lins aprova a mudança.
-- [ ] T002 Acrescentar a `backend/pyproject.toml`, em versões fixas no `backend/uv.lock` (DTEC 007 e 011):
+- [x] T002 Acrescentar a `backend/pyproject.toml`, em versões fixas no `backend/uv.lock` (DTEC 007 e 011):
   - `pydantic-ai-slim` com os extras `google` e `groq`;
   - `pydantic-evals`, no grupo de desenvolvimento;
   - o marcador `avaliacao_ia` registrado e excluído da execução padrão (`addopts = -m "not avaliacao_ia"`).

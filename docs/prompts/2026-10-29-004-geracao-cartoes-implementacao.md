@@ -70,7 +70,10 @@ Artur Lins
 
 ## Evidência por tarefa
 
+- **Base antes da sessão:** `develop` em `ed85999`, CI verde (execução 38). Suíte do backend no ambiente local: 2344 aprovados e 1 pulado (`test_saude.py:138`, pulado porque o banco local roda como superusuário), em 7 min 18 s.
 - **T001:** nome "Artur Lins" registrado no campo do `plan.md` (linha 10) e no cabeçalho deste registro. Aprovado por Artur Lins em 29/10/2026 ("Aprovado, pode seguir").
+
+- **T002:** `pydantic-ai-slim[google,groq]==2.63.0` nas dependências e `pydantic-evals==2.63.0` no grupo `dev`, fixados no `uv.lock`. O lock só acrescentou pacotes (`google-genai` 2.34.0, `groq` 1.7.0, `pydantic-graph`, `genai-prices`, `logfire-api`, `httpx2` e dependências de transporte); nenhuma versão existente mudou (`pydantic` segue 2.14.1). Marcador `avaliacao_ia` registrado e excluído por `addopts = [..., "-m", "not avaliacao_ia"]`. Verificação no ambiente local (sem Docker): `uv run python -c "import pydantic_ai, pydantic_evals"` em Python 3.13.17 e `pytest --markers` lista `@pytest.mark.avaliacao_ia`. O mesmo comando dentro da imagem (`docker compose run --rm api ...`) fica coberto pelo CI, que constrói a imagem com o `uv.lock`.
 
 ## Saída aceita
 

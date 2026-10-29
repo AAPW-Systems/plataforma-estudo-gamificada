@@ -12,6 +12,7 @@ dependencies = [
     "procrastinate==3.10.0",
     "psycopg[binary,pool]==3.3.6",
     "pydantic==2.14.1",
+    "pydantic-ai-slim[google,groq]==2.63.0",
     "pydantic-settings==2.15.0",
     "pymupdf==1.28.2",
     "python-multipart==0.0.32",
@@ -34,6 +35,7 @@ dev = [
     "hypothesis==6.169.0",
     "mypy==2.4.0",
     "openapi-spec-validator==0.9.0",
+    "pydantic-evals==2.63.0",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
@@ -82,7 +84,7 @@ init_typed = true
 warn_required_dynamic_aliases = true
 
 [tool.pytest.ini_options]
-addopts = ["--strict-markers", "--strict-config", "-ra"]
+addopts = ["--strict-markers", "--strict-config", "-ra", "-m", "not avaliacao_ia"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
@@ -93,6 +95,7 @@ markers = [
     "functional: critérios de aceitação das histórias, de ponta a ponta pela API",
     "security: autenticação, autorização, isolamento, validação e vazamento de dados",
     "adversarial: entradas maliciosas ou inesperadas, reenvios e concorrência",
+    "avaliacao_ia: conjunto de avaliação com o provedor real (DTEC 011 e 047), fora do merge",
 ]
 filterwarnings = ["error"]
 
