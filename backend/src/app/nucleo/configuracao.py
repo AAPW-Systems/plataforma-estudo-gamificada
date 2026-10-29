@@ -87,6 +87,14 @@ class Configuracao(BaseSettings):
     cartao_verso_max: int = Field(default=2000, ge=1, le=CARTAO_VERSO_TETO)
     cartao_explicacao_max: int = Field(default=1000, ge=1, le=CARTAO_EXPLICACAO_TETO)
 
+    # Geração de cartões (spec 004, plano "Variáveis de ambiente"; D-002, D-005, DTEC 041 e 042).
+    geracao_limite_dia: int = Field(default=20, ge=1)
+    geracao_cartoes_max: int = Field(default=10, ge=1, le=10)
+    geracao_janela_max_caracteres: int = Field(default=30_000, ge=1)
+    geracao_limiar_cobertura: float = Field(default=0.6, gt=0, le=1)
+    geracao_limiar_repeticao: float = Field(default=0.7, gt=0, le=1)
+    geracao_verificador_ia: bool = True
+
     log_nivel: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     @field_validator("origens_permitidas", "proxies_confiaveis", mode="before")
@@ -126,6 +134,11 @@ class Configuracao(BaseSettings):
             raise ValueError("TRECHO_SOBREPOSICAO precisa ser menor que TRECHO_TAMANHO_ALVO")
         if self.trecho_tamanho_alvo > self.trecho_tamanho_maximo:
             raise ValueError("TRECHO_TAMANHO_ALVO não pode passar de TRECHO_TAMANHO_MAXIMO")
+        if self.geracao_janela_max_caracteres < self.trecho_tamanho_maximo:
+            # A janela nunca corta um trecho e tem pelo menos um (DTEC 041).
+            raise ValueError(
+                "GERACAO_JANELA_MAX_CARACTERES não pode ser menor que TRECHO_TAMANHO_MAXIMO"
+            )
         if self.cota_armazenamento_bytes < self.fonte_tamanho_max_bytes:
             raise ValueError("COTA_ARMAZENAMENTO_BYTES não pode ser menor que um arquivo")
         if self.app_ambiente == "producao":

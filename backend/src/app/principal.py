@@ -18,6 +18,7 @@ from app.fontes.excecoes import ArquivoMuitoGrande
 from app.fontes.registros import participante_fontes
 from app.fontes.rotas import roteador as fontes
 from app.fontes.servicos import ServicoFontes
+from app.ia.configuracao import ConfiguracaoIa, obter_configuracao_ia
 from app.identidade.dominio import carregar_senhas_comuns
 from app.identidade.rotas import roteador as identidade
 from app.identidade.servicos import ServicoIdentidade
@@ -65,8 +66,11 @@ def criar_aplicacao(
     servico_senhas: ServicoSenhas | None = None,
     senhas_comuns: frozenset[str] | None = None,
     armazenamento: Armazenamento | None = None,
+    configuracao_ia: ConfiguracaoIa | None = None,
 ) -> FastAPI:
     configuracao = configuracao or obter_configuracao()
+    # Provedor real sem chave, ou simulado em produção: a aplicação não sobe (plano da 004).
+    configuracao_ia = configuracao_ia or obter_configuracao_ia()
 
     @asynccontextmanager
     async def vida(app: FastAPI) -> AsyncIterator[None]:
@@ -121,6 +125,7 @@ def criar_aplicacao(
         ],
     )
     app.state.configuracao = configuracao
+    app.state.configuracao_ia = configuracao_ia
     app.state.relogio = relogio or RelogioSistema()
     registrar_handlers(app)
     app.include_router(saude)

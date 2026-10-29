@@ -26,7 +26,7 @@
   - o marcador `avaliacao_ia` registrado e excluído da execução padrão (`addopts = -m "not avaliacao_ia"`).
 
   **Verificação:** `docker compose run --rm api uv run python -c "import pydantic_ai, pydantic_evals"` funciona em Python 3.13, e `pytest --markers` lista `avaliacao_ia`.
-- [ ] T003 Acrescentar a configuração da IA e da geração:
+- [x] T003 Acrescentar a configuração da IA e da geração:
   - **`.env.example`:** as variáveis da [tabela do plano](plan.md#variáveis-de-ambiente-acréscimos-ao-envexample), com as chaves vazias (regra 9);
   - **Configuração:** `app/ia/configuracao.py` (`IA_*`, com as chaves em `SecretStr` e o aviso de cada provedor: versão e parágrafos) e os campos `GERACAO_*` em `app/nucleo/configuracao.py`;
   - **`tests/conftest.py`:** `models.ALLOW_MODEL_REQUESTS = False` e `IA_PROVEDOR=teste`.

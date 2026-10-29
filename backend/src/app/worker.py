@@ -6,7 +6,8 @@ import asyncio
 
 import structlog
 
-from app.nucleo.configuracao import obter_configuracao
+from app.ia.configuracao import obter_configuracao_ia
+from app.nucleo.configuracao import Configuracao, obter_configuracao
 from app.nucleo.fila import app_fila
 from app.nucleo.logs import configurar_logs
 
@@ -22,8 +23,15 @@ def carregar_tarefas() -> None:
     app_fila.perform_import_paths()  # type: ignore[no-untyped-call]
 
 
-async def executar() -> None:
+def validar_configuracao() -> Configuracao:
+    """Valida a configuração geral e a da IA antes de aceitar jobs (o worker chama o provedor)."""
     configuracao = obter_configuracao()
+    obter_configuracao_ia()
+    return configuracao
+
+
+async def executar() -> None:
+    configuracao = validar_configuracao()
     configurar_logs(configuracao.log_nivel)
     carregar_tarefas()
     async with app_fila.open_async():

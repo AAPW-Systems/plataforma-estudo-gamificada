@@ -247,3 +247,59 @@ def test_limite_de_cartao_vem_do_ambiente(monkeypatch: pytest.MonkeyPatch) -> No
     )
     assert (config.cartao_frente_max, config.cartao_verso_max) == (500, 900)
     assert config.cartao_explicacao_max == 300
+
+
+def test_geracao_tem_os_padroes_do_plano() -> None:
+    """T003 (004): padrões da tabela de variáveis do plano."""
+    config = _criar()
+    assert config.geracao_limite_dia == 20
+    assert config.geracao_cartoes_max == 10
+    assert config.geracao_janela_max_caracteres == 30_000
+    assert config.geracao_limiar_cobertura == 0.6
+    assert config.geracao_limiar_repeticao == 0.7
+    assert config.geracao_verificador_ia is True
+
+
+@pytest.mark.parametrize("campo", ["geracao_limiar_cobertura", "geracao_limiar_repeticao"])
+@pytest.mark.parametrize("invalido", [0, -0.1, 1.0001, 2])
+def test_nao_sobe_com_limiar_fora_de_0_a_1(campo: str, invalido: float) -> None:
+    """T003 (004, DTEC 041 e 042): limiar em (0, 1]."""
+    with pytest.raises(ValidationError, match=campo):
+        _criar(**{campo: invalido})
+
+
+@pytest.mark.parametrize("campo", ["geracao_limiar_cobertura", "geracao_limiar_repeticao"])
+def test_limiar_aceita_1(campo: str) -> None:
+    assert getattr(_criar(**{campo: 1}), campo) == 1
+
+
+@pytest.mark.parametrize("invalido", [0, 11])
+def test_nao_sobe_com_cartoes_max_fora_de_1_a_10(invalido: int) -> None:
+    """T003 (004, D-002): no máximo 10 cartões por geração, no mínimo 1."""
+    with pytest.raises(ValidationError, match="geracao_cartoes_max"):
+        _criar(geracao_cartoes_max=invalido)
+
+
+@pytest.mark.parametrize("valido", [1, 10])
+def test_cartoes_max_aceita_os_extremos(valido: int) -> None:
+    assert _criar(geracao_cartoes_max=valido).geracao_cartoes_max == valido
+
+
+def test_nao_sobe_com_janela_menor_que_um_trecho() -> None:
+    """T003 (004, DTEC 041): a janela sempre cabe um trecho inteiro."""
+    with pytest.raises(ValidationError, match="GERACAO_JANELA_MAX_CARACTERES"):
+        _criar(trecho_tamanho_maximo=2000, geracao_janela_max_caracteres=1999)
+    assert _criar(geracao_janela_max_caracteres=2000).geracao_janela_max_caracteres == 2000
+
+
+def test_nao_sobe_com_limite_de_geracoes_zero() -> None:
+    with pytest.raises(ValidationError, match="geracao_limite_dia"):
+        _criar(geracao_limite_dia=0)
+
+
+def test_geracao_vem_do_ambiente(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GERACAO_LIMITE_DIA", "3")
+    monkeypatch.setenv("GERACAO_VERIFICADOR_IA", "false")
+    config = _criar()
+    assert config.geracao_limite_dia == 3
+    assert config.geracao_verificador_ia is False

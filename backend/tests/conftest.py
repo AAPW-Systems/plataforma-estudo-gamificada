@@ -10,6 +10,7 @@ Regra para as próximas specs: só acrescentar fixtures (divisão da implementa�
 from __future__ import annotations
 
 import ipaddress
+import os
 from collections.abc import AsyncIterator, Iterator
 
 import httpx
@@ -20,6 +21,7 @@ from alembic.config import Config
 from fastapi import FastAPI
 from procrastinate import App, PsycopgConnector
 from psycopg import sql
+from pydantic_ai import models
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, async_sessionmaker
 
@@ -28,6 +30,11 @@ from app.nucleo.configuracao import Configuracao, obter_configuracao
 from app.nucleo.relogio import RelogioControlavel
 from app.nucleo.seguranca.senhas import ServicoSenhas
 from tests.apoio_http import abrir_cliente, hasher_rapido
+
+# Spec 004 (DTEC 047): a suíte nunca chama um provedor de IA real. O PydanticAI recusa qualquer
+# requisição a modelo que não seja simulado, e o domínio `ia` usa o provedor `teste`.
+os.environ["IA_PROVEDOR"] = "teste"
+models.ALLOW_MODEL_REQUESTS = False
 
 BANCO_TESTE = "plataforma_teste"
 SEGREDO_TESTE = "segredo-de-teste-com-mais-de-32-bytes-0123456789"
