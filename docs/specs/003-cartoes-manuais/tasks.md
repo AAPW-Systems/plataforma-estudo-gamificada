@@ -204,15 +204,16 @@
 ## Fase final Qualidade transversal
 
 - [ ] T041 Executar nos contêineres as suítes completas do backend e do frontend, a qualidade estática (inclusive a regra de lint da T002) e a verificação do contrato, e confirmar a integração contínua aprovada na `develop`. Registrar as contagens de testes e a cobertura.
-- [ ] T042 Revisar e registrar as evidências:
+- [x] T042 Revisar e registrar as evidências:
   - **Logs:** `api` sem texto de cartão, termo de busca nem título de referência.
   - **Repositório:** sem segredos nem arquivos gerados versionados (regras 9 e 10).
   - **Acessibilidade (RQ-003):** teclado e leitor de tela no painel, na lista, nos filtros e no diálogo; origem sem depender só de cor; uso em 320 px sem rolagem horizontal; contraste.
-- [ ] T043 Medir e registrar, no ambiente local:
+  **Evidência (29/10/2026):** logs, repositório, teclado, origem com texto e ícone, 320 px e contraste verificados ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)). **Leitor de tela:** por decisão de Artur Lins em 15/10/2026, sai desta tarefa e vai para a rodada final do projeto, como na T048 da 002.
+- [x] T043 Medir e registrar, no ambiente local:
   - criar, editar, suspender e excluir: percentil 95 até 200 ms;
   - listagem com busca numa matéria de 1.000 cartões: percentil 95 até 100 ms (condição de revisão da DTEC 033).
-- [ ] T044 Atualizar o [quickstart](quickstart.md) com os comandos realmente verificados, `docs/skills/padroes-implementacao.md` com os comandos novos e o "Mapa do repositório" do `.agents/AGENTS.md` com o domínio `cartoes`.
-- [ ] T045 Atualizar o [traceability.md](traceability.md) com os nomes reais dos testes e corrigir requisitos sem teste ou tarefa.
+- [x] T044 Atualizar o [quickstart](quickstart.md) com os comandos realmente verificados, `docs/skills/padroes-implementacao.md` com os comandos novos e o "Mapa do repositório" do `.agents/AGENTS.md` com o domínio `cartoes`.
+- [x] T045 Atualizar o [traceability.md](traceability.md) com os nomes reais dos testes e corrigir requisitos sem teste ou tarefa.
 
 ## Dependências
 

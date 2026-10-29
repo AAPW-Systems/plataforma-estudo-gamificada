@@ -59,7 +59,7 @@ README.md                  # visão geral para pessoas
 compose.yaml, .env.example # ambiente completo (db, migrate, api, worker, web) e variáveis, sem segredos
 .github/workflows/ci.yml   # integração contínua (DTEC 017): backend e frontend nas imagens dev
 backend/                   # API e worker (Python 3.13, uv); Dockerfile, pyproject.toml, uv.lock, openapi.json
-├── src/app/               #   um pacote por domínio (identidade, materias, fontes, revisao, saude) + nucleo (transversal)
+├── src/app/               #   um pacote por domínio (identidade, materias, fontes, cartoes, revisao, saude) + nucleo (transversal)
 ├── migracoes/             #   migrações Alembic
 └── tests/                 #   unit, integration, functional, security, adversarial, arquitetura
 frontend/                  # interface (Node 24, npm); Dockerfile, Caddyfile (imagem prod), package.json

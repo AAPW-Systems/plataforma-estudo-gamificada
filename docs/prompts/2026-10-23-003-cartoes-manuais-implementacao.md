@@ -245,7 +245,7 @@ continue com as tasks 4 a 15 da spec 003
 
 ## Pendências
 
-- ~~T017 a T040~~: concluídas nas rodadas 4 a 6 (abaixo). **T041 a T045** (fase final): não iniciadas; a próxima é a T041 (suítes completas nos contêineres e cobertura).
+- ~~T017 a T045~~: concluídas nas rodadas 4 a 7 (abaixo); a 003 convergiu em 29/10/2026.
 - **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
 - **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
 - ~~T007~~: resolvida na rodada 3 (abaixo).
@@ -389,4 +389,44 @@ continue com as tasks 34 a 40 da spec 003
 ### Suíte completa da rodada 6
 
 Backend com **2344 passed, 1 skipped** em duas execuções completas seguidas (330 s e 338 s), `ruff` e `mypy` limpos; frontend com 276 passed.
+
+
+## Rodada 7 (29/10/2026): T041 a T045 (fase final)
+
+### Prompt
+
+```text
+continue com as tasks 41 a 45 da spec 003
+```
+
+**Retomada:** `develop` local igual à remota (`a919160`, CI verde na execução 36); PostgreSQL local religado.
+
+### Evidência da T041 (suítes completas, qualidade estática, contrato e CI)
+
+- **Onde:** o ambiente de nuvem não tem o serviço do Docker (`docker ps`: sem `/var/run/docker.sock`), então as suítes rodaram no host com as mesmas versões (Python 3.13 com `uv`, PostgreSQL 16, Node 22), como na T047 da 002; a integração contínua da `develop` roda as duas suítes e a cobertura **nas imagens do Compose** e é a verificação em contêiner.
+- **Backend:** `ruff format --check` (210 arquivos), `ruff check` e `mypy` limpos; **2344 passed, 1 skipped** em duas execuções completas seguidas (528 s com a cobertura e 354 s), o pulado sendo o teste de permissão da 001, com justificativa registrada lá; **cobertura de 95%** (4.169 instruções, 176 sem cobertura); no domínio `cartoes`, só `cursor.py` (91%, ramos de erro de codificação) e `repositorios.py` (95%, a conversão de uma violação de FK desconhecida) aparecem abaixo de 100%.
+- **Frontend:** `eslint` limpo, inclusive a regra da T002 contra `dangerouslySetInnerHTML` (`eslint.config.js`), `tsc`, `prettier --check` e `vite build` limpos; **276 passed**; cobertura de 93,9% das instruções e 96,4% das linhas (`funcionalidades/cartoes`: 95,1% e 95,8%).
+- **Contrato:** `python -m app.exportar_openapi` e `npm run gerar:api` não deixaram diferença no git; `tests/integration/test_contrato_openapi.py` (20 passed) compara o `openapi.json` com o contrato da 003, sem pendências.
+- **Integração contínua:** conferida depois do push desta rodada (abaixo).
+
+### Evidência da T042 (logs, repositório e acessibilidade)
+
+- **Logs:** a API foi reiniciada com um log novo antes da medição da T043, que mandou 1.050 escritas (criar, editar, suspender, reativar e excluir 210 cartões cada) com o texto-sentinela `SENTINELA-T043-9931` na frente e no verso, e 630 listagens com busca (`celula` e `ção`). No log (2.745 linhas): **nenhuma ocorrência** do sentinela, dos termos buscados nem dos textos; os eventos `cartao_criado`, `cartao_editado`, `cartao_suspenso`, `cartao_reativado` e `cartao_excluido` (210 cada) trazem só `cartao_public_id`, `usuario_public_id`, `materia_public_id`, `com_referencia` e `origem_mudou`; as requisições aparecem só pelo modelo da rota (`/api/v1/materias/{materiaId}/cartoes`), sem a consulta. A referência à fonte também foi conferida nas rodadas anteriores (título "Citologia" nunca no log) e pelos testes com captura (`test_logs_sem_frente_verso_explicacao_nem_titulo_da_referencia` e os de edição e situação).
+- **Repositório:** varredura por padrões de chaves (AWS, Google, Groq, OpenAI, GitHub, chaves privadas) sem achados; nenhum `.env`, `.pem` ou `.key` versionado; nenhum arquivo gerado (`node_modules`, `dist`, `coverage`, `__pycache__`, `.coverage`); nos arquivos da 003, só e-mails `@exemplo.com`.
+- **Acessibilidade (RQ-003):** consolidada das verificações no Chromium real: T019 (33/33), T027 (21/21), T033 (23/23) e T040 (21/21), com teclado em todos os fluxos (painel, lista, ações, diálogo de exclusão, busca e filtros), axe (WCAG 2.2 AA, inclusive contraste) sem violações nos temas claro e escuro, a 1100 px e a 320 px, sem rolagem horizontal a 320 px, e a origem sempre com texto e ícone (`SeloOrigem`). Três problemas de foco e de contraste foram achados e corrigidos nessas verificações (painel a 320 px, foco depois de suspender, foco depois de excluir). **Leitor de tela:** por decisão de Artur Lins em 15/10/2026, fica para a rodada única do fim do projeto, como na T048 da 002. **Para essa rodada:** o painel de criar e editar (com a pergunta de descarte), a lista com as ações e os anúncios, o diálogo de exclusão, a busca e os filtros.
+
+### Evidência da T043 (medições)
+
+API local (`uvicorn`, um processo) e PostgreSQL 16 local, cliente HTTP sequencial, 200 pedidos medidos por operação depois de 10 de aquecimento. Percentil 95: criar 16,9 ms, editar 13,8 ms, suspender 13,8 ms, reativar 13,5 ms, excluir 11,4 ms (meta 200 ms); listagem com a busca `celula` numa matéria de **1.000 cartões** (criados pela linha de comando da fábrica, 285 resultados) 20,3 ms, com busca, situação e origem 19,0 ms (meta 100 ms, condição de revisão da DTEC 033); sem busca, 15,6 ms. Tabela completa no [quickstart](../specs/003-cartoes-manuais/quickstart.md#medições-t043). O script ficou no diretório temporário da sessão.
+
+### Evidência da T044 (documentação)
+
+- [Quickstart](../specs/003-cartoes-manuais/quickstart.md): comandos de teste com as opções verificadas (`--no-deps`, `--frozen`, `exec web`), o registro de onde foram verificados, os textos reais da interface (campo **Buscar cartões**, situação **Suspensos**, "Limpar busca e filtros", anúncio de "Cartão suspenso.") e a tabela de medições.
+- `docs/skills/padroes-implementacao.md`: seção "Cartões: lista paginada, busca, situação e testes de concorrência (verificado na spec 003)", com os comandos novos e as lições (escritas disjuntas e o papel real do `FOR UPDATE`, busca e cursor, a fixture que recria o tipo do banco, a fábrica que repete textos, filtros na URL, foco em ações de lista e cache de listas filtradas).
+- "Mapa do repositório" do `.agents/AGENTS.md` com o domínio `cartoes`; `docs/skills/contexto-tecnico.md` com o estado da 003.
+- **Não executado nesta sessão:** os comandos do Compose citados seguem os verificados na 001 e na 002; o `docker compose up --build` completo com a 003 foi verificado por Artur Lins na T007 (27/10/2026).
+
+### Evidência da T045 (rastreabilidade)
+
+[traceability.md](../specs/003-cartoes-manuais/traceability.md) com os nomes reais em todos os RF, RQ, CS, casos de borda e DTEC; um script conferiu as 80 funções de teste citadas e todos os arquivos de teste contra `backend/tests/` e `frontend/src/` (nenhum ausente); nenhum requisito sem teste ou tarefa (a RF-004 ganhou a T035); a seção "Conferência depois da implementação" registra as divergências da T011 e da T028, o que depende de pessoas e o que depende das próximas specs.
 

@@ -25,9 +25,11 @@ O comando só roda com `APP_AMBIENTE=desenvolvimento` e recusa contas fora do do
 Os comandos da 001 valem sem mudança. Para rodar só os testes da 003 e a reexecução dos testes de exclusão da 002 com cartões reais:
 
 ```bash
-docker compose run --rm api uv run pytest tests -k "cartoes or exclusao_fonte or organizar"
-docker compose run --rm web npm test -- cartoes
+docker compose run --rm --no-deps api uv run --frozen pytest tests -k "cartoes or exclusao_fonte or organizar"
+docker compose exec web npm test -- cartoes
 ```
+
+Verificado em 29/10/2026 fora do Compose (o ambiente de nuvem não tem o serviço do Docker), com os mesmos comandos dentro de `backend/` e `frontend/`: `uv run --frozen pytest` (2344 passed, 1 skipped, cobertura de 95%), `npm test` (276 passed) e `npm run test:cobertura`. A integração contínua da `develop` roda as duas suítes nas imagens do Compose.
 
 ## Verificação da história P1
 
@@ -61,11 +63,28 @@ docker compose run --rm web npm test -- cartoes
 
 - **Editar (US2):** edite a frente de um cartão e salve. **Esperado:** o novo texto aparece, e a origem continua "Criado por você". Abra a edição e salve sem mudar nada. **Esperado:** nada muda, nem a data de atualização (cenário 3). Antes e depois da edição, `vencimento`, `estabilidade` e `estado_fsrs` são iguais na consulta acima (CS-002).
 - **Editar cartão gerado (US2-2):** sem a 004, só pelos testes. O teste funcional usa um cartão `gerado_verificado` criado pela fábrica e confere a mudança para "Editado por você". A evidência mantida é verificada pela 004.
-- **Suspender e reativar (US3-1, 2):** suspenda um cartão. **Esperado:** situação **Suspenso**, anunciada para o leitor de tela, com o mesmo `vencimento` no banco. Reative-o. **Esperado:** **Ativo**, com o mesmo `vencimento`. A ausência nas lições é verificada com a 005.
+- **Suspender e reativar (US3-1, 2):** acione "Suspender" no cartão. **Esperado:** situação **Suspenso**, com "Cartão suspenso." anunciado para o leitor de tela e o foco no mesmo botão, agora "Reativar", com o mesmo `vencimento` no banco. Reative-o. **Esperado:** **Ativo**, com o mesmo `vencimento`. A ausência nas lições é verificada com a 005.
 - **Excluir (US3-3):** exclua um cartão. **Esperado:** o diálogo avisa que a exclusão é definitiva, com o foco preso nele; depois de confirmado, o cartão some da lista.
 - **"Fonte apagada" (D-006):** exclua a fonte `Citologia` escolhendo "Excluir os cartões junto". **Esperado:** o diálogo da 002 mostra 1 cartão de referência mantido; depois, o cartão do passo 5 continua na lista com `Citologia` e "Fonte apagada".
 - **Exclusão da matéria (002 com cartões reais):** crie uma matéria `Química` com 2 cartões ativos e 1 suspenso. **Esperado:** a lista de matérias mostra 2 cartões ativos, e o diálogo de exclusão mostra 3 cartões que serão apagados (emenda da DTEC 027).
-- **Encontrar (US4):** com os 120 cartões de exemplo, busque `celula`. **Esperado:** aparecem os cartões com "Célula", "CÉLULA" ou "célula" na frente ou no verso, com o total. Combine com o filtro **Suspenso** e com a origem **Criado por você**. Recarregue a página. **Esperado:** busca e filtros continuam aplicados. Busque `xyzw`. **Esperado:** "Nenhum cartão corresponde à busca", diferente do estado de matéria sem cartões (cenário 3). Role até "Carregar mais". **Esperado:** sem cartões repetidos.
+- **Encontrar (US4):** com os 120 cartões de exemplo, busque `celula` no campo **Buscar cartões**. **Esperado:** depois de uma pausa curta na digitação, aparecem os cartões com "Célula", "CÉLULA" ou "célula" na frente ou no verso, com o total. Combine com a situação **Suspensos** e com a origem **Criado por você**. Recarregue a página. **Esperado:** busca e filtros continuam aplicados. Busque `xyzw`. **Esperado:** "Nenhum cartão corresponde à busca." com o botão "Limpar busca e filtros", diferente do estado de matéria sem cartões (cenário 3). Role até "Carregar mais". **Esperado:** sem cartões repetidos.
+
+## Medições (T043)
+
+No ambiente de nuvem, em 29/10/2026: API local (`uvicorn`, um processo) e PostgreSQL 16 local, 200 pedidos sequenciais por operação depois de 10 de aquecimento, tempo medido no cliente.
+
+| Operação | Mediana | Percentil 95 | Meta (p95) |
+|---|---:|---:|---:|
+| Criar | 13,1 ms | 16,9 ms | 200 ms |
+| Editar | 10,6 ms | 13,8 ms | 200 ms |
+| Suspender | 10,6 ms | 13,8 ms | 200 ms |
+| Reativar | 10,5 ms | 13,5 ms | 200 ms |
+| Excluir | 8,6 ms | 11,4 ms | 200 ms |
+| Listar com a busca `celula` (matéria de 1.000 cartões, 285 resultados) | 15,7 ms | 20,3 ms | 100 ms |
+| Listar com busca, situação e origem (1.000 cartões) | 15,1 ms | 19,0 ms | 100 ms |
+| Listar sem busca (referência) | 11,9 ms | 15,6 ms | — |
+
+A busca fica longe da condição de revisão da DTEC 033 (100 ms no percentil 95). Para repetir: crie uma conta `@exemplo.com`, uma matéria e 1.000 cartões com o comando dos dados de exemplo (`--quantidade 1000`) e meça os pedidos à API com o mesmo cliente HTTP.
 
 ## Falhas conhecidas
 
