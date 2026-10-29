@@ -18,3 +18,9 @@ export function formatarNumero(numero: number): string {
 export function totalDeCartoes(total: number): string {
   return `${formatarNumero(total)} ${total === 1 ? "cartão" : "cartões"}`;
 }
+
+/** Início da frente, para distinguir as ações de cada cartão no leitor de tela. */
+export function resumoDaFrente(texto: string): string {
+  const linha = texto.split("\n", 1)[0] ?? "";
+  return linha.length > 60 ? `${linha.slice(0, 60)}…` : linha;
+}

@@ -2,21 +2,33 @@ import type { Cartao } from "../../api/cartoes";
 import { Botao } from "../../componentes/ui/Botao";
 import { SeloEstado } from "../../componentes/ui/SeloEstado";
 import { SeloOrigem } from "../../componentes/ui/SeloOrigem";
-import { SITUACOES } from "./textos";
+import { DialogoExclusaoCartao } from "./DialogoExclusaoCartao";
+import { SITUACOES, resumoDaFrente } from "./textos";
+
+export interface ItemCartaoProps {
+  cartao: Cartao;
+  aoEditar: () => void;
+  /** Suspende o ativo ou reativa o suspenso (US3-1, 2). */
+  aoAlternarSituacao: () => void;
+  alternando?: boolean;
+  aoExcluido: () => void;
+}
 
 /**
  * Um cartão na lista (RF-004, RF-009). O texto do estudante é sempre texto, com as quebras de
  * linha mantidas por `pre-wrap`; nada é interpretado como marcação (RQ-001).
  */
-/** Início da frente, para distinguir os botões "Editar" de cada cartão no leitor de tela. */
-function resumo(texto: string): string {
-  const linha = texto.split("\n", 1)[0] ?? "";
-  return linha.length > 60 ? `${linha.slice(0, 60)}…` : linha;
-}
-
-export function ItemCartao({ cartao, aoEditar }: { cartao: Cartao; aoEditar: () => void }) {
+export function ItemCartao({
+  cartao,
+  aoEditar,
+  aoAlternarSituacao,
+  alternando = false,
+  aoExcluido,
+}: ItemCartaoProps) {
   const situacao = SITUACOES[cartao.situacao];
   const referencia = cartao.referencia;
+  const resumo = resumoDaFrente(cartao.frente);
+  const acaoSituacao = cartao.situacao === "ativo" ? "Suspender" : "Reativar";
   return (
     <li className="item-cartao">
       <p className="texto-cartao item-cartao-frente">{cartao.frente}</p>
@@ -31,13 +43,18 @@ export function ItemCartao({ cartao, aoEditar }: { cartao: Cartao; aoEditar: () 
         )}
       </div>
       <div className="item-cartao-acoes">
-        <Botao
-          variante="secundario"
-          aria-label={`Editar o cartão: ${resumo(cartao.frente)}`}
-          onPress={aoEditar}
-        >
+        <Botao variante="secundario" aria-label={`Editar o cartão: ${resumo}`} onPress={aoEditar}>
           Editar
         </Botao>
+        <Botao
+          variante="secundario"
+          aria-label={`${acaoSituacao} o cartão: ${resumo}`}
+          isDisabled={alternando}
+          onPress={aoAlternarSituacao}
+        >
+          {acaoSituacao}
+        </Botao>
+        <DialogoExclusaoCartao cartao={cartao} aoExcluido={aoExcluido} />
       </div>
     </li>
   );

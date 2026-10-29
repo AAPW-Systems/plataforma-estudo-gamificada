@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, Heading, Modal, ModalOverlay } from "react-aria-components";
 import { Controller, useForm } from "react-hook-form";
@@ -9,7 +9,6 @@ import {
   type Cartao,
   type EdicaoCartao,
   type LimitesCartao,
-  type ListaCartoes,
   chavesCartoes,
   criarCartao,
   editarCartao,
@@ -18,6 +17,7 @@ import { Botao } from "../../componentes/ui/Botao";
 import { CampoTextoLongo } from "../../componentes/ui/CampoTextoLongo";
 import { MensagemErroFormulario } from "../../componentes/ui/MensagemErroFormulario";
 import { aplicarErroDaApi } from "../identidade/erros";
+import { substituirNaLista } from "./cache";
 import { CARTAO_VAZIO, type DadosCartao, esquemaCartao } from "./esquemas";
 
 const CAMPOS = ["frente", "verso", "explicacao", "fonteId"] as const;
@@ -53,25 +53,6 @@ function alteracoesDe(iniciais: DadosCartao, dados: DadosCartao): EdicaoCartao {
     alteracoes.explicacao = dados.explicacao.trim() === "" ? null : dados.explicacao;
   }
   return alteracoes;
-}
-
-/** Troca o cartão editado nas páginas já carregadas, sem esperar a lista voltar da rede. */
-function substituirNaLista(
-  queryClient: ReturnType<typeof useQueryClient>,
-  materiaId: string,
-  editado: Cartao,
-) {
-  queryClient.setQueryData<InfiniteData<ListaCartoes>>(chavesCartoes.lista(materiaId), (dados) =>
-    dados
-      ? {
-          ...dados,
-          pages: dados.pages.map((pagina) => ({
-            ...pagina,
-            itens: pagina.itens.map((item) => (item.id === editado.id ? editado : item)),
-          })),
-        }
-      : dados,
-  );
 }
 
 /** Soma um cartão ativo à matéria na lista e na consulta, antes de a rede responder. */

@@ -62,3 +62,24 @@ export async function editarCartao(cartaoId: string, corpo: EdicaoCartao): Promi
   });
   return exigir(data);
 }
+
+/** Idempotente: num cartão já suspenso, devolve o mesmo cartão (RF-007). */
+export async function suspenderCartao(cartaoId: string): Promise<Cartao> {
+  const { data } = await cliente.POST("/api/v1/cartoes/{cartaoId}/suspensao", {
+    params: { path: { cartaoId } },
+  });
+  return exigir(data);
+}
+
+/** Idempotente: o cartão volta com o vencimento de antes da suspensão (RF-007). */
+export async function reativarCartao(cartaoId: string): Promise<Cartao> {
+  const { data } = await cliente.POST("/api/v1/cartoes/{cartaoId}/reativacao", {
+    params: { path: { cartaoId } },
+  });
+  return exigir(data);
+}
+
+/** Exclusão definitiva (RF-008); a confirmação é feita antes, no diálogo. */
+export async function excluirCartao(cartaoId: string): Promise<void> {
+  await cliente.DELETE("/api/v1/cartoes/{cartaoId}", { params: { path: { cartaoId } } });
+}
