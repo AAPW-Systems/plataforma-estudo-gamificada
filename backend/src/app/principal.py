@@ -9,6 +9,7 @@ from starlette.middleware import Middleware
 
 import app.cartoes.registros  # noqa: F401  (registra o participante e a exclusão de cartões)
 import app.fontes.registros  # noqa: F401  (registra o participante e a exclusão de fontes)
+import app.ia.registros  # noqa: F401  (registra a exclusão do consumo e das ciências da IA)
 import app.identidade.registros  # noqa: F401  (registra a exclusão da identidade)
 import app.materias.registros  # noqa: F401  (registra a exclusão de matérias)
 import app.revisao.registros  # noqa: F401  (registra a exclusão de revisao)

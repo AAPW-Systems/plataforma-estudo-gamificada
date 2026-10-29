@@ -87,7 +87,7 @@
   - `app/ia` não importa nenhum domínio de negócio;
   - `pydantic_ai` só é importado em `app/ia/` e em `app/cartoes/geracao/agentes.py`, e as chaves e o provedor só são lidos em `app/ia/`;
   - `app/cartoes/geracao/dominio.py` e `validacao.py` não importam FastAPI, SQLAlchemy nem `pydantic_ai`.
-- [ ] T008 [P] Criar os testes do domínio `ia`:
+- [x] T008 [P] Criar os testes do domínio `ia`:
   - **`tests/unit/ia/test_orcamento.py`:** início do dia de estudo (virada das 4h, fuso, horário de verão) e soma de *tokens* com nulos.
   - **`tests/unit/ia/test_classificacao_erros.py`:** timeout, conexão, 5xx e 429 por minuto são transitórios; cota diária vira `limite_provedor`; saída fora do esquema vira `resposta_invalida`.
   - **`tests/unit/ia/test_provedores.py`:** `gemini`, `groq` e `teste` geram o modelo certo, sem rede.
@@ -97,7 +97,7 @@
     - `UsageLimits` aplicado;
     - timeout de `IA_TIMEOUT_SEGUNDOS`.
   - **`tests/integration/ia/test_registros.py`:** `apagar_dados_usuario` apaga o consumo e as ciências do usuário.
-- [ ] T009 Implementar o núcleo do domínio `ia`, até que a T008 passe:
+- [x] T009 Implementar o núcleo do domínio `ia`, até que a T008 passe:
   - `app/ia/provedores.py`;
   - `app/ia/cliente.py` (`executar(agente, entrada, contexto)`: orçamento, timeout, `UsageLimits`, classificação dos erros em `ErroTransitorioIA`, `LimiteProvedor`, `RespostaInvalida` e `OrcamentoEsgotado`, e o registro do consumo numa transação própria);
   - `app/ia/repositorios.py`, `excecoes.py` e `registros.py`, importado pela composição em `principal.py` e em `worker.py`.
