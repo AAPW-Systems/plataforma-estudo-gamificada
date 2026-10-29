@@ -1,7 +1,8 @@
 """Persistência dos cartões (spec 003, T003; data-model.md).
 
-A 003 cria a tabela sem `geracao_id` (004), `dominado_em` (005) e `chave_imagem` (011), e
-`situacao_cartao` só com `ativo` e `suspenso`; a 004 acrescenta os outros valores (DTEC 038).
+A 003 criou a tabela; a 004 (migração `0005`) acrescenta `geracao_id`, `motivo_recusa` e as
+situações `aguardando_revisao` e `recusado` (DTEC 038). `dominado_em` (005) e `chave_imagem`
+(011) chegam em migrações próprias.
 """
 
 from datetime import datetime
@@ -38,6 +39,18 @@ class OrigemCartao(StrEnum):
 class SituacaoCartao(StrEnum):
     ATIVO = "ativo"
     SUSPENSO = "suspenso"
+    # Só cartões gerados (004): fora do estudo, da lista e das rotas da 003.
+    AGUARDANDO_REVISAO = "aguardando_revisao"
+    RECUSADO = "recusado"
+
+
+class MotivoRecusa(StrEnum):
+    """Motivo opcional da recusa de um cartão gerado (RF-020, D-007)."""
+
+    INCORRETO = "incorreto"
+    IRRELEVANTE = "irrelevante"
+    REPETIDO = "repetido"
+    MAL_ESCRITO = "mal_escrito"
 
 
 class EstadoFsrs(StrEnum):
@@ -92,6 +105,17 @@ class Cartao(Base):
         Index("cartoes_novos", "usuario_id", "situacao", "entrada_estudo_em"),
         Index("cartoes_materia", "materia_id", "usuario_id", "criado_em", "id"),
         Index("cartoes_fonte_id_idx", "fonte_id"),
+        # Spec 004 (0005).
+        CheckConstraint("origem <> 'criado' OR geracao_id IS NULL", name="geracao_so_em_gerado"),
+        CheckConstraint(
+            "situacao NOT IN ('aguardando_revisao', 'recusado') OR origem = 'gerado_verificado'",
+            name="revisao_so_gerado",
+        ),
+        CheckConstraint("motivo_recusa IS NULL OR situacao = 'recusado'", name="motivo_recusa"),
+        CheckConstraint(
+            "origem <> 'gerado_verificado' OR explicacao IS NOT NULL", name="explicacao_gerado"
+        ),
+        Index("cartoes_geracao_id_idx", "geracao_id"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
@@ -127,4 +151,9 @@ class Cartao(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
+    )
+    # Geração de origem (004): nula nos criados e quando a geração some.
+    geracao_id: Mapped[int | None] = mapped_column(ForeignKey("geracoes.id", ondelete="SET NULL"))
+    motivo_recusa: Mapped[MotivoRecusa | None] = mapped_column(
+        Enum(MotivoRecusa, name="motivo_recusa", values_callable=_valores)
     )

@@ -42,7 +42,7 @@
 
 ## Fase 2 Base compartilhada (bloqueia todas as histórias)
 
-- [ ] T004 Criar as entidades e a migração da geração:
+- [x] T004 Criar as entidades e a migração da geração:
   - **Entidades:**
     - `app/ia/modelos.py`: `ConsumoIa` e `CienciaAvisoIa`;
     - `app/cartoes/geracao/modelos.py`: `Geracao`, `GeracaoTrecho`, `Evidencia` e `CartaoDescartado`, com os enums `EstadoGeracao`, `CodigoFalhaGeracao` e `MotivoDescarte`;

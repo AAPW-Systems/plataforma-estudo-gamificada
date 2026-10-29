@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 import psycopg
 import pytest
 from psycopg import errors
-from sqlalchemy import delete, text
+from sqlalchemy import delete
 
 from app.cartoes.cursor import PosicaoCursor
 from app.cartoes.dominio import LimitesTexto, TextoCartao, estado_inicial, validar_limites
@@ -22,7 +22,13 @@ from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from app.nucleo.configuracao import Configuracao
 from app.nucleo.erros import RecursoNaoEncontrado
 from tests import fabricas_cartoes as fab
-from tests.apoio_cartoes import AGORA, semear_estudante, semear_fonte, semear_materia
+from tests.apoio_cartoes import (
+    AGORA,
+    semear_cartao_gerado,
+    semear_estudante,
+    semear_fonte,
+    semear_materia,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -345,7 +351,7 @@ async def test_criacao_e_exclusao_entre_as_paginas_nao_repetem_nem_pulam_o_resto
 
 
 async def test_cartao_fora_das_situacoes_visiveis_nao_aparece_na_lista(
-    fabrica_sessoes: FabricaSessoes, situacoes_da_004: None
+    fabrica_sessoes: FabricaSessoes,
 ) -> None:
     """Aguardando revisão e recusado são da 004 e ficam fora da lista e da contagem (DTEC 038)."""
 
@@ -355,14 +361,7 @@ async def test_cartao_fora_das_situacoes_visiveis_nao_aparece_na_lista(
             sessao, usuario_id=usuario.id, materia_id=materia.id, itens=fab.gerar(4), agora=AGORA
         )
         for situacao in ("aguardando_revisao", "recusado"):
-            await sessao.execute(
-                text(
-                    "INSERT INTO cartoes (usuario_id, materia_id, frente, verso, origem, situacao) "
-                    "VALUES (:u, :m, 'Invisível', 'Invisível', 'gerado_verificado', "
-                    "CAST(:s AS situacao_cartao))"
-                ),
-                {"u": usuario.id, "m": materia.id, "s": situacao},
-            )
+            await semear_cartao_gerado(sessao, materia.id, situacao, frente="Invisível")
         repositorio = RepositorioCartoes(sessao)
         pagina, _ = await repositorio.listar(usuario.id, materia.id)
         assert len(pagina) == 4 and "Invisível" not in {linha.cartao.frente for linha in pagina}

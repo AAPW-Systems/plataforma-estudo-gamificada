@@ -7,14 +7,23 @@ menores e configuráveis por ambiente, é o domínio, sobre o texto já normaliz
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import ConfigDict, Field, field_validator
 
-from app.cartoes.dominio import BUSCA_MAXIMA, OrigemCartao, SituacaoCartao
+from app.cartoes.dominio import BUSCA_MAXIMA, OrigemCartao
 from app.nucleo.configuracao import CARTAO_EXPLICACAO_TETO, CARTAO_FRENTE_TETO, CARTAO_VERSO_TETO
 from app.nucleo.dtos import EntradaDTO, ModeloDTO
 from app.nucleo.erros import EntradaInvalida
+
+
+# Situações que as rotas da 003 expõem (contrato da 003 e da 004). O banco também tem
+# `aguardando_revisao` e `recusado` (spec 004), só nas rotas da revisão: um cartão nessas situações
+# nunca vira este DTO (a conversão falharia). Comentário, não docstring: o OpenAPI fica igual.
+class SituacaoCartao(StrEnum):
+    ATIVO = "ativo"
+    SUSPENSO = "suspenso"
 
 
 class CriacaoCartaoEntradaDTO(EntradaDTO):

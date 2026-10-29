@@ -4,9 +4,19 @@ from __future__ import annotations
 
 from app.cartoes import dominio
 from app.cartoes.dominio import LimitesTexto
-from app.cartoes.dtos import CartaoDTO, LimitesCartaoDTO, ListaCartoesDTO, ReferenciaFonteDTO
+from app.cartoes.dtos import (
+    CartaoDTO,
+    LimitesCartaoDTO,
+    ListaCartoesDTO,
+    ReferenciaFonteDTO,
+    SituacaoCartao,
+)
 from app.cartoes.repositorios import LinhaCartao
 from app.cartoes.servicos import PaginaCartoes
+
+
+def situacao_do_filtro(situacao: SituacaoCartao | None) -> dominio.SituacaoCartao | None:
+    return None if situacao is None else dominio.SituacaoCartao(situacao.value)
 
 
 def cartao_para_dto(linha: LinhaCartao) -> CartaoDTO:
@@ -30,7 +40,7 @@ def cartao_para_dto(linha: LinhaCartao) -> CartaoDTO:
         explicacao=cartao.explicacao,
         origem=cartao.origem,
         verificado=dominio.verificado(cartao.origem),
-        situacao=cartao.situacao,
+        situacao=SituacaoCartao(cartao.situacao.value),
         referencia=referencia,
         criado_em=cartao.criado_em,
         atualizado_em=cartao.atualizado_em,

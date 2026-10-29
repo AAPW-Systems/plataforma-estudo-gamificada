@@ -244,6 +244,16 @@ def gerar(quantidade: int) -> list[CartaoFicticio]:
     return cartoes
 
 
+EXPLICACAO_GERADO = "Explicação fictícia de um cartão gerado."
+
+
+def _explicacao(item: CartaoFicticio) -> str | None:
+    """Desde a 0005 (spec 004), o banco exige explicação no gerado (RF-008 da 004)."""
+    if item.origem is _GERADO and item.explicacao is None:
+        return EXPLICACAO_GERADO
+    return item.explicacao
+
+
 def cartao_ficticio(**alteracoes: object) -> CartaoFicticio:
     """Um cartão novo, ativo e criado pelo estudante, com as alterações pedidas."""
     return replace(CartaoFicticio("Qual organela produz ATP?", "Mitocôndria"), **alteracoes)  # type: ignore[arg-type]
@@ -293,7 +303,7 @@ async def inserir(
                 materia_id=materia_id,
                 frente=item.frente,
                 verso=item.verso,
-                explicacao=item.explicacao,
+                explicacao=_explicacao(item),
                 origem=item.origem,
                 situacao=item.situacao,
                 entrada_estudo_em=criado_em,

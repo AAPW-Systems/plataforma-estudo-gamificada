@@ -13,7 +13,6 @@ from app.cartoes.dominio import (
     PAGINA_MAXIMA,
     PAGINA_PADRAO,
     OrigemCartao,
-    SituacaoCartao,
 )
 from app.cartoes.dtos import (
     CartaoDTO,
@@ -21,8 +20,14 @@ from app.cartoes.dtos import (
     EdicaoCartaoEntradaDTO,
     LimitesCartaoDTO,
     ListaCartoesDTO,
+    SituacaoCartao,
 )
-from app.cartoes.mapeadores import cartao_para_dto, limites_para_dto, pagina_para_dto
+from app.cartoes.mapeadores import (
+    cartao_para_dto,
+    limites_para_dto,
+    pagina_para_dto,
+    situacao_do_filtro,
+)
 from app.identidade.dependencias import UsuarioAtual
 from app.nucleo.dtos import ErroDTO
 
@@ -82,7 +87,7 @@ async def listar_cartoes(
         cursor=cursor,
         limite=limite,
         busca=busca,
-        situacao=situacao,
+        situacao=situacao_do_filtro(situacao),
         origem=origem,
     )
     return pagina_para_dto(pagina)

@@ -272,7 +272,9 @@ def test_as_tres_origens_sao_aceitas_sem_referencia(
     conexao: psycopg.Connection, cenario: tuple[int, int], origem: str
 ) -> None:
     usuario, materia = cenario
-    _cartao(conexao, usuario, materia, origem=origem)
+    # Desde a 0005 (spec 004), o gerado exige explicação (RF-008 da 004).
+    explicacao = "Explicação do gerado." if origem == "gerado_verificado" else None
+    _cartao(conexao, usuario, materia, origem=origem, explicacao=explicacao)
 
 
 def test_origem_desconhecida_e_recusada(
@@ -303,14 +305,17 @@ def test_ativo_e_suspenso_com_entrada_sao_aceitos(
     _cartao(conexao, usuario, materia, situacao=situacao)
 
 
-@pytest.mark.parametrize("situacao", ["aguardando_revisao", "recusado"])
-def test_situacoes_da_004_ainda_nao_existem_no_enum(
-    conexao: psycopg.Connection, cenario: tuple[int, int], situacao: str
-) -> None:
-    """DTEC 038: a 003 cria só `ativo` e `suspenso`; a 004 acrescenta os outros valores."""
-    usuario, materia = cenario
-    with pytest.raises(errors.InvalidTextRepresentation):
-        _cartao(conexao, usuario, materia, situacao=situacao, entrada_estudo_em=None)
+def test_situacao_cartao_tem_os_quatro_valores(conexao: psycopg.Connection) -> None:
+    """DTEC 038: a 003 criou `ativo` e `suspenso`; a 0005 (spec 004) acrescentou os outros dois.
+
+    Substitui `test_situacoes_da_004_ainda_nao_existem_no_enum` (as restrições dos valores novos
+    estão em `tests/integration/geracao/test_restricoes.py`).
+    """
+    linha = conexao.execute(
+        "SELECT array_agg(enumlabel::text ORDER BY enumsortorder) FROM pg_enum "
+        "WHERE enumtypid = 'situacao_cartao'::regtype"
+    ).fetchone()
+    assert linha == (["ativo", "suspenso", "aguardando_revisao", "recusado"],)
 
 
 def test_estado_do_fsrs_aceita_os_tres_valores_e_recusa_outros(

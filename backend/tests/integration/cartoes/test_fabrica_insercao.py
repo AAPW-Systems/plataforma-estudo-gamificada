@@ -17,6 +17,9 @@ from tests.apoio_cartoes import AGORA, semear_estudante, semear_fonte
 
 pytestmark = pytest.mark.integration
 
+# A fábrica da 003 só cria cartões visíveis; aguardando revisão e recusado são da 004.
+VISIVEIS = {SituacaoCartao.ATIVO, SituacaoCartao.SUSPENSO}
+
 
 async def _estudante(sessao: AsyncSession, email: str | None = None) -> tuple[int, int]:
     usuario, materia = await semear_estudante(sessao, email=email)
@@ -51,10 +54,7 @@ async def test_os_120_cartoes_da_fabrica_respeitam_check_e_fks_do_banco(
         assert total == 120
         referenciados = [c for c in inseridos if c.fonte_id is not None]
         assert referenciados and all(c.origem is OrigemCartao.CRIADO for c in referenciados)
-        assert all(
-            (c.entrada_estudo_em is not None) == (c.situacao in set(SituacaoCartao))
-            for c in inseridos
-        )
+        assert all((c.entrada_estudo_em is not None) == (c.situacao in VISIVEIS) for c in inseridos)
         novos = [c for c in inseridos if c.estado_fsrs is EstadoFsrs.APRENDIZADO]
         assert novos and all(c.ultima_revisao is None and c.estabilidade is None for c in novos)
 
@@ -121,7 +121,7 @@ async def test_cli_semeia_os_cartoes_na_materia_da_conta_exemplo(
         assert len(cartoes) == 120
         assert {c.usuario_id for c in cartoes} == {usuario_id}
         assert any(c.fonte_id is not None for c in cartoes), "usa a fonte da matéria, se houver"
-        assert {c.situacao for c in cartoes} == set(SituacaoCartao)
+        assert {c.situacao for c in cartoes} == VISIVEIS
 
 
 async def test_cli_recusa_conta_ou_materia_inexistente_sem_criar_nada(

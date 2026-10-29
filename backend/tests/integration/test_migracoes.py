@@ -2,6 +2,7 @@
 
 import psycopg
 import pytest
+from sqlalchemy.exc import DBAPIError
 
 from app.nucleo.configuracao import Configuracao
 from tests.conftest import executar_alembic
@@ -77,7 +78,10 @@ def test_migracao_0003_do_acervo_sobe_e_desce(
 def test_migracao_0004_dos_cartoes_sobe_e_desce(
     configuracao: Configuracao, banco_migrado: None
 ) -> None:
-    """T003: a 0004 cria e remove tabela, enums e índice de `fontes`; a extensão fica (DTEC 033)."""
+    """T003: a 0004 cria e remove tabela, enums e índice de `fontes`; a extensão fica (DTEC 033).
+
+    Com a 0005 da spec 004 aplicada, `situacao_cartao` tem também os valores da revisão.
+    """
     try:
         with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
             assert conexao.execute("SELECT to_regclass('cartoes')").fetchone() == ("cartoes",)
@@ -92,7 +96,7 @@ def test_migracao_0004_dos_cartoes_sobe_e_desce(
             assert conexao.execute(
                 "SELECT array_agg(enumlabel::text ORDER BY enumsortorder) FROM pg_enum "
                 "WHERE enumtypid = 'situacao_cartao'::regtype"
-            ).fetchone() == (["ativo", "suspenso"],)
+            ).fetchone() == (["ativo", "suspenso", "aguardando_revisao", "recusado"],)
             assert conexao.execute(
                 "SELECT to_regclass('fontes_id_materia_usuario')"
             ).fetchone() == ("fontes_id_materia_usuario",)
@@ -113,6 +117,100 @@ def test_migracao_0004_dos_cartoes_sobe_e_desce(
             ).fetchone() == (1,)
         executar_alembic("upgrade", "head")
     finally:
+        executar_alembic("upgrade", "head")
+
+
+TABELAS_0005 = {
+    "geracoes",
+    "geracoes_trechos",
+    "evidencias_cartoes",
+    "cartoes_descartados",
+    "consumo_ia",
+    "ciencias_aviso_ia",
+}
+TIPOS_0005 = ("estado_geracao", "codigo_falha_geracao", "motivo_recusa", "motivo_descarte")
+
+
+def _tipos_0005(conexao: psycopg.Connection) -> int:
+    linha = conexao.execute(
+        "SELECT count(*) FROM pg_type WHERE typname = ANY(%s)", (list(TIPOS_0005),)
+    ).fetchone()
+    assert linha is not None
+    return int(linha[0])
+
+
+def _colunas_novas_de_cartoes(conexao: psycopg.Connection) -> set[str]:
+    return {
+        r[0]
+        for r in conexao.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema='public' "
+            "AND table_name='cartoes' AND column_name IN ('geracao_id', 'motivo_recusa')"
+        )
+    }
+
+
+def test_migracao_0005_da_geracao_sobe_e_desce(
+    configuracao: Configuracao, banco_migrado: None
+) -> None:
+    """T004 (004): a 0005 cria e remove tabelas, enums e colunas; os valores de enum ficam."""
+    try:
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            for tabela in TABELAS_0005:
+                assert conexao.execute("SELECT to_regclass(%s)", (tabela,)).fetchone() == (tabela,)
+            assert _tipos_0005(conexao) == 4
+            assert _colunas_novas_de_cartoes(conexao) == {"geracao_id", "motivo_recusa"}
+        executar_alembic("downgrade", "0004")
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            for tabela in TABELAS_0005:
+                assert conexao.execute("SELECT to_regclass(%s)", (tabela,)).fetchone() == (None,)
+            assert _tipos_0005(conexao) == 0
+            assert _colunas_novas_de_cartoes(conexao) == set()
+            # o PostgreSQL não remove valores de enum: ficam, sem uso, até a próxima subida
+            assert conexao.execute(
+                "SELECT array_agg(enumlabel::text ORDER BY enumsortorder) FROM pg_enum "
+                "WHERE enumtypid = 'situacao_cartao'::regtype"
+            ).fetchone() == (["ativo", "suspenso", "aguardando_revisao", "recusado"],)
+            assert conexao.execute("SELECT to_regclass('cartoes')").fetchone() == ("cartoes",)
+        # subir de novo depois de descer não tropeça nos valores que ficaram
+        executar_alembic("upgrade", "head")
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            assert _tipos_0005(conexao) == 4
+    finally:
+        executar_alembic("upgrade", "head")
+
+
+@pytest.mark.parametrize("situacao", ["aguardando_revisao", "recusado"])
+def test_descida_da_0005_e_recusada_com_cartao_gerado_fora_do_estudo(
+    configuracao: Configuracao, banco_migrado: None, situacao: str
+) -> None:
+    """T004 (004): descer apagaria a única marca de um cartão ainda não aceito ou recusado."""
+    with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+        usuario = conexao.execute(
+            "INSERT INTO usuarios(nome,email,senha_hash) "
+            "VALUES ('Teste',%s,'hash-ficticio') RETURNING id",
+            (f"descida.{situacao}@exemplo.com",),
+        ).fetchone()
+        assert usuario is not None
+        materia = conexao.execute(
+            "INSERT INTO materias(usuario_id, nome) VALUES (%s, 'Biologia') RETURNING id",
+            (usuario[0],),
+        ).fetchone()
+        assert materia is not None
+        conexao.execute(
+            "INSERT INTO cartoes(usuario_id, materia_id, frente, verso, explicacao, origem, "
+            "situacao) VALUES (%s, %s, 'F', 'V', 'E', 'gerado_verificado', %s)",
+            (usuario[0], materia[0], situacao),
+        )
+    try:
+        with pytest.raises(DBAPIError, match="cartões gerados aguardando revisão ou recusados"):
+            executar_alembic("downgrade", "0004")
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            assert conexao.execute("SELECT to_regclass('geracoes')").fetchone() == ("geracoes",)
+    finally:
+        with psycopg.connect(configuracao.conninfo(), autocommit=True) as conexao:
+            conexao.execute("DELETE FROM cartoes WHERE usuario_id = %s", (usuario[0],))
+            conexao.execute("DELETE FROM materias WHERE usuario_id = %s", (usuario[0],))
+            conexao.execute("DELETE FROM usuarios WHERE id = %s", (usuario[0],))
         executar_alembic("upgrade", "head")
 
 

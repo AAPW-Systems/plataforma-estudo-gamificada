@@ -13,7 +13,6 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from procrastinate import App
-from sqlalchemy import text
 
 from app.cartoes.modelos import EstadoFsrs, OrigemCartao, SituacaoCartao
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
@@ -26,7 +25,12 @@ from tests.apoio_acervo import (
     enviar,
     id_interno_da_materia,
 )
-from tests.apoio_cartoes import ajustar_limites_cartoes, cartoes_da_materia, criar_cartao
+from tests.apoio_cartoes import (
+    ajustar_limites_cartoes,
+    cartoes_da_materia,
+    criar_cartao,
+    semear_cartao_gerado,
+)
 from tests.conftest import executar_jobs
 from tests.fabricas_arquivos import ArquivoGerado
 
@@ -441,21 +445,16 @@ async def test_cartao_aguardando_revisao_nao_aparece_na_lista_nem_no_total(
     acervo: FastAPI,
     estudante: httpx.AsyncClient,
     biologia: dict[str, Any],
-    situacoes_da_004: None,
 ) -> None:
-    """Caso de borda da spec: o cartão gerado e ainda não aceito é tratado pela 004."""
+    """Caso de borda da spec: o cartão gerado e ainda não aceito é tratado pela 004.
+
+    Desde a 0005 (spec 004), com cartões gerados reais, aguardando revisão e recusado.
+    """
     await criar_cartao(estudante, biologia["id"], frente="Visível")
     interno = await id_interno_da_materia(_fabrica(acervo), biologia["id"])
     async with unidade_de_trabalho(_fabrica(acervo)) as sessao:
         for situacao in ("aguardando_revisao", "recusado"):
-            await sessao.execute(
-                text(
-                    "INSERT INTO cartoes (usuario_id, materia_id, frente, verso, origem, situacao) "
-                    "SELECT usuario_id, :m, 'Escondido', 'Escondido', 'gerado_verificado', "
-                    "CAST(:s AS situacao_cartao) FROM materias WHERE id = :m"
-                ),
-                {"m": interno, "s": situacao},
-            )
+            await semear_cartao_gerado(sessao, interno, situacao, frente="Escondido")
 
     lista = await _listar(estudante, biologia["id"])
 

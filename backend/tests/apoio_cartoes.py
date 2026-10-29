@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cartoes.modelos import Cartao
@@ -144,3 +144,51 @@ async def estado_fsrs(fabrica: FabricaSessoes, cartao_public_id: str) -> tuple[A
             cartao.vencimento,
             cartao.ultima_revisao,
         )
+
+
+async def semear_cartao_gerado(
+    sessao: AsyncSession,
+    materia_id: int,
+    situacao: str,
+    *,
+    frente: str = "Gerado",
+) -> uuid.UUID:
+    """Um cartão gerado real (spec 004): geração concluída de uma fonte da matéria e o cartão nela.
+
+    Aguardando revisão e recusado não têm entrada no estudo; ativo e suspenso, sim. Substitui o
+    antigo fixture `situacoes_da_004`, que só acrescentava os valores ao enum.
+    """
+    usuario_id = (
+        await sessao.execute(select(Materia.usuario_id).where(Materia.id == materia_id))
+    ).scalar_one()
+    fonte = await semear_fonte(sessao, usuario_id, materia_id)
+    geracao_id = (
+        await sessao.execute(
+            text(
+                "INSERT INTO geracoes (usuario_id, materia_id, fonte_id, chave_idempotencia, "
+                "estado, quantidade_gerada, quantidade_aprovada, concluida_em) "
+                "VALUES (:u, :m, :f, gen_random_uuid(), 'concluida', 1, 1, now()) RETURNING id"
+            ),
+            {"u": usuario_id, "m": materia_id, "f": fonte.id},
+        )
+    ).scalar_one()
+    no_estudo = situacao in ("ativo", "suspenso")
+    public_id: uuid.UUID = (
+        await sessao.execute(
+            text(
+                "INSERT INTO cartoes (usuario_id, materia_id, frente, verso, explicacao, origem, "
+                "situacao, entrada_estudo_em, geracao_id) VALUES (:u, :m, :frente, 'Gerado', "
+                "'Explicação gerada.', 'gerado_verificado', CAST(:s AS situacao_cartao), "
+                "CASE WHEN :no_estudo THEN now() END, :g) RETURNING public_id"
+            ),
+            {
+                "u": usuario_id,
+                "m": materia_id,
+                "frente": frente,
+                "s": situacao,
+                "no_estudo": no_estudo,
+                "g": geracao_id,
+            },
+        )
+    ).scalar_one()
+    return public_id

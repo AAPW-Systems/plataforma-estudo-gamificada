@@ -14,7 +14,7 @@ from structlog.testing import capture_logs
 
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from tests.apoio_acervo import criar_conta, criar_materia, id_interno_da_materia
-from tests.apoio_cartoes import criar_cartao
+from tests.apoio_cartoes import criar_cartao, semear_cartao_gerado
 from tests.apoio_http import abrir_cliente, obter_csrf, sem_id_requisicao
 
 pytestmark = pytest.mark.security
@@ -107,22 +107,13 @@ async def test_identificador_malformado_e_404_na_consulta_e_na_edicao(
 
 @pytest.mark.parametrize("situacao", ["aguardando_revisao", "recusado"])
 async def test_cartao_aguardando_revisao_ou_recusado_e_404_na_consulta_e_na_edicao(
-    acervo: FastAPI, ana: httpx.AsyncClient, situacoes_da_004: None, situacao: str
+    acervo: FastAPI, ana: httpx.AsyncClient, situacao: str
 ) -> None:
     materia = await criar_materia(ana)
     fabrica: FabricaSessoes = acervo.state.fabrica_sessoes
     interno = await id_interno_da_materia(fabrica, materia["id"])
     async with unidade_de_trabalho(fabrica) as sessao:
-        public_id = (
-            await sessao.execute(
-                text(
-                    "INSERT INTO cartoes (usuario_id, materia_id, frente, verso, origem, situacao) "
-                    "SELECT usuario_id, :m, 'Gerado', 'Gerado', 'gerado_verificado', "
-                    "CAST(:s AS situacao_cartao) FROM materias WHERE id = :m RETURNING public_id"
-                ),
-                {"m": interno, "s": situacao},
-            )
-        ).scalar_one()
+        public_id = await semear_cartao_gerado(sessao, interno, situacao)
     inexistente = await ana.get(f"/api/v1/cartoes/{uuid.uuid4()}")
 
     consulta = await ana.get(f"/api/v1/cartoes/{public_id}")

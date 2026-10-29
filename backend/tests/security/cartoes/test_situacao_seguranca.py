@@ -14,7 +14,7 @@ from structlog.testing import capture_logs
 
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from tests.apoio_acervo import criar_conta, criar_materia, id_interno_da_materia
-from tests.apoio_cartoes import criar_cartao
+from tests.apoio_cartoes import criar_cartao, semear_cartao_gerado
 from tests.apoio_http import abrir_cliente, obter_csrf, sem_id_requisicao
 
 pytestmark = pytest.mark.security
@@ -113,23 +113,14 @@ async def test_identificador_malformado_e_404(
 
 @pytest.mark.parametrize("situacao", ["aguardando_revisao", "recusado"])
 async def test_cartao_aguardando_revisao_ou_recusado_nao_e_suspenso_reativado_nem_excluido(
-    acervo: FastAPI, ana: httpx.AsyncClient, situacoes_da_004: None, situacao: str
+    acervo: FastAPI, ana: httpx.AsyncClient, situacao: str
 ) -> None:
     """Essas situações são da 004: a 003 responde `404` e não as tira nem as põe no estudo."""
     materia = await criar_materia(ana)
     fabrica: FabricaSessoes = acervo.state.fabrica_sessoes
     interno = await id_interno_da_materia(fabrica, materia["id"])
     async with unidade_de_trabalho(fabrica) as sessao:
-        public_id = (
-            await sessao.execute(
-                text(
-                    "INSERT INTO cartoes (usuario_id, materia_id, frente, verso, origem, situacao) "
-                    "SELECT usuario_id, :m, 'Gerado', 'Gerado', 'gerado_verificado', "
-                    "CAST(:s AS situacao_cartao) FROM materias WHERE id = :m RETURNING public_id"
-                ),
-                {"m": interno, "s": situacao},
-            )
-        ).scalar_one()
+        public_id = await semear_cartao_gerado(sessao, interno, situacao)
 
     for metodo, sufixo in ACOES:
         resposta = await ana.request(metodo, f"/api/v1/cartoes/{public_id}{sufixo}")
@@ -252,3 +243,20 @@ async def test_excluir_a_conta_apaga_os_cartoes_dela_e_preserva_os_de_outra_cont
     async with unidade_de_trabalho(fabrica) as sessao:
         assert await tabelas_com_residuo(sessao, id_carla) == []
     assert (await bia.get(f"/api/v1/cartoes/{da_bia['id']}")).json() == da_bia
+
+
+@pytest.mark.parametrize("situacao", ["aguardando_revisao", "recusado"])
+async def test_filtro_da_lista_nao_aceita_as_situacoes_da_revisao(
+    acervo: FastAPI, ana: httpx.AsyncClient, situacao: str
+) -> None:
+    """Contrato da 003 e da 004: o filtro só conhece `ativo` e `suspenso`, e o gerado em revisão
+    não aparece nem pedido pelo nome da situação (DTEC 038)."""
+    materia = await criar_materia(ana)
+    fabrica: FabricaSessoes = acervo.state.fabrica_sessoes
+    interno = await id_interno_da_materia(fabrica, materia["id"])
+    async with unidade_de_trabalho(fabrica) as sessao:
+        await semear_cartao_gerado(sessao, interno, situacao)
+
+    resposta = await ana.get(f"/api/v1/materias/{materia['id']}/cartoes?situacao={situacao}")
+
+    assert resposta.status_code == 422

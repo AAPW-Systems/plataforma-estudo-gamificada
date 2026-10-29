@@ -66,7 +66,7 @@ def test_textos_ja_vem_normalizados(cartoes: list[CartaoFicticio]) -> None:
 
 def test_a_variedade_pedida_pelo_plano_esta_presente(cartoes: list[CartaoFicticio]) -> None:
     assert {c.origem for c in cartoes} == set(OrigemCartao)
-    assert {c.situacao for c in cartoes} == set(SituacaoCartao)
+    assert {c.situacao for c in cartoes} == {SituacaoCartao.ATIVO, SituacaoCartao.SUSPENSO}
     assert {c.estado_fsrs for c in cartoes} == set(EstadoFsrs)
     suspensos = sum(c.situacao is SituacaoCartao.SUSPENSO for c in cartoes)
     assert 0 < suspensos < len(cartoes) // 2, "uma parte fica suspensa"
@@ -109,7 +109,8 @@ def test_cartoes_de_cada_estado_do_fsrs_existem_em_ativo_e_suspenso(
 ) -> None:
     """CS-002 e CS-003 precisam de cartões em todos os estados, ativos e suspensos."""
     combinacoes = {(c.estado_fsrs, c.situacao) for c in cartoes}
-    assert {(EstadoFsrs.REVISAO, s) for s in SituacaoCartao} <= combinacoes
+    visiveis = (SituacaoCartao.ATIVO, SituacaoCartao.SUSPENSO)
+    assert {(EstadoFsrs.REVISAO, s) for s in visiveis} <= combinacoes
     assert (EstadoFsrs.APRENDIZADO, SituacaoCartao.ATIVO) in combinacoes
     assert (EstadoFsrs.REAPRENDIZADO, SituacaoCartao.ATIVO) in combinacoes
 
