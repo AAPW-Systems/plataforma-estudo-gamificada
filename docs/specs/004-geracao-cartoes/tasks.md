@@ -65,7 +65,7 @@
   - `trechos_da_fonte(sessao, usuario_id, fonte_id, ids|None)`: id, ordem, texto, página e tamanho, em ordem.
 
   **Testes** em `tests/integration/fontes/test_consultas.py`: o filtro de dono, a ordem e uma fonte alheia sem resultado (DTEC 019).
-- [ ] T006 [P] Criar as fábricas da geração:
+- [x] T006 [P] Criar as fábricas da geração:
   - **`tests/fabricas_geracao.py`:** fontes `concluido` com trechos fictícios de biologia e de história, com e sem página; um trecho com instrução embutida; um par de trechos contraditórios; a fonte de 2 MB. A linha de comando `python -m tests.fabricas_geracao --email --materia --tamanho-mb` só roda com `APP_AMBIENTE=desenvolvimento` e só para contas `@exemplo.com` (regra 10).
   - **`tests/cenarios_provedor.py`:** um `FunctionModel` para cada cenário da [DTEC 047](research.md#decisão-dtec-047-instruções-embutidas-contradições-e-avaliação):
     - cartões válidos com citação literal;
