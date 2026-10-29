@@ -121,7 +121,11 @@ export interface paths {
     get: operations["consultarCartao"];
     put?: never;
     post?: never;
-    delete?: never;
+    /**
+     * Excluir Cartao
+     * @description Exclui o cartão definitivamente; revisões e XP permanecem (US3-3; RF-008).
+     */
+    delete: operations["excluirCartao"];
     options?: never;
     head?: never;
     /**
@@ -129,6 +133,46 @@ export interface paths {
      * @description Edita frente, verso ou explicação, sem mudar o agendamento (US2; RF-005, RF-006).
      */
     patch: operations["editarCartao"];
+    trace?: never;
+  };
+  "/api/v1/cartoes/{cartaoId}/reativacao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reativar Cartao
+     * @description Devolve o cartão às lições com o vencimento anterior (US3-2; RF-007). Idempotente.
+     */
+    post: operations["reativarCartao"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/cartoes/{cartaoId}/suspensao": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Suspender Cartao
+     * @description Tira o cartão das lições, preservando o agendamento (US3-1; RF-007). Idempotente.
+     */
+    post: operations["suspenderCartao"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/fontes/{fonteId}": {
@@ -1224,6 +1268,72 @@ export interface operations {
       };
     };
   };
+  excluirCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` do cartão */
+        cartaoId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   editarCartao: {
     parameters: {
       query?: never;
@@ -1292,6 +1402,142 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Erro"];
+        };
+      };
+    };
+  };
+  reativarCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` do cartão */
+        cartaoId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cartao"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  suspenderCartao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description `public_id` do cartão */
+        cartaoId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cartao"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Erro"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

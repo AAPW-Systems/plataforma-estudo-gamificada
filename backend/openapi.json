@@ -1490,6 +1490,83 @@
       }
     },
     "/api/v1/cartoes/{cartaoId}": {
+      "delete": {
+        "description": "Exclui o cartão definitivamente; revisões e XP permanecem (US3-3; RF-008).",
+        "operationId": "excluirCartao",
+        "parameters": [
+          {
+            "description": "`public_id` do cartão",
+            "in": "path",
+            "name": "cartaoId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` do cartão",
+              "format": "uuid",
+              "title": "Cartaoid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Excluir Cartao",
+        "tags": [
+          "cartoes"
+        ]
+      },
       "get": {
         "description": "Dados de um cartão ativo ou suspenso.",
         "operationId": "consultarCartao",
@@ -1644,6 +1721,178 @@
           }
         },
         "summary": "Editar Cartao",
+        "tags": [
+          "cartoes"
+        ]
+      }
+    },
+    "/api/v1/cartoes/{cartaoId}/reativacao": {
+      "post": {
+        "description": "Devolve o cartão às lições com o vencimento anterior (US3-2; RF-007). Idempotente.",
+        "operationId": "reativarCartao",
+        "parameters": [
+          {
+            "description": "`public_id` do cartão",
+            "in": "path",
+            "name": "cartaoId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` do cartão",
+              "format": "uuid",
+              "title": "Cartaoid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reativar Cartao",
+        "tags": [
+          "cartoes"
+        ]
+      }
+    },
+    "/api/v1/cartoes/{cartaoId}/suspensao": {
+      "post": {
+        "description": "Tira o cartão das lições, preservando o agendamento (US3-1; RF-007). Idempotente.",
+        "operationId": "suspenderCartao",
+        "parameters": [
+          {
+            "description": "`public_id` do cartão",
+            "in": "path",
+            "name": "cartaoId",
+            "required": true,
+            "schema": {
+              "description": "`public_id` do cartão",
+              "format": "uuid",
+              "title": "Cartaoid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cartao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Suspender Cartao",
         "tags": [
           "cartoes"
         ]

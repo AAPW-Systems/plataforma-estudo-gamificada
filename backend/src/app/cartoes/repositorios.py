@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, func, select, tuple_, update
+from sqlalchemy import ColumnElement, Select, delete, func, select, tuple_, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -173,6 +173,36 @@ class RepositorioCartoes:
                 atualizado_em=agora,
             )
         )
+
+    async def alterar_situacao(
+        self, cartao: Cartao, situacao: SituacaoCartao, agora: datetime
+    ) -> None:
+        """Só `situacao` e `atualizado_em`: suspender e reativar preservam o FSRS (RF-007)."""
+        await self._sessao.execute(
+            update(Cartao)
+            .where(Cartao.id == cartao.id, Cartao.usuario_id == cartao.usuario_id)
+            .values(situacao=situacao, atualizado_em=agora)
+        )
+
+    async def excluir(self, usuario_id: int, public_id: UUID) -> UUID:
+        """Remove o cartão visível do estudante, ou `404` idêntico ao de inexistente (RN-14).
+
+        Num pedido repetido em paralelo, o segundo espera a linha e não a encontra mais.
+        """
+        excluido = (
+            await self._sessao.execute(
+                delete(Cartao)
+                .where(
+                    Cartao.public_id == public_id,
+                    Cartao.usuario_id == usuario_id,
+                    Cartao.situacao.in_(SITUACOES_VISIVEIS),
+                )
+                .returning(Cartao.public_id)
+            )
+        ).scalar_one_or_none()
+        if excluido is None:
+            raise RecursoNaoEncontrado()
+        return excluido
 
     @staticmethod
     def _filtro(usuario_id: int, materia_id: int) -> tuple[ColumnElement[bool], ...]:

@@ -169,3 +169,66 @@ class ServicoCartoes:
                 origem_mudou=origem_mudou,
             )
         return linha
+
+    async def suspender(
+        self, *, usuario_id: int, usuario_public_id: UUID | str, public_id: UUID
+    ) -> LinhaCartao:
+        """Tira o cartão das lições sem tocar no agendamento (US3-1; RF-007). Idempotente."""
+        return await self._mudar_situacao(
+            usuario_id, usuario_public_id, public_id, dominio.SituacaoCartao.SUSPENSO
+        )
+
+    async def reativar(
+        self, *, usuario_id: int, usuario_public_id: UUID | str, public_id: UUID
+    ) -> LinhaCartao:
+        """Devolve o cartão às lições com o vencimento de antes (US3-2; RF-007). Idempotente."""
+        return await self._mudar_situacao(
+            usuario_id, usuario_public_id, public_id, dominio.SituacaoCartao.ATIVO
+        )
+
+    async def _mudar_situacao(
+        self,
+        usuario_id: int,
+        usuario_public_id: UUID | str,
+        public_id: UUID,
+        destino: dominio.SituacaoCartao,
+    ) -> LinhaCartao:
+        # A linha travada serializa pedidos repetidos: só o primeiro escreve; os outros a
+        # encontram já na situação pedida e respondem `200` sem escrita.
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            repositorio = RepositorioCartoes(sessao)
+            linha = await repositorio.buscar(usuario_id, public_id, para_atualizar=True)
+            mudou = linha.cartao.situacao is not destino
+            if mudou:
+                await repositorio.alterar_situacao(linha.cartao, destino, self._relogio.agora())
+        if mudou:
+            evento = (
+                "cartao_suspenso"
+                if destino is dominio.SituacaoCartao.SUSPENSO
+                else "cartao_reativado"
+            )
+            logger.info(
+                evento,
+                cartao_public_id=str(public_id),
+                usuario_public_id=str(usuario_public_id),
+            )
+        else:
+            logger.info(
+                "cartao_situacao_sem_mudanca",
+                cartao_public_id=str(public_id),
+                usuario_public_id=str(usuario_public_id),
+                situacao=destino.value,
+            )
+        return linha
+
+    async def excluir(
+        self, *, usuario_id: int, usuario_public_id: UUID | str, public_id: UUID
+    ) -> None:
+        """Exclusão definitiva, confirmada antes na interface (US3-3; RF-008, RN-14)."""
+        async with unidade_de_trabalho(self._fabrica) as sessao:
+            await RepositorioCartoes(sessao).excluir(usuario_id, public_id)
+        logger.info(
+            "cartao_excluido",
+            cartao_public_id=str(public_id),
+            usuario_public_id=str(usuario_public_id),
+        )

@@ -111,3 +111,50 @@ async def editar_cartao(
         alteracoes=entrada.alteracoes(),
     )
     return cartao_para_dto(linha)
+
+
+@roteador.delete(
+    "/cartoes/{cartaoId}",
+    status_code=204,
+    operation_id="excluirCartao",
+    response_class=Response,
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO},
+)
+async def excluir_cartao(cartao_id: CartaoId, atual: UsuarioAtual, servico: Servico) -> Response:
+    """Exclui o cartão definitivamente; revisões e XP permanecem (US3-3; RF-008)."""
+    await servico.excluir(
+        usuario_id=atual.usuario.id,
+        usuario_public_id=atual.usuario.public_id,
+        public_id=cartao_id,
+    )
+    return Response(status_code=204)
+
+
+@roteador.post(
+    "/cartoes/{cartaoId}/suspensao",
+    operation_id="suspenderCartao",
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO},
+)
+async def suspender_cartao(cartao_id: CartaoId, atual: UsuarioAtual, servico: Servico) -> CartaoDTO:
+    """Tira o cartão das lições, preservando o agendamento (US3-1; RF-007). Idempotente."""
+    linha = await servico.suspender(
+        usuario_id=atual.usuario.id,
+        usuario_public_id=atual.usuario.public_id,
+        public_id=cartao_id,
+    )
+    return cartao_para_dto(linha)
+
+
+@roteador.post(
+    "/cartoes/{cartaoId}/reativacao",
+    operation_id="reativarCartao",
+    responses={**_RESPOSTAS_CSRF, 401: _ERRO, 404: _ERRO},
+)
+async def reativar_cartao(cartao_id: CartaoId, atual: UsuarioAtual, servico: Servico) -> CartaoDTO:
+    """Devolve o cartão às lições com o vencimento anterior (US3-2; RF-007). Idempotente."""
+    linha = await servico.reativar(
+        usuario_id=atual.usuario.id,
+        usuario_public_id=atual.usuario.public_id,
+        public_id=cartao_id,
+    )
+    return cartao_para_dto(linha)

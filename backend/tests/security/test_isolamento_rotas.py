@@ -85,6 +85,10 @@ CASOS_DE_ISOLAMENTO: dict[tuple[str, str], str] = {
     # Spec 003, US2 (T023): tests/security/cartoes/test_editar_seguranca.py
     ("GET", "/api/v1/cartoes/{cartaoId}"): "test_consulta_de_cartao_de_outro_e_404",
     ("PATCH", "/api/v1/cartoes/{cartaoId}"): "test_edicao_de_cartao_de_outro_e_404",
+    # Spec 003, US3 (T029): tests/security/cartoes/test_situacao_seguranca.py
+    ("DELETE", "/api/v1/cartoes/{cartaoId}"): "test_exclusao_de_cartao_de_outro_e_404",
+    ("POST", "/api/v1/cartoes/{cartaoId}/suspensao"): "test_suspensao_de_cartao_de_outro_e_404",
+    ("POST", "/api/v1/cartoes/{cartaoId}/reativacao"): "test_reativacao_de_cartao_de_outro_e_404",
 }
 
 # Rotas do contrato que ainda não existem -> tarefa que as entrega.
