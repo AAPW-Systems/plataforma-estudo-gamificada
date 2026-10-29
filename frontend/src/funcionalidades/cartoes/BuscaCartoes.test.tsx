@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
@@ -115,6 +115,27 @@ describe("Busca e filtros da lista de cartões (T038; US4, RF-010)", () => {
     });
     expect(await screen.findByText("CÉLULA eucarionte")).toBeInTheDocument();
     expect(screen.queryByText("O que é a Célula?")).not.toBeInTheDocument();
+  });
+
+  it("duas mudanças seguidas, antes de a navegação terminar, não desfazem uma à outra", async () => {
+    // Achado da T040: tirar "Suspensos" e logo escolher a origem fazia o filtro tirado voltar.
+    const pedidos = servir();
+    const { roteador } = renderizarComRoteador(caminho("?situacao=suspenso"));
+    await screen.findByText("CÉLULA eucarionte");
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Situação" }), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: "Origem" }), {
+      target: { value: "editado" },
+    });
+
+    await waitFor(() => {
+      expect(roteador.state.location.search).toEqual({ origem: "editado" });
+    });
+    // A lista final chega (sem pedido em voo para o teste seguinte).
+    expect(await screen.findByText("Mitose")).toBeInTheDocument();
+    expect(pedidos.at(-1)).toMatchObject({ situacao: null, origem: "editado" });
   });
 
   it("busca e filtros da URL são aplicados ao abrir (recarregar), e valores inválidos são ignorados", async () => {

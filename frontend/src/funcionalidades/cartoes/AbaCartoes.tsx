@@ -21,7 +21,7 @@ import { BarraFiltros } from "./BarraFiltros";
 import { invalidarCartoesEMaterias, removerDaLista, substituirNaLista } from "./cache";
 import { ItemCartao } from "./ItemCartao";
 import { PainelCartao } from "./PainelCartao";
-import { haFiltros } from "./filtros";
+import { type MudancaFiltros, haFiltros } from "./filtros";
 import { totalDeCartoes } from "./textos";
 
 /** Cartões ativos e suspensos da matéria, com a criação no painel lateral (design 9.4; US1). */
@@ -32,7 +32,7 @@ export interface AbaCartoesProps {
   materiaId: string;
   /** Busca e filtros vigentes; a rota os guarda na URL (US4). */
   filtros?: FiltrosCartoes;
-  aoMudarFiltros?: (filtros: FiltrosCartoes) => void;
+  aoMudarFiltros?: (mudanca: MudancaFiltros) => void;
 }
 
 export function AbaCartoes({
@@ -145,7 +145,7 @@ export function AbaCartoes({
           <Botao
             variante="secundario"
             onPress={() => {
-              aoMudarFiltros({});
+              aoMudarFiltros({ busca: undefined, situacao: undefined, origem: undefined });
             }}
           >
             Limpar busca e filtros

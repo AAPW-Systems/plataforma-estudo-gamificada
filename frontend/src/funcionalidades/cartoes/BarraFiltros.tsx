@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Input, Label, SearchField } from "react-aria-components";
 
 import type { FiltrosCartoes } from "../../api/cartoes";
-import { BUSCA_MAXIMA, ORIGENS_FILTRO, SITUACOES_FILTRO, combinarFiltros } from "./filtros";
+import { BUSCA_MAXIMA, type MudancaFiltros, ORIGENS_FILTRO, SITUACOES_FILTRO } from "./filtros";
 
 /** Espera depois da última tecla antes de buscar (T038). */
 export const ESPERA_BUSCA_MS = 300;
@@ -16,7 +16,8 @@ export function BarraFiltros({
   aoMudar,
 }: {
   filtros: FiltrosCartoes;
-  aoMudar: (filtros: FiltrosCartoes) => void;
+  /** Só o que mudou: quem guarda os filtros aplica a mudança sobre o estado mais recente. */
+  aoMudar: (mudanca: MudancaFiltros) => void;
 }) {
   const [texto, definirTexto] = useState(filtros.busca ?? "");
 
@@ -32,12 +33,12 @@ export function BarraFiltros({
     const novo = texto.trim() === "" ? "" : texto;
     if (novo === atual) return;
     const espera = setTimeout(() => {
-      aoMudar(combinarFiltros(filtros, { busca: novo === "" ? undefined : novo }));
+      aoMudar({ busca: novo === "" ? undefined : novo });
     }, ESPERA_BUSCA_MS);
     return () => {
       clearTimeout(espera);
     };
-  }, [texto, filtros, aoMudar]);
+  }, [texto, filtros.busca, aoMudar]);
 
   return (
     <div className="barra-filtros" role="search" aria-label="Busca e filtros dos cartões">
@@ -64,7 +65,7 @@ export function BarraFiltros({
           value={filtros.situacao ?? ""}
           onChange={(evento) => {
             const valor = SITUACOES_FILTRO.find((s) => s.valor === evento.target.value)?.valor;
-            aoMudar(combinarFiltros(filtros, { situacao: valor }));
+            aoMudar({ situacao: valor });
           }}
         >
           <option value="">Todas</option>
@@ -83,7 +84,7 @@ export function BarraFiltros({
           value={filtros.origem ?? ""}
           onChange={(evento) => {
             const valor = ORIGENS_FILTRO.find((o) => o.valor === evento.target.value)?.valor;
-            aoMudar(combinarFiltros(filtros, { origem: valor }));
+            aoMudar({ origem: valor });
           }}
         >
           <option value="">Todas</option>
