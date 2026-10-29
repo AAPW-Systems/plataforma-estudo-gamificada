@@ -25,8 +25,31 @@ MODULOS_PUROS_FONTES = {"app.fontes.extracao", "app.fontes.divisao", "app.fontes
 FRAMEWORKS = {"fastapi", "starlette", "sqlalchemy"}
 # Spec 003 (plano, "Dependências entre domínios"): `cartoes` depende de `materias` e de `fontes`, e
 # nunca o contrário. As regras puras dos cartões (a 004 as reutiliza) não conhecem framework.
-DOMINIOS_QUE_NAO_CONHECEM_CARTOES = ("app.materias.", "app.fontes.", "app.identidade.")
+DOMINIOS_QUE_NAO_CONHECEM_CARTOES = ("app.materias.", "app.fontes.", "app.identidade.", "app.ia.")
 MODULOS_PUROS_CARTOES = {"app.cartoes.dominio", "app.cartoes.cursor"}
+# Spec 004 (plano, "Dependências entre domínios"): `ia` é a única porta para o provedor e não
+# conhece nenhum domínio de negócio; o PydanticAI só aparece em `ia/` e na definição dos agentes;
+# as regras puras da geração não conhecem framework, banco nem o PydanticAI.
+DOMINIOS_DE_NEGOCIO = (
+    "app.identidade",
+    "app.materias",
+    "app.fontes",
+    "app.cartoes",
+    "app.revisao",
+    "app.saude",
+)
+MODULOS_COM_PYDANTIC_AI = ("app.ia.", "app.cartoes.geracao.agentes")
+MODULOS_PUROS_GERACAO = {"app.cartoes.geracao.dominio", "app.cartoes.geracao.validacao"}
+# Nomes que só o domínio `ia` lê: as chaves e o provedor configurado.
+LEITURAS_EXCLUSIVAS_DA_IA = (
+    "GEMINI_API_KEY",
+    "GROQ_API_KEY",
+    "gemini_api_key",
+    "groq_api_key",
+    "IA_PROVEDOR",
+    "ia_provedor",
+    "chave_api",
+)
 
 
 def importacoes(codigo: str, modulo: str) -> list[str]:
@@ -60,6 +83,14 @@ def violacoes(codigo: str, modulo: str) -> list[str]:
             erros.append(importacao)
         if modulo == "app.fontes.extracao" and importacao.startswith("app.nucleo"):
             erros.append(importacao)
+        if modulo.startswith("app.ia.") and importacao.startswith(DOMINIOS_DE_NEGOCIO):
+            erros.append(importacao)
+        if modulo in MODULOS_PUROS_GERACAO and partes & (FRAMEWORKS | {"pydantic_ai"}):
+            erros.append(importacao)
+        if importacao.split(".")[0] == "pydantic_ai" and not modulo.startswith(
+            MODULOS_COM_PYDANTIC_AI
+        ):
+            erros.append(importacao)
         # Modelos precisam dos tipos padrão e da Base compartilhada, sem comportamento.
         if camada == "modelos" and not (
             importacao.split(".")[0] in sys.stdlib_module_names | {"sqlalchemy"}
@@ -67,6 +98,54 @@ def violacoes(codigo: str, modulo: str) -> list[str]:
         ):
             erros.append(importacao)
     return erros
+
+
+def _modulos_de_app() -> list[tuple[str, Path]]:
+    return [
+        ("app." + ".".join(arquivo.relative_to(RAIZ).with_suffix("").parts), arquivo)
+        for arquivo in RAIZ.rglob("*.py")
+    ]
+
+
+def test_pydantic_ai_so_em_ia_e_nos_agentes() -> None:
+    """Spec 004: inclusive no núcleo e na composição, que o teste das camadas não percorre."""
+    erros = [
+        f"{modulo}: {importacao}"
+        for modulo, arquivo in _modulos_de_app()
+        for importacao in importacoes(arquivo.read_text(encoding="utf-8"), modulo)
+        if importacao.split(".")[0] == "pydantic_ai"
+        and not modulo.startswith(MODULOS_COM_PYDANTIC_AI)
+    ]
+    assert not erros, "\n".join(erros)
+
+
+def leituras_da_ia_fora_dela(codigo: str, modulo: str) -> list[str]:
+    if modulo.startswith("app.ia."):
+        return []
+    return [nome for nome in LEITURAS_EXCLUSIVAS_DA_IA if nome in codigo]
+
+
+def test_chaves_e_provedor_so_sao_lidos_em_ia() -> None:
+    """Spec 004 (RQ-001): trocar de provedor muda só `IA_PROVEDOR` e as chaves."""
+    erros = [
+        f"{modulo}: {nome}"
+        for modulo, arquivo in _modulos_de_app()
+        for nome in leituras_da_ia_fora_dela(arquivo.read_text(encoding="utf-8"), modulo)
+    ]
+    assert not erros, "\n".join(erros)
+
+
+@pytest.mark.parametrize(
+    "modulo,codigo",
+    [
+        ("app.cartoes.geracao.servicos", "x = configuracao.gemini_api_key"),
+        ("app.principal", "os.environ['GROQ_API_KEY']"),
+        ("app.cartoes.geracao.tarefas", "if configuracao_ia.ia_provedor == 'teste': pass"),
+        ("app.nucleo.logs", "chave = cfg.chave_api"),
+    ],
+)
+def test_detector_recusa_leitura_das_chaves_fora_de_ia(modulo: str, codigo: str) -> None:
+    assert leituras_da_ia_fora_dela(codigo, modulo)
 
 
 def test_camadas_respeitam_dtec018() -> None:
@@ -112,6 +191,23 @@ def test_camadas_respeitam_dtec018() -> None:
         ("app.cartoes.cursor", "import fastapi"),
         ("app.cartoes.cursor", "from sqlalchemy.ext.asyncio import AsyncSession"),
         ("app.cartoes.cursor", "from starlette.responses import Response"),
+        # Spec 004: `ia` não conhece domínios de negócio, e ninguém do acervo conhece cartões.
+        ("app.ia.cliente", "from app.cartoes.geracao.modelos import Geracao"),
+        ("app.ia.servicos", "from app.fontes.consultas import fonte_do_dono"),
+        ("app.ia.repositorios", "from app.identidade.modelos import Usuario"),
+        ("app.ia.registros", "import app.materias.registros"),
+        ("app.ia.aviso", "from app.revisao import dominio"),
+        ("app.fontes.consultas", "from app.cartoes.geracao import dominio"),
+        ("app.materias.registros", "from app.cartoes.geracao.registros import participante"),
+        # O PydanticAI fica no `ia` e na definição dos agentes.
+        ("app.cartoes.geracao.servicos", "from pydantic_ai import Agent"),
+        ("app.cartoes.geracao.tarefas", "import pydantic_ai.models"),
+        ("app.fontes.servicos", "from pydantic_ai.models.test import TestModel"),
+        # As regras puras da geração não conhecem framework, banco nem o PydanticAI.
+        ("app.cartoes.geracao.dominio", "from sqlalchemy import select"),
+        ("app.cartoes.geracao.dominio", "import fastapi"),
+        ("app.cartoes.geracao.validacao", "from pydantic_ai import Agent"),
+        ("app.cartoes.geracao.validacao", "from starlette.responses import Response"),
     ],
 )
 def test_detector_recusa_importacao_proibida(modulo: str, codigo: str) -> None:

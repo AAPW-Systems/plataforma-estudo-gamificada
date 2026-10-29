@@ -82,7 +82,7 @@
     Também um `FunctionModel` da juíza que aprova, reprova ou omite índices, e um contador de chamadas.
 
   **Teste** em `tests/unit/test_fabricas_geracao.py`: cada trecho respeita as invariantes da DTEC 029; a linha de comando recusa outro ambiente e outro domínio; os cenários "válidos" passam nos portões quando avaliados à mão.
-- [ ] T007 [P] Ampliar `tests/arquitetura/test_camadas.py`:
+- [x] T007 [P] Ampliar `tests/arquitetura/test_camadas.py`:
   - `app/ia`, `app/fontes` e `app/materias` não importam `app/cartoes`;
   - `app/ia` não importa nenhum domínio de negócio;
   - `pydantic_ai` só é importado em `app/ia/` e em `app/cartoes/geracao/agentes.py`, e as chaves e o provedor só são lidos em `app/ia/`;
