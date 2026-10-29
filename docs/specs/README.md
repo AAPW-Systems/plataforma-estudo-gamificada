@@ -47,7 +47,7 @@ Cada spec pertence a um único estágio. Os incrementos do final acadêmico de u
 |---|---|---|
 | [001-conta-acesso](001-conta-acesso/README.md) | F-01: conta, sessão, isolamento e preferências | Implementando |
 | [002-materias-fontes](002-materias-fontes/README.md) | F-02 e F-03: matérias, envio e processamento de fontes | Convergida |
-| [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Implementando |
+| [003-cartoes-manuais](003-cartoes-manuais/README.md) | F-04: cartões criados e gerenciados pelo estudante | Convergida |
 | [004-geracao-cartoes](004-geracao-cartoes/README.md) | F-04: geração por IA, revisão dos gerados, "Gerar mais" (EX-02, EX-03) | Tarefas aprovadas |
 | [005-licao-trilha](005-licao-trilha/README.md) | F-05 e F-07: lição com FSRS e trilha | Tarefas aprovadas |
 | [006-xp-meta-sequencia](006-xp-meta-sequencia/README.md) | F-09 e F-10: XP, meta diária e sequência | Tarefas aprovadas |

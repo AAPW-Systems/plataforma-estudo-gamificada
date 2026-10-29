@@ -407,7 +407,7 @@ continue com as tasks 41 a 45 da spec 003
 - **Backend:** `ruff format --check` (210 arquivos), `ruff check` e `mypy` limpos; **2344 passed, 1 skipped** em duas execuções completas seguidas (528 s com a cobertura e 354 s), o pulado sendo o teste de permissão da 001, com justificativa registrada lá; **cobertura de 95%** (4.169 instruções, 176 sem cobertura); no domínio `cartoes`, só `cursor.py` (91%, ramos de erro de codificação) e `repositorios.py` (95%, a conversão de uma violação de FK desconhecida) aparecem abaixo de 100%.
 - **Frontend:** `eslint` limpo, inclusive a regra da T002 contra `dangerouslySetInnerHTML` (`eslint.config.js`), `tsc`, `prettier --check` e `vite build` limpos; **276 passed**; cobertura de 93,9% das instruções e 96,4% das linhas (`funcionalidades/cartoes`: 95,1% e 95,8%).
 - **Contrato:** `python -m app.exportar_openapi` e `npm run gerar:api` não deixaram diferença no git; `tests/integration/test_contrato_openapi.py` (20 passed) compara o `openapi.json` com o contrato da 003, sem pendências.
-- **Integração contínua:** conferida depois do push desta rodada (abaixo).
+- **Integração contínua:** verde na execução 37 (`b4d23fd`, 29/10/2026), que roda as duas suítes, a cobertura, o lint e a conferência dos arquivos gerados nas imagens do Compose; com isso, a T041 foi marcada e a 003 passou a `Convergida`.
 
 ### Evidência da T042 (logs, repositório e acessibilidade)
 

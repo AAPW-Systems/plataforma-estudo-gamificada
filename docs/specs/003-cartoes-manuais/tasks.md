@@ -203,7 +203,7 @@
 
 ## Fase final Qualidade transversal
 
-- [ ] T041 Executar nos contêineres as suítes completas do backend e do frontend, a qualidade estática (inclusive a regra de lint da T002) e a verificação do contrato, e confirmar a integração contínua aprovada na `develop`. Registrar as contagens de testes e a cobertura.
+- [x] T041 Executar nos contêineres as suítes completas do backend e do frontend, a qualidade estática (inclusive a regra de lint da T002) e a verificação do contrato, e confirmar a integração contínua aprovada na `develop`. Registrar as contagens de testes e a cobertura.
 - [x] T042 Revisar e registrar as evidências:
   - **Logs:** `api` sem texto de cartão, termo de busca nem título de referência.
   - **Repositório:** sem segredos nem arquivos gerados versionados (regras 9 e 10).

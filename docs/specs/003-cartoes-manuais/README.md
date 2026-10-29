@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-04 (parte manual) |
 | Estágio | **MVP** |
-| Status | Implementando |
+| Status | Convergida |
 | Depende de | [001](../001-conta-acesso/README.md), [002](../002-materias-fontes/README.md) |
 
 ## Ordem de leitura
@@ -39,3 +39,4 @@
 | 27/10/2026 | Interface da US1 (T017 a T019) e US2 completa (T020 a T027): consulta e edição sem mudar o agendamento, ação "Editar" com o painel em modo edição, verificação no navegador e CS-002 pelo banco; T001 a T027 prontas ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)) |
 | 29/10/2026 | US3 completa (T028 a T033): suspender, reativar e excluir, com as ações e o diálogo na lista, verificação no navegador, "Fonte apagada" e a exclusão da matéria com cartões reais; T001 a T033 prontas ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)) |
 | 29/10/2026 | US4 completa (T034 a T040): busca sem diferenciar maiúsculas e acentos, filtros de situação e origem, busca e filtros na URL, verificação no navegador com os 120 cartões do quickstart; T001 a T040 prontas, falta a fase final ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)) |
+| 29/10/2026 | Fase final (T041 a T045): suítes completas com cobertura, CI verde na execução 37, logs, repositório e acessibilidade revisados (leitor de tela na rodada final do projeto), medições, documentação e rastreabilidade; status **Convergida** ([registro](../../prompts/2026-10-23-003-cartoes-manuais-implementacao.md)) |

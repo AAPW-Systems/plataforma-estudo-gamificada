@@ -4,7 +4,7 @@ Plataforma web que funde **repetição espaçada** com uma **trilha visual de pr
 
 Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido com **Spec-Driven Development (SDD)**.
 
-> **Estado (29/10/2026):** o MVP está em implementação, em sequência, uma spec de cada vez. A 002 está convergida e a 001 está implementada, faltando só a T063 (teste guiado com três pessoas); a 003 está em implementação, com as quatro histórias prontas (criar, editar, suspender e excluir, buscar e filtrar cartões) e a fase final pela frente. O acompanhamento por spec e tarefa está em [Progresso do desenvolvimento](#progresso-do-desenvolvimento).
+> **Estado (29/10/2026):** o MVP está em implementação, em sequência, uma spec de cada vez. A 002 está convergida e a 001 está implementada, faltando só a T063 (teste guiado com três pessoas); a 003 convergiu em 29/10/2026 (criar, editar, suspender, excluir, buscar e filtrar cartões); a próxima é a base da 004. O acompanhamento por spec e tarefa está em [Progresso do desenvolvimento](#progresso-do-desenvolvimento).
 
 ## Equipe
 
@@ -42,7 +42,7 @@ Projeto da disciplina de IA do curso de Sistemas de Informação, desenvolvido c
 |---|---|---|
 | [001: Conta, sessão, isolamento e preferências](docs/specs/001-conta-acesso/spec.md) | 64 de 65 ([tarefas](docs/specs/001-conta-acesso/tasks.md)) | Implementando (falta T063) |
 | [002: Matérias, envio e processamento de fontes](docs/specs/002-materias-fontes/spec.md) | 51 de 51 ([tarefas](docs/specs/002-materias-fontes/tasks.md)) | Convergida |
-| [003: Cartões criados e gerenciados pelo estudante](docs/specs/003-cartoes-manuais/spec.md) | 44 de 45 ([tarefas](docs/specs/003-cartoes-manuais/tasks.md)) | Implementando (falta T041) |
+| [003: Cartões criados e gerenciados pelo estudante](docs/specs/003-cartoes-manuais/spec.md) | 45 de 45 ([tarefas](docs/specs/003-cartoes-manuais/tasks.md)) | Convergida |
 | [004: Geração de cartões pela IA e revisão dos gerados](docs/specs/004-geracao-cartoes/spec.md) | 0 de 59 ([tarefas](docs/specs/004-geracao-cartoes/tasks.md)) | Tarefas aprovadas |
 | [005: Lição com repetição espaçada e trilha de progressão](docs/specs/005-licao-trilha/spec.md) | 0 de 49 ([tarefas](docs/specs/005-licao-trilha/tasks.md)) | Tarefas aprovadas |
 | [006: XP, meta diária e sequência](docs/specs/006-xp-meta-sequencia/spec.md) | 0 de 45 ([tarefas](docs/specs/006-xp-meta-sequencia/tasks.md)) | Tarefas aprovadas |
