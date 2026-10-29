@@ -152,25 +152,25 @@
 **Objetivo:** o estudante tira um cartão das lições temporariamente ou de vez, preservando o agendamento e o histórico.  
 **Teste independente:** suspender um cartão e conferir a situação e o vencimento; reativá-lo e conferir o mesmo vencimento; excluir outro com o diálogo e conferir que ele some. A ausência nas lições (CS-003) e a preservação das revisões e do XP são reverificadas pela 005 e pela 006.
 
-- [ ] T028 [P] [US3] Criar os testes funcionais em `tests/functional/cartoes/test_us3_suspender_excluir.py`:
+- [x] T028 [P] [US3] Criar os testes funcionais em `tests/functional/cartoes/test_us3_suspender_excluir.py`:
   - cenários 1 a 3 da US3;
   - suspensão e reativação com as colunas do FSRS iguais (RF-007);
   - reativação de um cartão com o vencimento no passado: o vencimento continua no passado, ou seja, o cartão fica devido;
   - suspensão e reativação repetidas, sem escrita (`atualizado_em` igual);
   - `DELETE` seguido de `GET` e de outro `DELETE`: `404`;
   - lista filtrada pela situação, com o suspenso visível como suspenso (RF-004).
-- [ ] T029 [P] [US3] Criar os testes de segurança e adversariais em `tests/security/cartoes/test_situacao_seguranca.py` e `tests/adversarial/cartoes/test_situacao_adversarial.py`:
+- [x] T029 [P] [US3] Criar os testes de segurança e adversariais em `tests/security/cartoes/test_situacao_seguranca.py` e `tests/adversarial/cartoes/test_situacao_adversarial.py`:
   - acrescentar à tabela de isolamento `DELETE /cartoes/{id}`, `POST /cartoes/{id}/suspensao` e `POST /cartoes/{id}/reativacao`, com `404` idêntico para cartão alheio;
   - suspensão repetida em paralelo: um único efeito;
   - reexecutar `tests/security/identidade/test_exclusao_completa.py` (001) com cartões criados: `cartoes` fica vazia para a conta (DTEC 021).
-- [ ] T030 [US3] Implementar `suspender`, `reativar` e `excluir` em `app/cartoes/servicos.py` e `repositorios.py`, mais os DTOs e as rotas correspondentes, até que as T028 e T029 passem.
-- [ ] T031 [P] [US3] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`:
+- [x] T030 [US3] Implementar `suspender`, `reativar` e `excluir` em `app/cartoes/servicos.py` e `repositorios.py`, mais os DTOs e as rotas correspondentes, até que as T028 e T029 passem.
+- [x] T031 [P] [US3] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`:
   - ações "Suspender" e "Reativar" com o anúncio por `aria-live`;
   - `DialogoExclusaoCartao` (sobre o `DialogoConfirmacao` destrutivo da 002): aviso de exclusão definitiva, foco preso e devolvido ao acionador, cancelar sem efeito, ação destrutiva distinta por texto e ícone;
   - "Fonte apagada" exibida junto da descrição da origem;
   - axe sem violações.
-- [ ] T032 [US3] Implementar as ações e o diálogo na lista, invalidando a lista de cartões e a de matérias, até que a T031 passe.
-- [ ] T033 [US3] Executar o teste independente da US3 e a verificação complementar do quickstart (suspender, reativar, excluir, "Fonte apagada" e exclusão da matéria `Química`) e registrar a evidência.
+- [x] T032 [US3] Implementar as ações e o diálogo na lista, invalidando a lista de cartões e a de matérias, até que a T031 passe.
+- [x] T033 [US3] Executar o teste independente da US3 e a verificação complementar do quickstart (suspender, reativar, excluir, "Fonte apagada" e exclusão da matéria `Química`) e registrar a evidência.
 
 ## Fase 6 História de usuário 4 Encontrar um cartão (P3)
 

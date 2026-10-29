@@ -245,7 +245,7 @@ continue com as tasks 4 a 15 da spec 003
 
 ## Pendências
 
-- ~~T017 a T027~~: concluídas na rodada 4 (abaixo). **T028 a T045** (US3, US4 e fase final): não iniciadas; a próxima é a T028 (testes funcionais da US3).
+- ~~T017 a T033~~: concluídas nas rodadas 4 e 5 (abaixo). **T034 a T045** (US4 e fase final): não iniciadas; a próxima é a T034 (testes de integração da busca).
 - **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
 - **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
 - ~~T007~~: resolvida na rodada 3 (abaixo).
@@ -313,3 +313,43 @@ continue, mudei  o modelo para o opus
 
 - **Primeira execução completa:** 2 falhas em `test_us2_editar.py` (`500` na criação, `cache lookup failed for type`). O fixture de módulo `situacoes_da_004` desce e sobe a `0004` no fim do módulo, e o tipo `situacao_cartao` recriado ganha outro OID; as conexões do pool da sessão guardavam comandos preparados (o psycopg prepara depois de cinco execuções) com o OID antigo. O módulo novo da US2, logo depois do `test_us1_criar.py`, expôs o defeito latente. **Reproduzido** com `tests/adversarial tests/functional/cartoes` (2 failed) e **corrigido** com `await engine.dispose()` no fim do fixture (352 passed), em commit próprio (`fix(testes)`).
 - **Verde:** backend com **2182 passed, 1 skipped** em duas execuções completas seguidas (288 s e 289 s); frontend com 263 passed.
+
+## Rodada 5 (29/10/2026): T028 a T033
+
+### Prompt
+
+```text
+continue com as tasks 28 a 33 da spec 003
+```
+
+**Retomada:** contêiner novo; PostgreSQL local religado, `develop` local igual à remota (`991177f`, CI verde na execução 34).
+
+### Evidência da T028 a T030 (US3 no backend)
+
+- **Testes (38 funções, com parâmetros):** `tests/functional/cartoes/test_us3_suspender_excluir.py` (10: cenários 1 a 3, FSRS igual depois de suspender e reativar em cada estado, reativação com o vencimento no passado devolvendo o cartão devido, repetição sem escrita, `DELETE` seguido de `GET`, `DELETE`, suspensão, reativação e edição com `404`, contagem de ativos, exclusão de suspenso e de cartão que cita uma fonte); `tests/security/cartoes/test_situacao_seguranca.py` (18: as três rotas na tabela `CASOS_DE_ISOLAMENTO` com `404` idêntico ao de inexistente, identificador malformado, situações da 004 intocadas, logs só com identificadores, `401`, `403` sem CSRF e de origem estranha, `no-store`, e a exclusão da conta com cartões ativos, suspensos e com referência: pelo catálogo, `cartoes` fica sem linhas da conta, e os cartões de outra conta seguem intactos); `tests/adversarial/cartoes/test_situacao_adversarial.py` (10: quatro abas suspendendo e reativando juntas em três rodadas com uma única escrita e um único evento, suspender e reativar ao mesmo tempo, exclusão repetida em paralelo com um `204` e o resto `404`, suspensão durante a exclusão numa segunda conexão com `404` e nunca `500`, corpo enviado ignorado, métodos não previstos com `405`).
+- **Divergência:** a T028 pede "lista filtrada pela situação", mas o filtro `situacao` da listagem é da US4 (T035, com a T037); aqui, a lista sem filtro mostra o suspenso como suspenso, e o filtro fica para a T035.
+- **Implementação:** `repositorios.py` (`alterar_situacao`, com um `UPDATE` só de `situacao` e `atualizado_em`, e `excluir`, com `DELETE ... RETURNING` filtrado por dono e situações visíveis, `404` se nada sai), `servicos.py` (`suspender`, `reativar` e `excluir`, com a linha travada por `FOR UPDATE` e sem escrita quando o cartão já está na situação pedida; logs `cartao_suspenso`, `cartao_reativado`, `cartao_situacao_sem_mudanca` e `cartao_excluido` só com identificadores) e as rotas `DELETE /cartoes/{cartaoId}`, `POST /cartoes/{cartaoId}/suspensao` e `POST /cartoes/{cartaoId}/reativacao`. As pendências do teste de contrato acabaram; `openapi.json` e os tipos do frontend foram regenerados.
+- **Vermelho antes:** 31 failed, 24 passed (as rotas não existiam). Na primeira execução com o código, 1 falha por erro do próprio teste: avançar o relógio 30 dias expira a sessão (`401`); o teste passou a pôr o vencimento no passado direto no banco.
+- **Mutações (cada uma derrubou testes, código restaurado e conferido com `cmp`):** sem `FOR UPDATE` (2), `UPDATE` que grava também o `vencimento` (5), escrita mesmo sem mudança (3), exclusão sem o filtro de situação (2), exclusão sem o filtro de dono (1).
+
+### Evidência da T031 e da T032 (interface da US3)
+
+- **Arquivos:** `api/cartoes.ts` (`suspenderCartao`, `reativarCartao`, `excluirCartao`), `funcionalidades/cartoes/cache.ts` (troca e remoção do cartão nas páginas carregadas e invalidação da lista de cartões e da de matérias; `substituirNaLista` saiu do `PainelCartao` para cá), `DialogoExclusaoCartao.tsx` (sobre o `DialogoConfirmacao` da 002: "Excluir este cartão?", aviso de ação definitiva, o início da frente, a frase sobre revisões e XP e o botão destrutivo "Excluir cartão"; `404` conta como já excluído), `ItemCartao.tsx` (ações "Editar", "Suspender" ou "Reativar" e "Excluir", com nomes acessíveis "… o cartão: <início da frente>"), `AbaCartoes.tsx` (região viva com "Cartão suspenso.", "Cartão reativado." e "Cartão excluído.", erro da ação em `role="alert"`, foco no título da seção depois de excluir) e `textos.ts` (`resumoDaFrente`).
+- **Testes (5) em `SituacaoCartao.test.tsx`:** suspender e reativar com o anúncio e o foco no botão; botão habilitado e com o foco durante o pedido, com cliques repetidos sem repetir o pedido; diálogo com o aviso, o botão destrutivo, foco preso (quatro `Tab`) e devolvido ao cancelar, sem pedido, com axe; confirmação tirando o cartão, anunciando e focando o título; "Fonte apagada" junto da origem, com axe na lista. **Vermelho antes:** 4 failed (o quinto veio depois, do achado abaixo). Uma regressão minha no caminho: ao mover `substituirNaLista`, apaguei junto `contarNovoCartao`, e 5 testes da criação caíram; a função voltou e eles passaram.
+- **Verde:** frontend com **268 passed**, `eslint`, `tsc`, `prettier --check` e `vite build` limpos.
+
+### Evidência da T033 (US3 no navegador real)
+
+**Ambiente:** contêiner novo, com PostgreSQL 16 local, migrações aplicadas, API, worker e Vite no host (o Vite com `VITE_DESTINO_API` apontando para a API local) e o Chromium do Playwright. Conta `@exemplo.com`, fonte fictícia "Citologia" e cartões criados pela API. Scripts no diretório temporário da sessão, não versionados.
+
+**Achados e correções (`fix(cartoes)`):**
+
+1. Depois de "Suspender", o foco ia para o corpo da página. O botão ficava desabilitado durante o pedido, e o navegador tira o foco de um elemento desabilitado (o jsdom não faz isso, então os testes de componente não pegaram). O botão agora segue habilitado e pedidos repetidos são ignorados; o teste novo confere que o botão fica habilitado e com o foco durante o pedido.
+2. Depois de confirmar a exclusão, o foco também ia para o corpo da página: o foco preso do diálogo puxava de volta o foco dado ao título, e o diálogo desmontava em seguida. O título passou a ser focado no quadro seguinte, quando o diálogo já saiu. O jsdom não reproduz esse caso; a evidência é a do navegador.
+
+**23 de 23 verificações:** "Suspender" pelo teclado mostra "Suspenso", anuncia "Cartão suspenso." numa região `aria-live="polite"` e mantém o foco no botão, agora "Reativar"; no banco, `situacao = suspenso` e as seis colunas do FSRS iguais; "Reativar" volta a "Ativo" com o mesmo vencimento e anuncia "Cartão reativado."; o diálogo de exclusão avisa que a ação é definitiva, prende o foco em seis `Tab` seguidos, e `Esc` cancela com o foco de volta ao acionador e o cartão no banco; confirmado, o cartão some da lista e do banco, com "Cartão excluído." e o foco no título "Cartões". **"Fonte apagada":** o diálogo da 002 mostra "1 cartão criado por você que cita esta fonte: mantido"; excluída a fonte com "Excluir os cartões junto", o cartão continua na lista com "Citologia" e "Fonte apagada" junto da origem, e no banco `fonte_id` é nulo com a cópia do título mantida. **Química:** com 2 cartões ativos e 1 suspenso, a lista de matérias mostra "2 cartões ativos" e o diálogo de exclusão da matéria, 3 cartões. **Acessibilidade:** axe (WCAG 2.2 AA) sem violações na lista com as ações, com "Fonte apagada" e no diálogo, nos temas claro e escuro, a 1100 px e a 320 px, sem rolagem horizontal a 320 px. **Logs:** eventos `cartao_suspenso`, `cartao_reativado` e `cartao_excluido` só com identificadores públicos, e nenhuma ocorrência dos textos dos cartões nem do título da fonte. A ausência do suspenso nas lições e as revisões e o XP preservados ficam para a 005 e a 006.
+
+### Suíte completa da rodada 5
+
+Backend com **2265 passed, 1 skipped** em duas execuções completas seguidas (304 s e 318 s), `ruff` e `mypy` limpos; frontend com 268 passed.
+
