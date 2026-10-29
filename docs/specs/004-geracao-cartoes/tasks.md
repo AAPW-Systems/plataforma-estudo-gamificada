@@ -60,7 +60,7 @@
   - a FK composta recusa uma geração com fonte de outra matéria ou de outro dono;
   - apagar a fonte anula só o `fonte_id` da geração, mantendo `materia_id`;
   - o índice parcial recusa uma segunda geração em andamento da mesma fonte e aceita uma nova depois da primeira terminar.
-- [ ] T005 [P] Criar `app/fontes/consultas.py`, a leitura que a geração usa sem acessar o ORM de `fontes`:
+- [x] T005 [P] Criar `app/fontes/consultas.py`, a leitura que a geração usa sem acessar o ORM de `fontes`:
   - `fonte_do_dono(sessao, usuario_id, public_id, travar=FOR SHARE)`: id, matéria, estado, título, nome do arquivo e data do envio;
   - `trechos_da_fonte(sessao, usuario_id, fonte_id, ids|None)`: id, ordem, texto, página e tamanho, em ordem.
 
