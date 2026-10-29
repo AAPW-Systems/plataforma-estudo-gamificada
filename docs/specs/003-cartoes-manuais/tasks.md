@@ -177,29 +177,29 @@
 **Objetivo:** o estudante busca por texto da frente ou do verso, sem diferenciar maiúsculas e acentos, e filtra por situação e origem.  
 **Teste independente:** numa matéria com 120 cartões fictícios, buscar por uma palavra da frente e por uma do verso, filtrar por suspensos e por origem e conferir os resultados (US4 no quickstart).
 
-- [ ] T034 [P] [US4] Criar os testes de integração em `tests/integration/cartoes/test_busca.py` (DTEC 033):
+- [x] T034 [P] [US4] Criar os testes de integração em `tests/integration/cartoes/test_busca.py` (DTEC 033):
   - "celula" encontra "Célula" e "CÉLULA"; "ÇÃO" encontra "ação";
   - busca no verso;
   - `%`, `_` e `\` tratados como literais;
   - combinação de busca com situação e origem;
   - o termo nunca é concatenado ao SQL (consulta com parâmetro conferida).
-- [ ] T035 [P] [US4] Criar os testes funcionais em `tests/functional/cartoes/test_us4_encontrar.py`:
+- [x] T035 [P] [US4] Criar os testes funcionais em `tests/functional/cartoes/test_us4_encontrar.py`:
   - cenários 1 a 3 da US4, com 120 cartões da fábrica;
   - `total` com filtros e sem filtros (estado vazio da matéria diferente de "nenhum resultado");
   - paginação com filtros;
   - cursor reaproveitado com outros filtros: `422 cursor_invalido`;
   - busca só com espaços equivale a sem busca.
-- [ ] T036 [P] [US4] Criar os testes adversariais em `tests/adversarial/cartoes/test_busca_adversarial.py`: busca com 101 caracteres (`422`), só curingas, barra invertida isolada, aspas e trechos de SQL tratados como texto, e valores fora dos enums de `situacao` e `origem` (`422`).
-- [ ] T037 [US4] Implementar em `app/cartoes/repositorios.py` a função única `filtro_busca` (`lower(unaccent(...)) LIKE` com escape), os filtros de situação e origem e o resumo dos filtros no cursor. Implementar também os parâmetros da rota de listagem, até que as T034 a T036 passem.
-- [ ] T038 [P] [US4] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`:
+- [x] T036 [P] [US4] Criar os testes adversariais em `tests/adversarial/cartoes/test_busca_adversarial.py`: busca com 101 caracteres (`422`), só curingas, barra invertida isolada, aspas e trechos de SQL tratados como texto, e valores fora dos enums de `situacao` e `origem` (`422`).
+- [x] T037 [US4] Implementar em `app/cartoes/repositorios.py` a função única `filtro_busca` (`lower(unaccent(...)) LIKE` com escape), os filtros de situação e origem e o resumo dos filtros no cursor. Implementar também os parâmetros da rota de listagem, até que as T034 a T036 passem.
+- [x] T038 [P] [US4] Criar os testes de componente em `frontend/src/funcionalidades/cartoes/`:
   - busca com *debounce* de 300 ms;
   - filtros de situação e origem combináveis;
   - `busca`, `situacao` e `origem` na URL (parâmetros validados), preservados ao recarregar;
   - "Nenhum cartão corresponde à busca" diferente do estado de matéria sem cartões;
   - total exibido;
   - axe sem violações.
-- [ ] T039 [US4] Implementar a barra de busca e filtros na rota da aba Cartões, até que a T038 passe.
-- [ ] T040 [US4] Executar o teste independente da US4 com os 120 cartões do quickstart e registrar a evidência.
+- [x] T039 [US4] Implementar a barra de busca e filtros na rota da aba Cartões, até que a T038 passe.
+- [x] T040 [US4] Executar o teste independente da US4 com os 120 cartões do quickstart e registrar a evidência.
 
 ## Fase final Qualidade transversal
 

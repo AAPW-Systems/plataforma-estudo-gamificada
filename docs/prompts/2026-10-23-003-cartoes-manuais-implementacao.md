@@ -245,7 +245,7 @@ continue com as tasks 4 a 15 da spec 003
 
 ## Pendências
 
-- ~~T017 a T033~~: concluídas nas rodadas 4 e 5 (abaixo). **T034 a T045** (US4 e fase final): não iniciadas; a próxima é a T034 (testes de integração da busca).
+- ~~T017 a T040~~: concluídas nas rodadas 4 a 6 (abaixo). **T041 a T045** (fase final): não iniciadas; a próxima é a T041 (suítes completas nos contêineres e cobertura).
 - **Rodada final com leitor de tela (decisão de 15/10/2026):** painel, lista, filtros e diálogo de exclusão da 003 entram na rodada única do fim do projeto, junto com os da 001 e da 002 (T042 da 003).
 - **Caso de falha da migração sem permissão para `CREATE EXTENSION`:** não reproduzido aqui (papel de teste superusuário e `unaccent` *trusted*).
 - ~~T007~~: resolvida na rodada 3 (abaixo).
@@ -352,4 +352,41 @@ continue com as tasks 28 a 33 da spec 003
 ### Suíte completa da rodada 5
 
 Backend com **2265 passed, 1 skipped** em duas execuções completas seguidas (304 s e 318 s), `ruff` e `mypy` limpos; frontend com 268 passed.
+
+
+## Rodada 6 (29/10/2026): T034 a T040
+
+### Prompt
+
+```text
+continue com as tasks 34 a 40 da spec 003
+```
+
+**Retomada:** `develop` local igual à remota (`ccac389`, CI verde na execução 35); PostgreSQL local religado.
+
+### Evidência da T034 a T037 (US4 no backend)
+
+- **Testes (79 casos):** `tests/integration/cartoes/test_busca.py` (26: "celula", "CÉLULA" e "Célula" encontram as três variações; "ÇÃO" e "acao" encontram "ação"; busca só no verso; pedaço de palavra com espaço; `%`, `_` e `\` literais, com textos que casariam se o escape faltasse; `escapar_like`; combinações de busca, situação e origem, com a contagem igual; outra conta com os mesmos textos nunca alcançada; o termo `x'); DROP TABLE cartoes; --` capturado pelo evento `before_cursor_execute`: só nos parâmetros, nunca no SQL, com `ESCAPE` na listagem e na contagem); `tests/functional/cartoes/test_us4_encontrar.py` (24, com os 120 cartões da fábrica e o esperado calculado em Python: cenários 1 a 3, palavra só do verso, filtros e combinações percorrendo todas as páginas, o suspenso como suspenso na lista filtrada (a parte da T028 que dependia do filtro), total zero com filtros diferente da matéria vazia, busca vazia ou só com espaços igual a sem busca (inclusive no cursor), paginação de 7 em 7 com filtros sem repetir nem pular, cursor reaproveitado com outra busca, mais situação, mais origem ou sem filtros: `422 cursor_invalido`); `tests/adversarial/cartoes/test_busca_adversarial.py` (29: 101 caracteres `422`, 100 aceitos, 100 emojis aceitos; curingas, barras, aspas e trechos de SQL como texto, sem alterar nada; NUL, controles e largura zero sem `500`; valores fora dos enums de `situacao` e `origem`, inclusive em maiúsculas e vazios, `422` no campo; parâmetros repetidos sem `500`; cursor de "a" não serve para "a%").
+- **Implementação:** `repositorios.py` (`FiltrosCartoes`, `escapar_like`, `filtro_busca` como ponto único com `lower(unaccent(...)) LIKE lower(unaccent(:termo_busca)) ESCAPE '\'` na frente ou no verso, e os filtros aplicados à listagem e à contagem), `dominio.py` (`normalizar_busca`, com a mesma normalização do texto do cartão; vazio vira `None`), `servicos.py` (filtros no `listar` e o resumo do cursor com o termo normalizado, a situação e a origem) e os parâmetros `busca` (até 100), `situacao` e `origem` da rota. `openapi.json` e os tipos do frontend regenerados; o teste de contrato passa com os parâmetros do contrato.
+- **Vermelho antes:** o arquivo de integração falhou na coleta (`FiltrosCartoes` ausente) e os outros dois deram 44 failed, 9 passed. Na primeira execução com o código, 13 falhas por erro do teste funcional: a fábrica repete textos (29 pares distintos em 120 cartões), e o esperado comparava conjuntos; passou a comparar contagens (`Counter`).
+- **Mutações (cada uma derrubou testes, código restaurado e conferido com `cmp`):** sem o escape (16), busca só na frente (16), contagem sem os filtros (52), termo embutido no SQL com `literal_execute` (1, o teste da consulta parametrizada), cursor sem a busca no resumo (3), sem o `lower` (17).
+
+### Evidência da T038 e da T039 (interface da US4)
+
+- **Arquivos:** `api/cartoes.ts` (`FiltrosCartoes` e a consulta com os filtros na chave, sob o prefixo da lista), `funcionalidades/cartoes/filtros.ts` (opções, teto da busca vindo de `limites.gerado.ts`, `validarFiltros` dos parâmetros da URL, `combinarFiltros`), `BarraFiltros.tsx` (campo de busca do React Aria, com espera de 300 ms depois da última tecla, e as escolhas nativas "Situação" e "Origem", num `role="search"`), `AbaCartoes.tsx` (barra só quando a matéria tem cartões ou há filtro, "Nenhum cartão corresponde à busca." com "Limpar busca e filtros", distinto do estado de matéria vazia, e a lista anterior à vista enquanto a nova chega), `cache.ts` (troca e remoção do cartão em todas as listas filtradas, por prefixo), a rota da aba com `validateSearch` e `replace` na navegação, e estilos.
+- **Testes (8) em `BuscaCartoes.test.tsx`:** um só pedido, para o termo inteiro, pelo menos 290 ms depois da última tecla; situação e origem combinadas com a busca e na URL; duas mudanças seguidas sem uma desfazer a outra; URL com busca e filtros aplicada ao abrir e valor inválido ignorado; termo acima de 100 caracteres cortado no teto; nenhum resultado distinto da matéria vazia, com axe, e "Limpar" voltando à lista; matéria vazia sem a barra; total acompanhando os filtros, com axe. **Vermelho antes:** 6 failed.
+- **Achados no caminho:** (1) o TanStack Router repassa à rota os parâmetros brutos da URL que a validação descarta (`origem=xpto` chegava à API); a rota valida de novo o objeto da busca. (2) A regra `react-hooks/set-state-in-effect` recusou a sincronização do campo num efeito; o campo passou a se ajustar durante a renderização. (3) O teste novo das duas mudanças deixava um pedido em voo que caía no teste seguinte; ele passou a esperar a lista final.
+- **Verde:** frontend com **276 passed**, `eslint`, `tsc`, `prettier --check` e `vite build` limpos.
+
+### Evidência da T040 (US4 no navegador real, com os 120 cartões do quickstart)
+
+**Ambiente:** o mesmo da T033. A conta `@exemplo.com` e a matéria "Biologia" foram criadas pela API, e os 120 cartões pela linha de comando do quickstart (`python -m tests.fabricas_cartoes --email ... --materia Biologia --quantidade 120`, com `APP_AMBIENTE=desenvolvimento`). Cada total exibido foi conferido com uma contagem SQL independente no banco (`lower(unaccent(...)) LIKE`). Scripts no diretório temporário da sessão, não versionados.
+
+**Achado e correção (`fix(cartoes)`):** tirar o filtro "Suspensos" e logo escolher uma origem fazia o filtro tirado voltar (a segunda mudança usava os filtros da renderização anterior, antes de a navegação terminar). A barra passa só o que mudou, e a rota aplica a mudança sobre a busca mais recente da URL; o teste de componente das duas mudanças falha sem a correção.
+
+**21 de 21 verificações:** "120 cartões" sem filtros; `celula` digitado no campo gera **um só pedido**, para o termo inteiro, mais de 280 ms depois da última tecla, e mostra **34 cartões**, como o banco, com "Célula", "CÉLULA" e "célula", e a busca na URL; com "Suspensos", 12, todos suspensos; com "Criado por você", 13; os três juntos, 2, sempre iguais ao banco; recarregar mantém o endereço, o termo e as duas escolhas; `mitocôndria` (do verso), 4, como o banco; `xyzw` mostra "Nenhum cartão corresponde à busca." sem o estado de matéria vazia, e "Limpar busca e filtros" volta aos 120 sem parâmetros na URL; "Carregar mais" até o fim chega a 120 itens. **Acessibilidade:** axe (WCAG 2.2 AA) sem violações na lista com a barra, filtrada e sem resultado (claro, 1100 px) e filtrada no escuro a 320 px, sem rolagem horizontal. **Logs:** a API registrou as 21 listagens só pelo modelo da rota (`/api/v1/materias/{materiaId}/cartoes`), sem a consulta, e nenhuma ocorrência dos termos buscados.
+
+### Suíte completa da rodada 6
+
+Backend com **2344 passed, 1 skipped** em duas execuções completas seguidas (330 s e 338 s), `ruff` e `mypy` limpos; frontend com 276 passed.
 
