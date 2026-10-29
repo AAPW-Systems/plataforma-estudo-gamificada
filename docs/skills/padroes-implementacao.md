@@ -176,3 +176,16 @@ Copie `.env.example` para `.env` e preencha `POSTGRES_PASSWORD` e `SEGREDO_APLIC
 - **Interface: foco em ações de lista.** Não desabilite o botão durante o pedido: no navegador, o botão desabilitado perde o foco (o jsdom não reproduz). Ignore cliques repetidos por um `ref`. Depois de excluir, o acionador some; foque o título da seção num quadro seguinte (`requestAnimationFrame`), quando o diálogo já saiu, senão o foco preso dele puxa o foco de volta e, ao desmontar, o deixa no corpo da página.
 - **Interface: cache de listas filtradas.** Cada combinação de filtros tem a sua entrada sob a chave da lista. Para trocar ou tirar um cartão, use `setQueriesData` pelo prefixo `chavesCartoes.lista(materiaId)`, e invalide pelo mesmo prefixo.
 
+### IA: base da geração (verificado na base da spec 004)
+
+| O quê | Comando |
+|---|---|
+| Fonte longa fictícia (até 2 MB) já concluída, numa matéria | `docker compose run --rm api uv run python -m tests.fabricas_geracao --email ana.teste@exemplo.com --materia Biologia --tamanho-mb 2` (só com `APP_AMBIENTE=desenvolvimento` e contas `@exemplo.com`) |
+| Só os testes da base da 004 | `docker compose run --rm --no-deps api uv run --frozen pytest tests -k "geracao or ia or dia_estudo or consultas"` (o banco de pé) |
+| Conjunto de avaliação (fora do merge) | `pytest -m avaliacao_ia`, com o provedor real no `.env`; a execução padrão exclui o marcador |
+
+- **Provedor só pelo domínio `ia`.** Quem precisa do provedor chama `ClienteIa.executar`; nunca importa `pydantic_ai` fora de `app/ia/` e de `cartoes/geracao/agentes.py`, nem lê as chaves ou `IA_PROVEDOR` (o teste de arquitetura vigia os dois).
+- **Testes sem rede.** O `conftest` fixa `IA_PROVEDOR=teste` e `ALLOW_MODEL_REQUESTS = False`. Um teste injeta o modelo pelo `ClienteIa(..., modelos=lambda _: modelo)`, com um cenário de `tests/cenarios_provedor.py`.
+- **Enum do banco × enum da API.** Quando um valor novo de enum do banco não pode aparecer numa rota antiga, o DTO tem o próprio enum com os valores do contrato, e o mapeador converte (`cartoes/dtos.py`, `SituacaoCartao`). Um docstring no enum do DTO vai para o OpenAPI: use comentário.
+- **Valor de enum novo numa migração.** `ALTER TYPE ... ADD VALUE IF NOT EXISTS` num `op.get_context().autocommit_block()`, antes dos `CHECK` que o citam; a descida não remove o valor, então a subida seguinte precisa do `IF NOT EXISTS`.
+

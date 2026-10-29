@@ -18,12 +18,12 @@ Resumo das decisões e convenções já aprovadas, para que um agente comece uma
 | [001](../specs/001-conta-acesso/plan.md) conta e acesso | Implementando | `0001_procrastinate`, `0002_identidade` | `identidade`, `saude`, parte de `revisao` (`parametros_fsrs`) |
 | [002](../specs/002-materias-fontes/plan.md) matérias e fontes | Convergida (15/10/2026; leitor de tela na rodada final do projeto) | `0003_acervo` | `materias`, `fontes` |
 | [003](../specs/003-cartoes-manuais/plan.md) cartões manuais | Convergida (29/10/2026; leitor de tela na rodada final do projeto) | `0004_cartoes` | `cartoes` |
-| [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Tarefas aprovadas | `0005_geracao_cartoes` | `ia`, `cartoes/geracao` |
-| [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/dia_estudo.py` e `nucleo/eventos_revisao.py` |
+| [004](../specs/004-geracao-cartoes/plan.md) geração de cartões | Implementando (base T001 a T010 na `develop` em 29/10/2026; T011 aguarda a verificação no Docker; US1 em diante não começou) | `0005_geracao_cartoes` | `ia`, `cartoes/geracao`; `nucleo/dia_estudo.py` (DTEC 048, criado pela 004) |
+| [005](../specs/005-licao-trilha/plan.md) lição e trilha | Tarefas aprovadas | `0006_licoes_revisoes` | `revisao` (lição, apresentação, revisão, trilha); `nucleo/eventos_revisao.py` (`nucleo/dia_estudo.py` já existe, criado pela 004) |
 | [006](../specs/006-xp-meta-sequencia/plan.md) XP, meta e sequência | Tarefas aprovadas | `0007_gamificacao` | `gamificacao`; `nucleo/disponibilidade.py`; provedor em `revisao/disponibilidade.py` |
 | [007](../specs/007-evolucao/plan.md) evolução mínima | Tarefas aprovadas | nenhuma (leitura sobre índices existentes, DTEC 066) | `evolucao` (sem persistência); `transacao_leitura_consistente` em `nucleo/banco.py` |
 
-A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A documentação das specs do MVP (001 a 007) ficou completa em 13/10/2026, e a implementação está liberada. Decisão de 14/10/2026 de Artur Lins: a divisão da implementação entre duas pessoas (`docs/specs/divisao-implementacao-mvp.md`) foi descontinuada, e as specs são implementadas em sequência (001 → 002 → 003 → 004 → 005 → 006 → 007), uma de cada vez, por Artur Lins com o agente. A implementação da 001 começou na `develop` em 13/10/2026, em paralelo ao plano da 007, por revisão da decisão anterior feita por Artur Lins ([registro](../prompts/2026-10-13-001-conta-acesso-implementacao.md)).
+A `0005_geracao_cartoes` foi criada na base da 004 (29/10/2026). A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A documentação das specs do MVP (001 a 007) ficou completa em 13/10/2026, e a implementação está liberada. Decisão de 14/10/2026 de Artur Lins: a divisão da implementação entre duas pessoas (`docs/specs/divisao-implementacao-mvp.md`) foi descontinuada, e as specs são implementadas em sequência (001 → 002 → 003 → 004 → 005 → 006 → 007), uma de cada vez, por Artur Lins com o agente. A implementação da 001 começou na `develop` em 13/10/2026, em paralelo ao plano da 007, por revisão da decisão anterior feita por Artur Lins ([registro](../prompts/2026-10-13-001-conta-acesso-implementacao.md)).
 
 ## Convenções da API
 
@@ -176,6 +176,12 @@ A próxima migração continua sendo a `0008` (a 007 não criou nenhuma). A docu
 - **Provedor:** PydanticAI, com Gemini na camada gratuita e Groq alternativo, configurados por `IA_PROVEDOR`.
 - **Porta única:** `ia/cliente.py`, com orçamento diário de *tokens* por estudante, timeout, `UsageLimits` e uma linha de `consumo_ia` por chamada, sem conteúdo.
 - **Ciência do aviso:** versionada por provedor (`ciencias_aviso_ia`) e exigida antes de qualquer envio (`409 ciencia_aviso_pendente`).
+- **Base da 004 (implementada em 29/10/2026):**
+  - `ia/configuracao.py`: `IA_PROVEDOR` (`gemini`, `groq`, `teste`), modelos com padrão por provedor, chaves em `SecretStr`; a API e o worker não sobem com provedor real sem chave nem com `teste` em produção; aviso versionado por provedor (`gemini-v1`, `groq-v1`, `teste-v1`).
+  - `ia/cliente.py`: `ClienteIa.executar(agente, entrada, contexto)`; o teto da execução é o que resta do orçamento do dia; `classificar_erro` sobre a hierarquia de erros do PydanticAI 2.63 (`ErroTransitorioIA`, `LimiteProvedor`, `RespostaInvalida`, `OrcamentoEsgotado`, `ProvedorIndisponivel`). PydanticAI 2.63: `Agent(retries={"output": 1})`, `run(..., timeout=...)` e `resultado.usage` como atributo.
+  - `fontes/consultas.py`: `fonte_do_dono` (`FOR SHARE`) e `trechos_da_fonte`, a única leitura do acervo pela geração.
+  - Testes: `conftest` com `IA_PROVEDOR=teste` e `ALLOW_MODEL_REQUESTS = False`; fábricas em `tests/fabricas_geracao.py` e cenários em `tests/cenarios_provedor.py`; marcador `avaliacao_ia` fora da execução padrão.
+  - `SituacaoCartao` do banco tem quatro valores; o DTO da 003 (`cartoes/dtos.py`) tem o próprio `SituacaoCartao`, só com `ativo` e `suspenso`, para o contrato não mudar.
 - **Geração (004):**
   - janela de trechos não cobertos;
   - portões determinísticos (vínculo, citação literal, cobertura lexical);
@@ -262,7 +268,8 @@ A próxima DTEC é a **068**.
 
 | Para | Obrigação | Origem |
 |---|---|---|
-| 004 (implementação) | Usar `nucleo/dia_estudo.py` no limite de gerações e no orçamento; quem implementar primeiro (004 ou 005) cria o módulo | [DTEC 048](../research.md#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) |
+| 004 (US1) | Usar `nucleo/dia_estudo.py` no limite de gerações (o orçamento já usa, por `ia/orcamento.py`); o módulo foi criado na base da 004 | [DTEC 048](../research.md#decisão-dtec-048-dia-de-estudo-calculado-num-único-ponto) |
+| 004 (US1) | Os agentes reais (`cartoes/geracao/agentes.py`) seguem o formato de delimitação e os nomes de campos que `tests/cenarios_provedor.py` simula (`SaidaGeracao` e `avaliacoes` da juíza, `<cartao indice="N">`), ou os cenários mudam junto | Base da 004 (T006) |
 | 006 (implementação) | `dias_no_intervalo` com o recorte no primeiro dia do estudante e em hoje (esclarecimento da T036 da 006) | [DTEC 065](../specs/007-evolucao/research.md#decisão-dtec-065-período-e-situações-do-calendário) |
 | Toda spec que altere a situação de cartões, a meta, o limite de novos ou o fuso | Chamar os ganchos `antes_de_alterar` e `depois_de_alterar` da DTEC 057 na própria transação | [DTEC 057](../research.md#decisão-dtec-057-disponibilidade-de-cartões-e-ganchos-de-alteração-no-núcleo) |
 | 001, 003 e 005 (implementação) | Não mudam de comportamento: as chamadas aos ganchos, o provedor em `revisao` e os campos aditivos são tarefas da 006; quem implementar primeiro uma spec que precise de `nucleo/disponibilidade.py` cria o módulo com os registros vazios | [Plano da 006](../specs/006-xp-meta-sequencia/plan.md#saídas-do-planejamento) |

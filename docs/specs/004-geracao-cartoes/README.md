@@ -4,7 +4,7 @@
 |---|---|
 | Funcionalidade do backlog | F-04 (parte de IA do MVP); EX-02 e EX-03 |
 | Estágio | **MVP** |
-| Status | Tarefas aprovadas |
+| Status | Implementando |
 | Depende de | [002](../002-materias-fontes/README.md), [003](../003-cartoes-manuais/README.md) |
 
 ## Ordem de leitura
@@ -32,3 +32,4 @@
 | 13/10/2026 | Plano aprovado por Artur Lins, com as DTEC 039 a 047 ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
 | 13/10/2026 | Tarefas (T001 a T059) e rastreabilidade escritas; aguardando o portão "Tarefas aprovadas" ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
 | 13/10/2026 | Tarefas e rastreabilidade aprovadas por Artur Lins; implementação adiada até a documentação das specs do MVP ficar completa ([registro](../../prompts/2026-10-13-004-geracao-cartoes-plano.md)) |
+| 29/10/2026 | Implementação da base (Fases 1 e 2) na `develop`: T001 a T010 concluídas com evidência; T011 aguarda a verificação no Docker Desktop por Artur Lins e o CI; responsável pela implementação e revisor do conjunto de avaliação: Artur Lins ([registro](../../prompts/2026-10-29-004-geracao-cartoes-implementacao.md)) |

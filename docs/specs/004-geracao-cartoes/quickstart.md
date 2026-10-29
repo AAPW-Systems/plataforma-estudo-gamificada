@@ -4,6 +4,18 @@
 
 Este guia descreve como outra pessoa verifica o incremento sem depender de explicações orais. Ele parte do ambiente das specs [001](../001-conta-acesso/quickstart.md), [002](../002-materias-fontes/quickstart.md) e [003](../003-cartoes-manuais/quickstart.md): mesmos pré-requisitos, mesmos comandos de execução e de testes. Os passos abaixo passam a funcionar depois das tarefas da US1 e da US4 da 004 (`tasks.md`, etapa 6). Todo serviço roda em contêiner (regra 11).
 
+## Verificação da base (T011)
+
+Antes da US1, a base (migração, configuração e domínio `ia`) é conferida assim, com o `.env` copiado do `.env.example` (a seção de IA já vem com `IA_PROVEDOR=teste` e as chaves vazias):
+
+```bash
+docker compose up -d --build --wait
+docker compose logs migrate | tail -n 5
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\dT+ situacao_cartao"'
+```
+
+O `migrate` termina com a `0005` aplicada, e a coluna de valores mostra `ativo`, `suspenso`, `aguardando_revisao` e `recusado`.
+
 ## Pré-requisitos
 
 - O ambiente da 003 funcionando (`docker compose up --build`, serviços saudáveis em `docker compose ps`) e a migração `0005_geracao_cartoes` aplicada (a API aplica as migrações ao subir).

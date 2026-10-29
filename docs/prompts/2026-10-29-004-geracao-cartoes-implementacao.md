@@ -108,10 +108,21 @@ Artur Lins
   - **Verde:** 44 testes em `tests/unit/test_fabricas_geracao.py` e `tests/integration/geracao/test_fabricas_geracao.py`: invariantes dos trechos por tema, recusas da linha de comando (ambiente, domínio, tamanho), os cenários válidos passando nos portões 1 a 4 avaliados à mão no teste (a implementação real é da US1), cada cenário inválido falhando no portão que exercita, os lados da contradição passando nos portões (quem os reprova é a juíza), a resposta malformada esgotando o pedido de correção (2 chamadas), os erros do provedor, a juíza e o contador; no banco, cada tema grava a fonte e os trechos, o mesmo tema entra duas vezes na matéria, e a linha de comando cria a fonte longa numa conta `@exemplo.com`.
   - **Mutações (cada uma restaurada):** sem a recusa de ambiente (2 falhas), sem a recusa de domínio (4), biologia sem página (2), hash sem o sufixo aleatório (1), explicação sem apoio no trecho (5), juíza sem omitir (1), contador sem contar (2), citação invertida (7). A citação em maiúsculas sobreviveu e é equivalente: o portão da citação compara sem diferenciar caixa (DTEC 042).
 
+- **T011:** aberta. A parte do Compose é verificada por Artur Lins no Docker Desktop (o contêiner de nuvem não tem Docker), com os comandos da seção "Verificação da base (T011)" do [quickstart](../specs/004-geracao-cartoes/quickstart.md); a tarefa só é marcada depois que a saída for colada aqui. A parte do CI é conferida depois do push (abaixo).
+
+- **Antes do push:** `git pull --rebase origin develop` sem mudança; backend completo, execução 1: 2598 aprovados e 1 pulado em 7 min 48 s.
+
 ## Saída aceita
 
-*Em andamento.*
+- Base da spec 004 (Fases 1 e 2) na `develop`: T001 a T010 concluídas, cada uma com vermelho, verde e mutações registrados acima, em commits atômicos de autoria de Artur Lins.
+- Documentação atualizada: tarefas, README da spec, índice das specs, "Estado atual" e mapa do `AGENTS.md`, `contexto-tecnico.md` (estado, base da 004 e obrigações), `padroes-implementacao.md` (seção da base da 004) e quickstart (verificação da T011).
 
 ## Pendências
 
-*Em andamento.*
+- **T011 (depende de Artur Lins):** `docker compose up -d --build --wait` e `\dT+ situacao_cartao` no Docker Desktop, com a saída colada neste registro.
+- **US1 (T012 em diante):** só começa por decisão de Artur Lins. Pontos levantados nesta base para ela:
+  - os agentes reais precisam seguir o formato de delimitação e os nomes de campos simulados em `tests/cenarios_provedor.py` (ou os cenários mudam junto);
+  - o quickstart diz que o provedor simulado (`IA_PROVEDOR=teste`) "devolve cartões fictícios sustentados pelos trechos"; hoje `teste` usa o `TestModel` do PydanticAI, que gera saídas de acordo com o esquema mas sem relação com os trechos (seriam descartadas pelos portões). Fazer o modo de desenvolvimento devolver cartões sustentados é trabalho da US1;
+  - os modelos padrão (`gemini-2.5-flash` e `llama-3.3-70b-versatile`) ainda não foram conferidos contra a camada gratuita vigente; isso é registrado no relatório de avaliação, antes da primeira execução do conjunto.
+- **Leitor de tela:** rodada final do projeto (decisão de 15/10/2026).
+- **Ambiente local:** o teste `tests/integration/test_saude.py:138` é pulado aqui porque o banco local roda como superusuário; no CI ele roda.
