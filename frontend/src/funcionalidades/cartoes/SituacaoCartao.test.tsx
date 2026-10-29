@@ -90,6 +90,38 @@ describe("Suspender, reativar e excluir (T031; US3, RF-007, RF-008, RF-009)", ()
     expect(pedidos).toEqual([`suspender ${idCartao(1)}`, `reativar ${idCartao(1)}`]);
   });
 
+  it("durante o pedido o botão segue habilitado e com o foco, e cliques repetidos não repetem o pedido", async () => {
+    // Desabilitar o botão tiraria o foco dele no navegador real (achado da T033).
+    const pedidos = servir([cartaoFicticio({ id: idCartao(1), frente: "Mitose" })]);
+    let liberar: () => void = () => undefined;
+    const pendente = new Promise<void>((resolver) => {
+      liberar = resolver;
+    });
+    servidor.use(
+      http.post(`${BASE}/cartoes/:id/suspensao`, async () => {
+        pedidos.push("suspender lento");
+        await pendente;
+        return HttpResponse.json(
+          cartaoFicticio({ id: idCartao(1), frente: "Mitose", situacao: "suspenso" }),
+        );
+      }),
+    );
+    const usuario = userEvent.setup();
+    renderizarComConsultas(<AbaCartoes materiaId={ID_MATERIA} />);
+    await lista();
+    const botao = within(item("Mitose")).getByRole("button", { name: /^Suspender/ });
+
+    await usuario.click(botao);
+    await usuario.click(botao);
+    await usuario.keyboard("{Enter}");
+
+    expect(botao).toBeEnabled();
+    expect(botao).toHaveFocus();
+    liberar();
+    expect(await within(item("Mitose")).findByText("Suspenso")).toBeInTheDocument();
+    expect(pedidos).toEqual(["suspender lento"]);
+  });
+
   it("o diálogo de exclusão avisa que é definitiva, prende o foco e devolve-o ao cancelar, sem violações axe", async () => {
     const pedidos = servir([cartaoFicticio({ frente: "Mitose" })]);
     const usuario = userEvent.setup();
@@ -143,7 +175,9 @@ describe("Suspender, reativar e excluir (T031; US3, RF-007, RF-008, RF-009)", ()
     });
     expect(screen.getByText("Meiose")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Cartão excluído.");
-    expect(screen.getByRole("heading", { name: "Cartões" })).toHaveFocus();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Cartões" })).toHaveFocus();
+    });
     expect(pedidos).toEqual([`excluir ${idCartao(1)}`]);
   });
 

@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { consultaFontes } from "../../api/acervo";
 import {
@@ -25,13 +25,29 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
   const [emEdicao, definirEmEdicao] = useState<Cartao>();
   const [anuncio, definirAnuncio] = useState("");
   const [erroAcao, definirErroAcao] = useState<string>();
-  const [alternando, definirAlternando] = useState<string>();
+  // Cartões com um pedido de situação em curso. O botão não é desabilitado: no navegador, um
+  // botão desabilitado perde o foco, e quem usa o teclado ficaria sem saber onde está.
+  const alternando = useRef(new Set<string>());
   const titulo = useRef<HTMLHeadingElement>(null);
+  // Depois de excluir, o acionador some com o cartão: o foco vai para o título da seção. Só
+  // depois de o diálogo sair da tela (no quadro seguinte), senão o foco preso nele o puxa de
+  // volta e, ao desmontar, o foco cai no corpo da página.
+  const [focarTitulo, definirFocarTitulo] = useState(0);
+  useEffect(() => {
+    if (focarTitulo === 0) return;
+    const quadro = requestAnimationFrame(() => {
+      titulo.current?.focus();
+    });
+    return () => {
+      cancelAnimationFrame(quadro);
+    };
+  }, [focarTitulo]);
   const queryClient = useQueryClient();
 
   async function alternarSituacao(cartao: Cartao) {
+    if (alternando.current.has(cartao.id)) return;
+    alternando.current.add(cartao.id);
     const suspender = cartao.situacao === "ativo";
-    definirAlternando(cartao.id);
     definirErroAcao(undefined);
     definirAnuncio("");
     try {
@@ -46,7 +62,7 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
       }
       definirErroAcao("Não foi possível mudar a situação do cartão. Tente novamente.");
     } finally {
-      definirAlternando(undefined);
+      alternando.current.delete(cartao.id);
     }
   }
 
@@ -54,8 +70,7 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
     removerDaLista(queryClient, materiaId, cartao.id);
     definirAnuncio("Cartão excluído.");
     void invalidarCartoesEMaterias(queryClient, materiaId);
-    // O acionador sumiu com o cartão: o foco vai para o título da seção.
-    titulo.current?.focus();
+    definirFocarTitulo((pedido) => pedido + 1);
   }
 
   const paginas = cartoes.data?.pages ?? [];
@@ -114,7 +129,6 @@ export function AbaCartoes({ materiaId }: { materiaId: string }) {
               aoAlternarSituacao={() => {
                 void alternarSituacao(cartao);
               }}
-              alternando={alternando === cartao.id}
               aoExcluido={() => {
                 aoExcluido(cartao);
               }}

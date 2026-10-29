@@ -9,8 +9,8 @@ export interface ItemCartaoProps {
   cartao: Cartao;
   aoEditar: () => void;
   /** Suspende o ativo ou reativa o suspenso (US3-1, 2). */
+  /** Pedidos repetidos enquanto o primeiro corre são ignorados por quem chama. */
   aoAlternarSituacao: () => void;
-  alternando?: boolean;
   aoExcluido: () => void;
 }
 
@@ -18,13 +18,7 @@ export interface ItemCartaoProps {
  * Um cartão na lista (RF-004, RF-009). O texto do estudante é sempre texto, com as quebras de
  * linha mantidas por `pre-wrap`; nada é interpretado como marcação (RQ-001).
  */
-export function ItemCartao({
-  cartao,
-  aoEditar,
-  aoAlternarSituacao,
-  alternando = false,
-  aoExcluido,
-}: ItemCartaoProps) {
+export function ItemCartao({ cartao, aoEditar, aoAlternarSituacao, aoExcluido }: ItemCartaoProps) {
   const situacao = SITUACOES[cartao.situacao];
   const referencia = cartao.referencia;
   const resumo = resumoDaFrente(cartao.frente);
@@ -49,7 +43,6 @@ export function ItemCartao({
         <Botao
           variante="secundario"
           aria-label={`${acaoSituacao} o cartão: ${resumo}`}
-          isDisabled={alternando}
           onPress={aoAlternarSituacao}
         >
           {acaoSituacao}
