@@ -60,6 +60,18 @@ def normalizar_texto_cartao(texto: str) -> str:
     return unicodedata.normalize("NFC", texto).strip()
 
 
+def normalizar_busca(termo: str | None) -> str | None:
+    """O termo de busca com a mesma normalização do texto do cartão; vazio vira `None`.
+
+    Assim, buscar só espaços equivale a não buscar, e o termo e o texto comparados passaram pela
+    mesma limpeza (NFC, sem controles e sem pontas). O teto de `BUSCA_MAXIMA` é conferido na
+    entrada, antes daqui (DTEC 033).
+    """
+    if termo is None:
+        return None
+    return normalizar_texto_cartao(termo) or None
+
+
 @dataclass(frozen=True, slots=True)
 class LimitesTexto:
     """Limites vigentes em caracteres (code points), configuráveis por ambiente (D-004)."""

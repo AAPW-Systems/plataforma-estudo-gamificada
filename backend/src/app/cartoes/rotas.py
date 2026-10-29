@@ -8,7 +8,13 @@ from uuid import UUID
 from fastapi import APIRouter, Path, Query, Response
 
 from app.cartoes.dependencias import Servico
-from app.cartoes.dominio import PAGINA_MAXIMA, PAGINA_PADRAO
+from app.cartoes.dominio import (
+    BUSCA_MAXIMA,
+    PAGINA_MAXIMA,
+    PAGINA_PADRAO,
+    OrigemCartao,
+    SituacaoCartao,
+)
 from app.cartoes.dtos import (
     CartaoDTO,
     CriacaoCartaoEntradaDTO,
@@ -52,9 +58,33 @@ async def listar_cartoes(
         ),
     ] = None,
     limite: Annotated[int, Query(ge=1, le=PAGINA_MAXIMA)] = PAGINA_PADRAO,
+    busca: Annotated[
+        str | None,
+        Query(
+            max_length=BUSCA_MAXIMA,
+            description=(
+                "Texto procurado na frente ou no verso, sem diferenciar maiúsculas, minúsculas e "
+                "acentos (DTEC 033). Normalizado em NFC e sem espaços nas extremidades; `%` e `_` "
+                "são literais. Vazio depois da normalização equivale a ausente."
+            ),
+        ),
+    ] = None,
+    situacao: SituacaoCartao | None = None,
+    origem: OrigemCartao | None = None,
 ) -> ListaCartoesDTO:
-    """Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo."""
-    pagina = await servico.listar(atual.usuario.id, materia_id, cursor=cursor, limite=limite)
+    """Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.
+
+    Busca, situação e origem se combinam (US4; RF-010).
+    """
+    pagina = await servico.listar(
+        atual.usuario.id,
+        materia_id,
+        cursor=cursor,
+        limite=limite,
+        busca=busca,
+        situacao=situacao,
+        origem=origem,
+    )
     return pagina_para_dto(pagina)
 
 

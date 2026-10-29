@@ -290,6 +290,8 @@ export interface paths {
     /**
      * Listar Cartoes
      * @description Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.
+     *
+     *     Busca, situação e origem se combinam (US4; RF-010).
      */
     get: operations["listarCartoes"];
     put?: never;
@@ -2105,6 +2107,10 @@ export interface operations {
         /** @description `proximoCursor` da página anterior, com os mesmos filtros */
         cursor?: string | null;
         limite?: number;
+        /** @description Texto procurado na frente ou no verso, sem diferenciar maiúsculas, minúsculas e acentos (DTEC 033). Normalizado em NFC e sem espaços nas extremidades; `%` e `_` são literais. Vazio depois da normalização equivale a ausente. */
+        busca?: string | null;
+        situacao?: components["schemas"]["SituacaoCartao"] | null;
+        origem?: components["schemas"]["OrigemCartao"] | null;
       };
       header?: never;
       path: {

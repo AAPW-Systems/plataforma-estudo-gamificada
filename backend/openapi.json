@@ -2594,7 +2594,7 @@
     },
     "/api/v1/materias/{materiaId}/cartoes": {
       "get": {
-        "description": "Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.",
+        "description": "Lista os cartões ativos e suspensos da matéria, do mais recente para o mais antigo.\n\nBusca, situação e origem se combinam (US4; RF-010).",
         "operationId": "listarCartoes",
         "parameters": [
           {
@@ -2638,6 +2638,57 @@
               "minimum": 1,
               "title": "Limite",
               "type": "integer"
+            }
+          },
+          {
+            "description": "Texto procurado na frente ou no verso, sem diferenciar maiúsculas, minúsculas e acentos (DTEC 033). Normalizado em NFC e sem espaços nas extremidades; `%` e `_` são literais. Vazio depois da normalização equivale a ausente.",
+            "in": "query",
+            "name": "busca",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Texto procurado na frente ou no verso, sem diferenciar maiúsculas, minúsculas e acentos (DTEC 033). Normalizado em NFC e sem espaços nas extremidades; `%` e `_` são literais. Vazio depois da normalização equivale a ausente.",
+              "title": "Busca"
+            }
+          },
+          {
+            "in": "query",
+            "name": "situacao",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SituacaoCartao"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Situacao"
+            }
+          },
+          {
+            "in": "query",
+            "name": "origem",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OrigemCartao"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Origem"
             }
           }
         ],

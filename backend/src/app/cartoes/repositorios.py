@@ -6,9 +6,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, delete, func, select, tuple_, update
+from sqlalchemy import ColumnElement, Select, bindparam, delete, func, or_, select, tuple_, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 
 from app.cartoes.cursor import PosicaoCursor
 from app.cartoes.dominio import EstadoInicial, TextoCartao
@@ -20,6 +21,41 @@ from app.nucleo.erros import RecursoNaoEncontrado
 
 # Aguardando revisão e recusado (004) ficam fora de toda rota e lista da 003 (DTEC 038).
 SITUACOES_VISIVEIS = (SituacaoCartao.ATIVO, SituacaoCartao.SUSPENSO)
+
+
+@dataclass(frozen=True, slots=True)
+class FiltrosCartoes:
+    """Filtros da lista (US4; RF-010). `busca` já vem normalizada pelo domínio, ou é `None`."""
+
+    busca: str | None = None
+    situacao: SituacaoCartao | None = None
+    origem: OrigemCartao | None = None
+
+
+def escapar_like(termo: str) -> str:
+    """`\\`, `%` e `_` viram literais no `LIKE ... ESCAPE '\\'` (DTEC 033)."""
+    return termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _sem_acento_minusculo(
+    expressao: ColumnElement[str] | InstrumentedAttribute[str],
+) -> ColumnElement[str]:
+    # Primeiro `unaccent`, depois `lower`: "É" vira "E" antes da minúscula, mesmo que a colação
+    # do banco converta só ASCII (DTEC 033).
+    return func.lower(func.unaccent(expressao))
+
+
+def filtro_busca(termo: str) -> ColumnElement[bool]:
+    """Ponto único da busca: frente ou verso contém o termo, sem caixa nem acento (DTEC 033).
+
+    O termo vai sempre como parâmetro, nunca concatenado ao SQL.
+    """
+    padrao = _sem_acento_minusculo(bindparam("termo_busca", "%" + escapar_like(termo) + "%"))
+    return or_(
+        _sem_acento_minusculo(Cartao.frente).like(padrao, escape="\\"),
+        _sem_acento_minusculo(Cartao.verso).like(padrao, escape="\\"),
+    )
+
 
 _FK_MATERIA = "cartoes_materia_id_fkey"
 _FK_FONTE = "cartoes_fonte_id_fkey"
@@ -205,16 +241,31 @@ class RepositorioCartoes:
         return excluido
 
     @staticmethod
-    def _filtro(usuario_id: int, materia_id: int) -> tuple[ColumnElement[bool], ...]:
-        return (
+    def _filtro(
+        usuario_id: int, materia_id: int, filtros: FiltrosCartoes | None = None
+    ) -> tuple[ColumnElement[bool], ...]:
+        condicoes: list[ColumnElement[bool]] = [
             Cartao.usuario_id == usuario_id,
             Cartao.materia_id == materia_id,
             Cartao.situacao.in_(SITUACOES_VISIVEIS),
-        )
+        ]
+        if filtros is not None:
+            if filtros.situacao is not None:
+                condicoes.append(Cartao.situacao == filtros.situacao)
+            if filtros.origem is not None:
+                condicoes.append(Cartao.origem == filtros.origem)
+            if filtros.busca:
+                condicoes.append(filtro_busca(filtros.busca))
+        return tuple(condicoes)
 
-    async def contar(self, usuario_id: int, materia_id: int) -> int:
+    async def contar(
+        self, usuario_id: int, materia_id: int, *, filtros: FiltrosCartoes | None = None
+    ) -> int:
+        """Todos os cartões que atendem aos filtros, não só os da página (DTEC 034)."""
         consulta = (
-            select(func.count()).select_from(Cartao).where(*self._filtro(usuario_id, materia_id))
+            select(func.count())
+            .select_from(Cartao)
+            .where(*self._filtro(usuario_id, materia_id, filtros))
         )
         return int((await self._sessao.execute(consulta)).scalar_one())
 
@@ -223,6 +274,7 @@ class RepositorioCartoes:
         usuario_id: int,
         materia_id: int,
         *,
+        filtros: FiltrosCartoes | None = None,
         posicao: PosicaoCursor | None = None,
         limite: int = 50,
     ) -> tuple[list[LinhaCartao], bool]:
@@ -234,7 +286,7 @@ class RepositorioCartoes:
         """
         consulta = (
             self._com_identificadores()
-            .where(*self._filtro(usuario_id, materia_id))
+            .where(*self._filtro(usuario_id, materia_id, filtros))
             .order_by(Cartao.criado_em.desc(), Cartao.id.desc())
             .limit(limite + 1)
         )

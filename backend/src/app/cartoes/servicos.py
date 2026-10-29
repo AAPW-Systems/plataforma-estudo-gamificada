@@ -17,7 +17,12 @@ from app.cartoes.excecoes import (
     FonteDeReferenciaInvalida,
     TextoCartaoInvalido,
 )
-from app.cartoes.repositorios import CopiaReferencia, LinhaCartao, RepositorioCartoes
+from app.cartoes.repositorios import (
+    CopiaReferencia,
+    FiltrosCartoes,
+    LinhaCartao,
+    RepositorioCartoes,
+)
 from app.materias.repositorios import RepositorioMaterias
 from app.nucleo.banco import FabricaSessoes, unidade_de_trabalho
 from app.nucleo.configuracao import Configuracao
@@ -95,12 +100,31 @@ class ServicoCartoes:
         return linha
 
     async def listar(
-        self, usuario_id: int, materia_public_id: UUID, *, cursor: str | None, limite: int
+        self,
+        usuario_id: int,
+        materia_public_id: UUID,
+        *,
+        cursor: str | None,
+        limite: int,
+        busca: str | None = None,
+        situacao: dominio.SituacaoCartao | None = None,
+        origem: dominio.OrigemCartao | None = None,
     ) -> PaginaCartoes:
-        """Uma página dos cartões ativos e suspensos da matéria, do mais recente ao mais antigo."""
+        """Uma página dos cartões ativos e suspensos da matéria, do mais recente ao mais antigo.
+
+        Busca, situação e origem se combinam (US4; RF-010). O cursor só vale para a mesma lista,
+        com os mesmos filtros já normalizados (DTEC 034).
+        """
+        filtros = FiltrosCartoes(dominio.normalizar_busca(busca), situacao, origem)
         async with unidade_de_trabalho(self._fabrica) as sessao:
             materia = await RepositorioMaterias(sessao).buscar(usuario_id, materia_public_id)
-            resumo = cursor_opaco.resumo_dos_filtros(usuario_id, materia.public_id)
+            resumo = cursor_opaco.resumo_dos_filtros(
+                usuario_id,
+                materia.public_id,
+                busca=filtros.busca,
+                situacao=situacao.value if situacao else None,
+                origem=origem.value if origem else None,
+            )
             posicao: PosicaoCursor | None = None
             if cursor:
                 try:
@@ -111,9 +135,9 @@ class ServicoCartoes:
                     raise CursorDeListaInvalido() from None
             repositorio = RepositorioCartoes(sessao)
             itens, ha_mais = await repositorio.listar(
-                usuario_id, materia.id, posicao=posicao, limite=limite
+                usuario_id, materia.id, filtros=filtros, posicao=posicao, limite=limite
             )
-            total = await repositorio.contar(usuario_id, materia.id)
+            total = await repositorio.contar(usuario_id, materia.id, filtros=filtros)
         proximo = None
         if ha_mais:
             ultimo = itens[-1].cartao
